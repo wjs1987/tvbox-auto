@@ -386,7 +386,9 @@ def upsert_super_source(latest: dict, api_token: str) -> bool:
     except Exception as e:
         print(f"[超级源] token 签发失败，本轮跳过: {e}")
         return False
-    url = f"https://{SUPER_SOURCE_DOMAIN}/api?eo_token={tok}&eo_time={ts}"
+    # 实测：URL 带 eo_token 会触发 EdgeOne 的 302 换 cookie 流程（FongMi 无 CookieJar 会卡死）；
+    # 只有 Cookie 请求头 + 干净 URL 才直连 200。token 只放 header，不放 URL。
+    url = f"https://{SUPER_SOURCE_DOMAIN}/api"
     site = {"key": "super", "name": SUPER_SOURCE_NAME, "type": 1, "api": url,
             # FongMi/TV 无 CookieJar，无法跟随 EdgeOne 的 302 换 cookie 流程，
             # 必须把 token 直接放进请求头，才能通过 EdgeOne 域名验证

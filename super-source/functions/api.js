@@ -124,7 +124,7 @@ async function fetchLatest(env) {
 async function rebuild(env) {
   const latestUrl = env.LATEST_URL || DEFAULT_LATEST;
   const maxUp = parseInt(env.MAX_UPSTREAMS || "6", 10);
-  const pages = parseInt(env.PAGES_PER_SOURCE || "2", 10);
+  const pages = parseInt(env.PAGES_PER_SOURCE || "8", 10);
 
   const latest = await fetchLatest(env);
   // latest.json 拉不到时用内置兜底列表，服务永不中断
@@ -171,7 +171,9 @@ async function rebuild(env) {
       const key = normName(it.name);
       if (!key || seen.has(key)) continue;
       let cid = "c_all";
-      for (const [re, id] of CAT_MAP) {
+      // 备注带"第N期"的是典型综艺（第6期/第20261126期），优先级最高，避免被"爱情"等词误判成电影
+      if (/第\d+期/.test(it.remarks || "")) cid = "c_variety";
+      else for (const [re, id] of CAT_MAP) {
         if (re.test(it.cat || "") || re.test(it.name || "")) { cid = id; break; }
       }
       seen.set(key, {

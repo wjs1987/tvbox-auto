@@ -25,6 +25,23 @@ const KV_KEY = "catalog";
 const UA = "okhttp/3.12.0";
 const REFRESH_INTERVAL_MS = 20 * 3600 * 1000; // 超过 20 小时自动重建
 
+// KV 尚未绑定/审批中时的内存兜底缓存（同一隔离实例内多请求共享，冷启动后需重建）
+let memStore = new Map();
+
+async function kvGet(env, key) {
+  try {
+    if (env.KV && typeof env.KV.get === "function") return await env.KV.get(key, "json");
+  } catch { /* KV 异常时退回内存 */ }
+  return memStore.has(key) ? memStore.get(key) : null;
+}
+
+async function kvPut(env, key, value) {
+  memStore.set(key, value); // 始终写内存，保证无 KV 时同实例请求可直接复用
+  try {
+    if (env.KV && typeof env.KV.put === "function") await env.KV.put(key, JSON.stringify(value));
+  } catch { /* 忽略 KV 写入失败 */ }
+}
+
 const FIXED_CLASSES = [
   { type_id: "c_all", type_name: "全部" },
   { type_id: "c_movie", type_name: "电影" },
@@ -176,14 +193,14 @@ async function rebuild(env) {
     classes: FIXED_CLASSES,
     items: [...seen.values()],
   };
-  await env.KV.put(KV_KEY, JSON.stringify(catalog));
+  await kvPut(env, KV_KEY, catalog);
   return catalog;
 }
 
 // ---------- 请求处理 ----------
 
 async function getCatalog(env) {
-  const cat = await env.KV.get(KV_KEY, "json");
+  const cat = await kvGet(env, KV_KEY);
   if (cat && cat.updated && Date.now() - new Date(cat.updated).getTime() < REFRESH_INTERVAL_MS) {
     return cat;
   }

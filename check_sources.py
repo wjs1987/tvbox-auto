@@ -609,8 +609,8 @@ def classify_py(name: str, cat: str, remarks: str) -> str:
 
 
 def build_super_catalog(selected_sites: list, timeout: float = 8,
-                        latest_pages: int = 10, cat_pages: int = 6,
-                        max_cats: int = 10, max_items: int = 15000,
+                        latest_pages: int = 20, cat_pages: int = 12,
+                        max_cats: int = 20, max_items: int = 30000,
                         max_lines: int = 4) -> dict:
     """深挖各上游源生成汇总目录（去重+多源线路+分类），输出超级源静态目录。"""
     upstreams = [s for s in selected_sites if s.get("type", 0) in (0, 1) and s.get("api")]
@@ -987,7 +987,7 @@ def main():
     ap.add_argument("--workers", type=int, default=30)
     ap.add_argument("--timeout", type=float, default=8.0)
     ap.add_argument("--limit", type=int, default=0, help="限制本次测试数量（调试用）")
-    ap.add_argument("--top", type=int, default=8, help="最终精选保留多少个点播源")
+    ap.add_argument("--top", type=int, default=25, help="最终精选保留多少个点播源")
     ap.add_argument("--top-lives", type=int, default=3, help="精选保留多少个直播源引用")
     ap.add_argument("--out", default="latest.json")
     ap.add_argument("--report", default="report.md")

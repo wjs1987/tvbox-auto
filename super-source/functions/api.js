@@ -225,11 +225,11 @@ async function fetchFreshCatalog(env, origin) {
 
 async function rebuild(env) {
   const latestUrl = env.LATEST_URL || DEFAULT_LATEST;
-  const maxUp = parseInt(env.MAX_UPSTREAMS || "6", 10);
-  const pages = parseInt(env.PAGES_PER_SOURCE || "8", 10);
+  const maxUp = parseInt(env.MAX_UPSTREAMS || "25", 10);
+  const pages = parseInt(env.PAGES_PER_SOURCE || "20", 10);
   // 按分类深挖：每个源再并行抓它的电影/剧集等分类列表，大幅扩充资源量
-  const catPages = parseInt(env.CAT_PAGES_PER_SOURCE || "6", 10);
-  const maxCats = parseInt(env.MAX_CATS_PER_SOURCE || "8", 10);
+  const catPages = parseInt(env.CAT_PAGES_PER_SOURCE || "12", 10);
+  const maxCats = parseInt(env.MAX_CATS_PER_SOURCE || "20", 10);
 
   const latest = await fetchLatest(env);
   // latest.json 拉不到时用内置兜底列表，服务永不中断
@@ -392,7 +392,8 @@ async function handleList(q, env, cat, origin) {
       }
     }
     const latest = await fetchLatest(env);
-    const apis = latest ? getUpstreams(env, latest, 6) : DEFAULT_UPSTREAMS.slice(0, 6);
+    // 搜索回源放宽到 15 个源：本地目录没收录的冷门片，跨源搜索更容易命中
+    const apis = latest ? getUpstreams(env, latest, 15) : DEFAULT_UPSTREAMS.slice(0, 15);
     const found = new Map();
     await Promise.allSettled(
       apis.map(async (site) => {

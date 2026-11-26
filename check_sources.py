@@ -522,8 +522,15 @@ def auto_mode(args):
                 if body and len(body) >= 10_000 and body[:2] == "PK":
                     jar_results.append(futs[f])
         if jar_results:
-            spider_url = jar_results[0]
-            print(f"[jar] 可用 {len(jar_results)} 个，选用: {spider_url[:60]}")
+            # 选出能配对最多 type 3 存活源的 jar（并列时取源响应最快的）
+            from collections import Counter as _C
+            alive_t3 = [r for r in good if r["site"].get("type", 0) == 3]
+            jar2cnt = _C(r["site"].get("_spider", "") for r in alive_t3
+                         if r["site"].get("_spider") in jar_results)
+            spider_url = max(jar_results, key=lambda j: (jar2cnt.get(j, 0), -j)) if jar2cnt \
+                else jar_results[0]
+            print(f"[jar] 可用 {len(jar_results)} 个，选用: {spider_url[:60]}"
+                  f"（配对 {jar2cnt.get(spider_url, 0)} 个 type3 存活源）")
             # 加入与该 jar 配对的 type 3 源（如 玩偶/哔哩/Emby 等高级源）
             t3 = [r for r in good if r["site"].get("type", 0) == 3
                   and r["site"].get("_spider") == spider_url]

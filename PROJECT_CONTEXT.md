@@ -44,7 +44,7 @@ GitHub Actions(每日) ──► latest.json（含 sites + lives）──► 魔
 | `check_sources.py` | 主流水线：爬取、测速、生成 latest.json / super_catalog.json / report.md |
 | `build_live.py` | 直播源整理（本次新增），参数见下 |
 | `config/tv.json` | 种子配置：157 个种子站点 + flags/parses/lives 模板 |
-| `super-source/functions/api.js` | 边缘函数：maccms 接口、片单聚合、详情聚合多线路、成人过滤 |
+| `super-source/functions/api.js` | 边缘函数：maccms 接口、片单聚合、详情聚合多线路、成人过滤；存储层 Blob 优先（命名空间 `super-source`，免审批自动创建）→ KV → 内存，`?mode=status` 的 `storage` 字段可查当前后端 |
 | `super-source/catalog.json` | 片单静态目录（随函数部署，毫秒级加载） |
 | `latest.json` | 最终配置（sites + lives），魔屏读的就是它 |
 | `HANDOFF.md` | 直播部分的交接说明（更细的操作步骤） |
@@ -111,7 +111,7 @@ npx edgeone pages deploy . -n makers-lxb2wlvf61qz -t <EDGEONE_TOKEN>
 
 ## 当前状态（2026-11-26）
 
-- 点播：上游 5 个（淘片/建安/极速/虎牙/光速），超级源 839 部（去重后），热请求 ~0.47s
+- 点播：上游 5 个（淘片/建安/索尼/极速/光速），超级源 2295 部（2026-11-26 流水线），详情缓存已用 Blob（二次请求 1.9s→0.7s）
 - 直播：`build_live.py` 已跑通；**公司网络**实测 972 频道 → 399 可播（央视 9 / 卫视 23）
 - 直播已接入流水线，`latest.json` 的 `lives` = 自建直播 + 虎牙/斗鱼/YY 一起看
 

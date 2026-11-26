@@ -7,11 +7,16 @@
       "type": 1,
       "api": "https://tvbox-juxu-spegz3xv.edgeone.cool/api",
       "header": {
-        "Cookie": "eo_token=d4a2e5682b79e404dfb022a09d54dc6b; eo_time=1795679687"
+        "Cookie": "eo_token=0cd644564e037b42098253ad55ae52bf; eo_time=1795680507"
       },
       "searchable": 1,
       "quickSearch": 1,
-      "filterable": 1
+      "filterable": 1,
+      "style": {
+        "type": "rect",
+        "ratio": 0.75
+      },
+      "timeout": 20
     },
     {
       "key": "src105",
@@ -20,14 +25,6 @@
       "api": "https://91md.me/api.php/provide/vod/from/mdm3u8/",
       "tag": "qb,tj,rm",
       "categories": []
-    },
-    {
-      "key": "src76",
-      "name": "*91麻豆",
-      "type": 1,
-      "api": "https://91md.me/api.php/provide/vod/",
-      "searchable": 0,
-      "quickSearch": 0
     },
     {
       "key": "src161",
@@ -70,6 +67,14 @@
       ]
     },
     {
+      "key": "src76",
+      "name": "*91麻豆",
+      "type": 1,
+      "api": "https://91md.me/api.php/provide/vod/",
+      "searchable": 0,
+      "quickSearch": 0
+    },
+    {
       "key": "src191",
       "name": "影视 建安",
       "type": 1,
@@ -105,15 +110,6 @@
       ]
     },
     {
-      "key": "src138",
-      "name": "忍者 影视",
-      "type": 3,
-      "playerType": "2",
-      "api": "csp_AppRZ",
-      "ext": "http://rzys.xyz/",
-      "jar": "./libs/jar/Panda.jar"
-    },
-    {
       "key": "src258",
       "name": "JRKAN直播",
       "type": 3,
@@ -122,6 +118,15 @@
       "quickSearch": 0,
       "filterable": 0,
       "ext": "http://xhztv.top/xhz/js/JRKAN直播.js"
+    },
+    {
+      "key": "src138",
+      "name": "忍者 影视",
+      "type": 3,
+      "playerType": "2",
+      "api": "csp_AppRZ",
+      "ext": "http://rzys.xyz/",
+      "jar": "./libs/jar/Panda.jar"
     },
     {
       "key": "src236",
@@ -167,19 +172,19 @@
   ],
   "lives": [
     {
-      "name": "live",
-      "type": 0,
-      "url": "http://xhztv.top/xhz/live.txt"
-    },
-    {
       "name": "咪咕",
       "type": 0,
       "url": "https://develop202.github.io/migu_video/interface.txt"
     },
     {
-      "name": "YY轮播",
+      "name": "live",
       "type": 0,
-      "url": "https://sub.ottiptv.cc/yylunbo.m3u"
+      "url": "http://xhztv.top/xhz/live.txt"
+    },
+    {
+      "name": "综合直播",
+      "type": 0,
+      "url": "http://193.123.86.190:14888/TV/iptv.php"
     }
   ],
   "parses": [

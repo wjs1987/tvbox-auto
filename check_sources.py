@@ -61,10 +61,13 @@ def fetch(url: str, timeout: float = 8, ua: str = UA_OKHTTP, max_bytes: int = 3_
 
 
 def parse_config_text(text: str):
-    """容错解析配置 JSON（跳过 # 注释行）。"""
+    """容错解析配置 JSON（跳过 # 注释行、容忍尾逗号——TVBox 配置常见写法）。"""
+    import re as _re
     lines = [ln for ln in text.splitlines() if not ln.lstrip().startswith("#")]
+    body = "\n".join(lines)
+    body = _re.sub(r",\s*([}\]])", r"\1", body)  # 去除尾逗号
     try:
-        data = json.loads("\n".join(lines))
+        data = json.loads(body)
         return data if isinstance(data, dict) else None
     except Exception:
         return None

@@ -438,13 +438,33 @@
       "filterable": 0
     },
     {
-      "key": "(18+)浪潮资源", 
+      "key": "(18+)浪潮资源",
       "name": "(18+)浪潮资源", "type": 1,
       "api": "http://langchaozy6.com/api.php/provide/vod/",
       "searchable": 1,
       "quickSearch": 1,
-      "filterable": 0 
-    } 
+      "filterable": 0
+    },
+    {
+      "key": "huya_vod", "name": "🐯虎牙采集", "type": 1,
+      "api": "https://www.huyaapi.com/api.php/provide/vod/from/hym3u8/",
+      "searchable": 1, "quickSearch": 1, "filterable": 1
+    },
+    {
+      "key": "hhzy_vod", "name": "🎥豪华资源", "type": 1,
+      "api": "https://hhzyapi.com/api.php/provide/vod/?ac=list",
+      "searchable": 1, "quickSearch": 1, "filterable": 1
+    },
+    {
+      "key": "jszy_vod", "name": "影视 极速[直连]", "type": 1,
+      "api": "https://jszyapi.com/api.php/provide/vod/",
+      "searchable": 1, "quickSearch": 1, "filterable": 1
+    },
+    {
+      "key": "ltzy_vod", "name": "🥑量子资源", "type": 1,
+      "api": "https://cj.lziapi.com/api.php/provide/vod/",
+      "searchable": 1, "quickSearch": 1, "filterable": 1
+    }
 ],
 
 # 直播

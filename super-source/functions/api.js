@@ -15,10 +15,10 @@ const LATEST_FALLBACKS = [
 // 兜底上游源列表（latest.json 全部拉不到时使用，每日流水线会持续更新源的质量）
 const DEFAULT_UPSTREAMS = [
   { name: "淘片 采集", type: 1, api: "https://taopianapi.com/cjapi/mc/vod/json.html" },
-  { name: "索尼 高清", type: 1, api: "https://suoniapi.com/api.php/provide/vod/?ac=list" },
-  { name: "新浪资源(切)", type: 1, api: "http://api.xinlangapi.com/xinlangapi.php/provide/vod/" },
-  { name: "光速资源(切)", type: 1, api: "https://api.guangsuapi.com/api.php/provide/vod/" },
-  { name: "非凡 资源", type: 1, api: "http://ffzy1.tv/api.php/provide/vod/" },
+  { name: "虎牙采集", type: 1, api: "https://www.huyaapi.com/api.php/provide/vod/from/hym3u8/" },
+  { name: "影视 建安", type: 1, api: "http://154.219.117.232:9981/jacloudapi.php/provide/vod/" },
+  { name: "豪华 资源", type: 1, api: "https://hhzyapi.com/api.php/provide/vod/?ac=list" },
+  { name: "影视 非凡[直连]", type: 1, api: "http://ffzy.tv/api.php/provide/vod/" },
   { name: "索尼 资源", type: 1, api: "https://suoniapi.com/api.php/provide/vod/" },
 ];
 const KV_KEY = "catalog";

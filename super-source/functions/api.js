@@ -248,7 +248,11 @@ async function handleList(q, env, cat) {
         }
       })
     );
-    const list = [...found.values()].slice((pg - 1) * limit, pg * limit);
+    const all = [...found.values()];
+    // 精确匹配置顶（同名完全一致优先），其余保持源返回顺序
+    const normWd = normName(wd);
+    all.sort((a, b) => (b.vod_name === wd || normName(b.vod_name) === normWd ? 1 : 0) - (a.vod_name === wd || normName(a.vod_name) === normWd ? 1 : 0));
+    const list = all.slice((pg - 1) * limit, pg * limit);
     return json({
       code: 1, msg: "数据列表", page: pg, limit,
       total: found.size, pagecount: Math.ceil(found.size / limit) || 1,
@@ -304,10 +308,19 @@ async function handleDetail(ids, cat) {
       const data = await jfetch(`${s.api}${sep(s.api)}ac=detail&ids=${s.oid}`);
       const v = data?.list?.[0];
       if (!v?.vod_play_url) return null;
-      // 主线路标"高速"，备用线路标"备用"，并带上源名便于识别
-      const tag = i === 0 ? "┃高速" : "┃备用";
-      const label = `${s.name || shortSrc(s.api)}${tag}`;
-      return { label, play: String(v.vod_play_url), info: v };
+      // 上游自身也可能带多线路（vod_play_from 与 vod_play_url 按$$$一一对应），逐组命名，保证数量对齐
+      const flags = String(v.vod_play_from || "").split("$$$");
+      const plays = String(v.vod_play_url).split("$$$");
+      const srcName = s.name || shortSrc(s.api);
+      const groups = [];
+      for (let g = 0; g < Math.max(flags.length, plays.length); g++) {
+        const tag = i === 0 && g === 0 ? "┃高速" : "┃备用";
+        groups.push({
+          label: `${srcName}·${(flags[g] || "线路" + (g + 1)).slice(0, 10)}${tag}`,
+          play: plays[g] || "",
+        });
+      }
+      return { groups, info: v };
     })
   );
 
@@ -317,8 +330,8 @@ async function handleDetail(ids, cat) {
   const vod = {
     ...info,
     vod_id: first,
-    vod_play_from: ok.map((p) => p.value.label).join("$$$"),
-    vod_play_url: ok.map((p) => p.value.play).join("$$$"),
+    vod_play_from: ok.flatMap((p) => p.value.groups.map((g) => g.label)).join("$$$"),
+    vod_play_url: ok.flatMap((p) => p.value.groups.map((g) => g.play)).join("$$$"),
   };
   return json({ code: 1, list: [vod] });
 }

@@ -903,6 +903,20 @@ def auto_mode(args):
     if super_token:
         upsert_super_source(latest, super_token)
 
+    # 自建直播：本地实测过的 live.json 优先；没有则用流水线抓取的 live_raw.json（未测速）
+    for live_name in ("live.json", "live_raw.json"):
+        live_path = Path(live_name)
+        if not live_path.exists():
+            continue
+        try:
+            gen = json.loads(live_path.read_text(encoding="utf-8"))
+            if gen.get("lives"):
+                latest["lives"] = gen["lives"]
+                print(f"[直播] 采用 {live_name}：{len(gen['lives'])} 个直播源")
+                break
+        except Exception as e:
+            print(f"[直播] {live_name} 读取失败，沿用种子直播源: {e}")
+
     # 生成超级源静态目录（边缘函数直接秒级加载，不再实时聚合）
     try:
         catalog = build_super_catalog(selected_sites, timeout=args.timeout)

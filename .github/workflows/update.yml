@@ -23,6 +23,13 @@ jobs:
         with:
           python-version: '3.13'
 
+      - name: Build live list (自建直播源)
+        run: |
+          # GitHub 机房在海外，测速结果不代表国内网络，这里只做抓取+归一化+去重
+          # 输出 live_raw.json 仅作兜底；本地实测过的 live.json 优先级更高
+          # 需要按国内网络测速择优时，本地跑：python build_live.py --test --test-urls 5 --isp mobile
+          python build_live.py --out live_raw.json
+
       - name: Crawl + Test + Build latest.json
         env:
           EDGEONE_TOKEN: ${{ secrets.EDGEONE_TOKEN }}

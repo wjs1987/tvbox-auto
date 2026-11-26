@@ -5,3 +5,7 @@ test_latest.json
 test_report.md
 verify_super.py
 super_catalog.json
+
+live_all.json
+live_test.log
+live_raw.json

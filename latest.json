@@ -7,7 +7,7 @@
       "type": 1,
       "api": "https://tvbox-juxu-spegz3xv.edgeone.cool/api",
       "header": {
-        "Cookie": "eo_token=97bc1d8391ef3ab391568c0bf1b18693; eo_time=1795712278"
+        "Cookie": "eo_token=5c3c1e5a0f2b6284c85bc8099c10242c; eo_time=1795713588"
       },
       "searchable": 1,
       "quickSearch": 1,
@@ -81,16 +81,6 @@
       "timeout": 15
     },
     {
-      "key": "src28",
-      "name": "(18+)乐播",
-      "type": 0,
-      "api": "https://lbapi9.com/api.php/provide/vod/at/xml",
-      "searchable": 1,
-      "quickSearch": 1,
-      "filterable": 0,
-      "timeout": 15
-    },
-    {
       "key": "src30",
       "name": "(18+)番号资源",
       "type": 1,
@@ -110,14 +100,12 @@
       "timeout": 15
     },
     {
-      "key": "src258",
-      "name": "JRKAN直播",
-      "type": 3,
-      "api": "http://xhztv.top/xhz/js/lib/drpy.min.js",
+      "key": "src92",
+      "name": "*辣椒资源",
+      "type": 1,
+      "api": "https://apilj.com/api.php/provide/vod/at/json/",
       "searchable": 0,
       "quickSearch": 0,
-      "filterable": 0,
-      "ext": "http://xhztv.top/xhz/js/JRKAN直播.js",
       "timeout": 15
     },
     {
@@ -132,11 +120,29 @@
       "timeout": 15
     },
     {
-      "key": "src226",
-      "name": "聚玩盒子4K",
+      "key": "src258",
+      "name": "JRKAN直播",
       "type": 3,
-      "api": "https://jihulab.com/yydfys/yydf/-/raw/main/yydf/lib/drpy2.min.js",
-      "ext": "https://jihulab.com/yydfys/yydf/-/raw/main/yydf/lib/douban.js",
+      "api": "http://xhztv.top/xhz/js/lib/drpy.min.js",
+      "searchable": 0,
+      "quickSearch": 0,
+      "filterable": 0,
+      "ext": "http://xhztv.top/xhz/js/JRKAN直播.js",
+      "timeout": 15
+    },
+    {
+      "key": "src198",
+      "name": "儿童 启蒙",
+      "type": 3,
+      "api": "https://git.yylx.win/https://raw.githubusercontent.com/fantaiying7/EXT/refs/heads/main/drpy2.min.js",
+      "ext": "https://szyyds.cn/tv/jx/兔小贝.js",
+      "style": {
+        "type": "rect",
+        "ratio": 1.597
+      },
+      "searchable": 0,
+      "quickSearch": 0,
+      "changeable": 0,
       "timeout": 15
     },
     {

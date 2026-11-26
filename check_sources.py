@@ -69,9 +69,18 @@ def parse_config_text(text: str):
 
 
 # ---------- 爬取聚合配置 ----------
+def parse_spider(sp) -> str:
+    """spider 字段可能是 'url;md5;...' 格式，取第一段 url。"""
+    if not isinstance(sp, str):
+        return ""
+    first = sp.split(";")[0].strip()
+    return first if first.startswith("http") and first.endswith(".jar") else ""
+
+
 def crawl_pool(pool_urls: list, timeout: float):
     """BFS 爬取多仓配置（深度 2），返回 (configs列表, 失败列表, 直播源引用列表)。"""
     configs, failed, live_refs = [], [], []
+    jar_candidates = set()
     visited = set()
     queue = [(u, 0, "pool") for u in pool_urls]
     while queue:
@@ -107,12 +116,16 @@ def crawl_pool(pool_urls: list, timeout: float):
             continue
         if cfg.get("sites"):
             configs.append((tag, url, cfg))
+            # 收集该仓自带的 spider jar 候选（type 3 源靠它才能工作）
+            sp = parse_spider(cfg.get("spider"))
+            if sp:
+                jar_candidates.add(sp)
         # JSON 配置里的直播引用（{"name":..., "type":0, "url":"...txt"}）
         for lv in cfg.get("lives", []):
             if isinstance(lv, dict) and lv.get("type") == 0 and isinstance(lv.get("url"), str) \
                     and lv["url"].startswith("http"):
                 live_refs.append({"name": lv.get("name") or f"直播-{tag}", "type": 0, "url": lv["url"]})
-    return configs, failed, live_refs
+    return configs, failed, live_refs, jar_candidates
 
 
 def extract_sites(configs: list) -> list:
@@ -134,6 +147,9 @@ def extract_sites(configs: list) -> list:
             site = dict(s)
             site["key"] = f"src{n}"
             site["_src"] = tag
+            sp = parse_spider(cfg.get("spider"))
+            if sp:
+                site["_spider"] = sp  # 记录该源所属仓的 jar，便于配对复活 type 3
             sites.append(site)
     return sites
 
@@ -158,12 +174,62 @@ def extract_lives(configs: list) -> list:
 
 
 # ---------- 检测 ----------
+def clean_name(name: str) -> str:
+    """清理源名称：去 emoji、装饰符号、来源后缀，便于去重和展示。"""
+    import re
+    n = name or ""
+    n = re.sub(r"[┃│|｜/\\◆★☆⚡→←➕·•●○]+", " ", n)
+    n = re.sub(r"[\U0001F000-\U0001FAFF\u2600-\u27BF\uFE00-\uFE0F\u2B00-\u2BFF]", "", n)
+    n = re.sub(r"\s+", " ", n).strip()
+    return n or (name or "").strip()
+
+
+def play_check(list_url: str, t: int, timeout: float):
+    """真实可播性测试：取第一部影片详情，验证播放链接存在。
+    返回 True=确认可播 / False=确认不可播 / None=无法判断。"""
+    import re as _re
+    try:
+        if t == 1:  # JSON
+            body = fetch(list_url, timeout=timeout, max_bytes=200_000)
+            if not body:
+                return None
+            data = json.loads(body)
+            lst = data.get("list") or data.get("vod_list") or []
+            if not lst:
+                return None
+            vid = lst[0].get("vod_id") or lst[0].get("id")
+            if vid is None:
+                return None
+            sep = "&" if "?" in list_url else "?"
+            d = fetch(list_url.split("?")[0] + sep + f"ac=detail&ids={vid}", timeout=timeout, max_bytes=200_000)
+            if not d:
+                return None
+            dl = (json.loads(d).get("list") or [{}])[0]
+            return bool(dl.get("vod_play_url") and "$" in dl["vod_play_url"])
+        else:  # XML (type 0)
+            body = fetch(list_url, timeout=timeout, max_bytes=200_000)
+            if not body:
+                return None
+            m = _re.search(r"<id>([^<]+)</id>", body)
+            if not m:
+                return None
+            base = list_url.split("?")[0]
+            sep = "&" if "?" in list_url else "?"
+            d = fetch(base + sep + f"ac=videolist&ids={m.group(1)}", timeout=timeout, max_bytes=200_000)
+            if not d:
+                return None
+            return ("<dd" in d and "$" in d)
+    except Exception:
+        return None
+
+
 def test_site(site: dict, timeout: float) -> dict:
-    """存活 + 延迟 + 质量评分(片单数量)。type 3 只测 ext 规则文件可达性。"""
+    """存活 + 延迟 + 质量评分(片单数量) + 真实可播性。
+    type 3 只测 ext 规则文件可达性。"""
     t = site.get("type", 0)
     api = (site.get("api") or "").strip()
     name = site.get("name") or site.get("key", "?")
-    r = {"site": site, "ok": False, "ms": None, "count": 0, "note": ""}
+    r = {"site": site, "ok": False, "ms": None, "count": 0, "play": None, "note": ""}
     if t == 3:
         ext = site.get("ext")
         if isinstance(ext, dict):  # 内联规则对象，无需外部文件
@@ -199,18 +265,23 @@ def test_site(site: dict, timeout: float) -> dict:
     low = txt[:3000].lower()
     if "<video" in low or "<list" in low:
         r.update(ok=True, count=txt.count("<video"), note="XML")
-        return r
-    try:
-        data = json.loads(txt)
-        lst = data.get("list") if isinstance(data, dict) else data
-        if isinstance(data, dict) and data.get("vod_list"):
-            lst = data["vod_list"]
-        if isinstance(lst, list) and lst:
-            r.update(ok=True, count=len(lst), note="JSON")
-        else:
-            r["note"] = "JSON 无片单"
-    except Exception:
-        r["note"] = "内容非 XML/JSON"
+    else:
+        try:
+            data = json.loads(txt)
+            lst = data.get("list") if isinstance(data, dict) else data
+            if isinstance(data, dict) and data.get("vod_list"):
+                lst = data["vod_list"]
+            if isinstance(lst, list) and lst:
+                r.update(ok=True, count=len(lst), note="JSON")
+            else:
+                r["note"] = "JSON 无片单"
+        except Exception:
+            r["note"] = "内容非 XML/JSON"
+    if r["ok"] and t in (0, 1):
+        r["play"] = play_check(url, t, timeout)  # 真实可播性
+        if r["play"] is False:
+            r["note"] += " + 播放链接无效"
+            r["ok"] = False  # 有片单但播不了 = 判定失效
     return r
 
 
@@ -227,17 +298,25 @@ def test_channel(ch: dict, timeout: float) -> dict:
 
 
 # ---------- 生成 ----------
-def build_latest(seed_cfg: dict, alive_sites: list, alive_channels: list, live_refs: list, max_sites: int) -> dict:
-    spider = seed_cfg.get("spider", "")
-    sites = [dict(r["site"]) for r in alive_sites if r["site"].get("type", 0) != 3]
-    for s in sites:  # 清理内部字段
+def build_latest(seed_cfg: dict, selected_sites: list, alive_channels: list, live_refs: list, spider_url: str) -> dict:
+    sites = []
+    used_names = set()
+    for s in selected_sites:
+        cn = clean_name(s.get("name", ""))
+        if cn in used_names:  # 清理后同名 → 只留排名靠前的
+            continue
+        used_names.add(cn)
+        s = dict(s)
+        s["name"] = cn
         s.pop("_src", None)
+        s.pop("_spider", None)
+        sites.append(s)
     lives = list(live_refs)
     if alive_channels:
-        lives.append({"group": "自动采集直播", "channels": alive_channels})
+        lives.append({"group": "精选直播", "channels": alive_channels})
     out = {
-        "spider": spider if spider.startswith("http") else "",
-        "sites": sites[:max_sites],
+        "spider": spider_url or "",
+        "sites": sites,
         "lives": lives,
         "parses": [{"name": "Json轮询", "type": 2, "url": "Sequence"}],
         "flags": ["youku", "qq", "iqiyi", "qiyi", "letv", "sohu", "tudou", "pptv", "mgtv", "wasu", "bilibili"],
@@ -258,18 +337,22 @@ def grade(ms):
     return "慢"
 
 
-def write_report(path, alive_sites, dead_sites, alive_ch, dead_ch, crawl_failed, crawl_stats):
-    alive_sites.sort(key=lambda r: (r["count"] == 0, r["ms"] or 99999))
+def write_report(path, alive_sites, dead_sites, alive_ch, dead_ch, crawl_failed, crawl_stats, selected_sites):
+    alive_sites.sort(key=lambda r: (r["play"] is not True, -min(r["count"], 50), r["ms"] or 99999))
+    selected_keys = {id(s) for s in selected_sites}
     L = ["# 源自动采集检测报告", "",
          f"- 时间：{time.strftime('%Y-%m-%d %H:%M:%S')}",
          f"- 爬取聚合配置：{crawl_stats}",
-         f"- 点播源：采集去重 {len(alive_sites) + len(dead_sites)} → 存活 {len(alive_sites)} / 失效 {len(dead_sites)}",
+         f"- 点播源：采集去重 {len(alive_sites) + len(dead_sites)} → 存活 {len(alive_sites)} / 失效 {len(dead_sites)}"
+         f" → **精选保留 {len(selected_sites)} 个**（可播性+片单量+速度综合排名）",
          f"- 直播频道：去重 {len(alive_ch) + len(dead_ch)} → 存活 {len(alive_ch)}",
          f"- 配置站失效：{len(crawl_failed)} 个", "",
-         "## 点播源（按速度排序）", "",
-         "| 速度 | 延迟 | 片单数 | 来源 | 名称 |", "|---|---|---|---|---|"]
+         "## 点播源（综合排名，✔=已确认可播）", "",
+         "| 精选 | 可播 | 速度 | 延迟 | 片单数 | 名称 |", "|---|---|---|---|---|---|"]
     for r in alive_sites[:80]:
-        L.append(f"| {grade(r['ms'])} | {r['ms']}ms | {r['count']} | {r['site'].get('_src','')} | {r['site'].get('name','')} |")
+        star = "⭐" if id(r["site"]) in selected_keys else ""
+        play = {True: "✔", False: "✘"}.get(r.get("play"), "?")
+        L.append(f"| {star} | {play} | {grade(r['ms'])} | {r['ms']}ms | {r['count']} | {r['site'].get('name','')} |")
     L += ["", "## 失效点播源（前40）", "", "| 名称 | 原因 |", "|---|---|"]
     for r in dead_sites[:40]:
         L.append(f"| {r['site'].get('name','')} | {r['note']} |")
@@ -315,7 +398,7 @@ def auto_mode(args):
     urls = [u for u in (pool if isinstance(pool, list) else pool.get("urls", []))
             if isinstance(u, str) and u.startswith("http")]
     print(f"[爬取] 聚合配置站 {len(urls)} 个 ...")
-    configs, failed, live_refs = crawl_pool(urls, args.timeout)
+    configs, failed, live_refs, jar_candidates = crawl_pool(urls, args.timeout)
     crawl_stats = f"成功 {len(configs)} / 失败 {len(failed)}"
     print(f"[爬取] {crawl_stats}")
 
@@ -384,13 +467,64 @@ def auto_mode(args):
     alive_ch = [r["ch"] for r in ch_results if r["ok"]]
     dead_ch = [r for r in ch_results if not r["ok"]]
 
-    # 测试直播源引用（整个文件可达即算存活）
-    alive_refs = []
+    # 测试直播源引用（整个文件可达即算存活），按响应速度排序，只留最快的几个
+    ref_results = []
     for ref in ref_deduped:
+        t0 = time.perf_counter()
         body = fetch(ref["url"], timeout=args.timeout, ua=UA_BROWSER, max_bytes=20_000)
+        ms = int((time.perf_counter() - t0) * 1000)
         if body and ("#EXTM3U" in body[:300] or "genre#" in body[:300] or "#EXTINF" in body[:300]):
-            alive_refs.append(ref)
-    print(f"[检测] 直播源引用存活 {len(alive_refs)}/{len(ref_deduped)}")
+            ref_results.append({"ref": ref, "ms": ms})
+    ref_results.sort(key=lambda x: x["ms"])
+    alive_refs = [r["ref"] for r in ref_results[:args.top_lives] if r["ms"] <= 5000]
+    print(f"[检测] 直播源引用存活 {len(ref_results)}/{len(ref_deduped)}，精选最快 {len(alive_refs)} 个")
+
+    # ===== 点播源分拣：可播性优先 → 片单量 → 速度，只留前 top 个 =====
+    good = [r for r in alive_sites if r["play"] is not False]  # play False 已在检测时标记失效
+    good.sort(key=lambda r: (r["play"] is not True, -min(r["count"], 50), r["ms"] or 99999))
+    selected_sites = []
+    seen_cn = set()
+    for r in good:
+        if r["site"].get("type", 0) != 0 and r["site"].get("type", 0) != 1:
+            continue  # type 3 后面按 jar 配对单独处理
+        cn = clean_name(r["site"].get("name", ""))
+        if cn in seen_cn:
+            continue
+        seen_cn.add(cn)
+        selected_sites.append(r["site"])
+        if len(selected_sites) >= args.top:
+            break
+
+    # ===== spider jar 测试：让 type 3 高质量源复活 =====
+    spider_url = ""
+    if jar_candidates:
+        print(f"[jar] 测试 {len(jar_candidates)} 个爬虫包 ...")
+        jar_results = []
+        with ThreadPoolExecutor(max_workers=8) as ex:
+            futs = {ex.submit(fetch, j, args.timeout, UA_OKHTTP, 60_000): j for j in jar_candidates}
+            for f in as_completed(futs):
+                body = f.result()
+                if body and len(body) >= 10_000:
+                    jar_results.append(futs[f])
+        if jar_results:
+            spider_url = jar_results[0]
+            print(f"[jar] 可用 {len(jar_results)} 个，选用: {spider_url[:60]}")
+            # 加入与该 jar 配对的 type 3 源（如 玩偶/哔哩/Emby 等高级源）
+            t3 = [r for r in good if r["site"].get("type", 0) == 3
+                  and r["site"].get("_spider") == spider_url]
+            t3.sort(key=lambda r: r["ms"] or 99999)
+            for r in t3:
+                if len(selected_sites) >= args.top:
+                    break
+                cn = clean_name(r["site"].get("name", ""))
+                if cn in seen_cn or not cn:
+                    continue
+                seen_cn.add(cn)
+                selected_sites.append(r["site"])
+            print(f"[jar] 复活 type 3 源 {len(selected_sites)} 个总数中包含的 type3: "
+                  f"{sum(1 for s in selected_sites if s.get('type', 0) == 3)}")
+        else:
+            print("[jar] 无可用爬虫包，type 3 源全部排除")
 
     # 种子配置里的 flags/ads 等参数沿用
     seed_cfg = {}
@@ -399,16 +533,16 @@ def auto_mode(args):
             seed_cfg = parse_config_text(Path(args.seed).read_text(encoding="utf-8-sig")) or {}
         except Exception:
             pass
-    latest = build_latest(seed_cfg, alive_sites, alive_ch, alive_refs, args.max_sites)
+    latest = build_latest(seed_cfg, selected_sites, alive_ch, alive_refs, spider_url)
 
     Path(args.out).write_text(json.dumps(latest, ensure_ascii=False, indent=2), encoding="utf-8")
-    write_report(args.report, alive_sites, dead_sites, alive_ch, dead_ch, failed, crawl_stats)
+    write_report(args.report, alive_sites, dead_sites, alive_ch, dead_ch, failed, crawl_stats, selected_sites)
 
-    alive_sites.sort(key=lambda r: (r["count"] == 0, r["ms"] or 99999))
+    alive_sites.sort(key=lambda r: (r["play"] is not True, -min(r["count"], 50), r["ms"] or 99999))
     fastest = alive_sites[0] if alive_sites else None
     print(f"\n[结果] 点播存活 {len(alive_sites)}"
           + (f"（最快: {fastest['ms']}ms {fastest['site'].get('name','')[:20]}）" if fastest else "")
-          + f" / 直播存活 {len(alive_ch)}")
+          + f" / 精选保留 {len(selected_sites)} 个 / 直播源 {len(alive_refs)} 个")
     print(f"[输出] {args.out} + {args.report}")
 
 
@@ -422,7 +556,8 @@ def main():
     ap.add_argument("--workers", type=int, default=30)
     ap.add_argument("--timeout", type=float, default=8.0)
     ap.add_argument("--limit", type=int, default=0, help="限制本次测试数量（调试用）")
-    ap.add_argument("--max-sites", type=int, default=100, help="最终配置最多保留多少个点播源")
+    ap.add_argument("--top", type=int, default=8, help="最终精选保留多少个点播源")
+    ap.add_argument("--top-lives", type=int, default=3, help="精选保留多少个直播源引用")
     ap.add_argument("--out", default="latest.json")
     ap.add_argument("--report", default="report.md")
     ap.add_argument("--check", action="store_true", help="旧模式参数：联网检测")

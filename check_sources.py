@@ -238,13 +238,97 @@ def play_check(list_url: str, t: int, timeout: float):
         return None
 
 
+def get_first_play_url(list_url: str, t: int, timeout: float):
+    """取第一个真实播放直链（m3u8/mp4）。失败返回 None。"""
+    import re as _re
+    try:
+        body = fetch(list_url, timeout=timeout, max_bytes=3_000_000)
+        if not body:
+            return None
+        pu = None
+        if t == 1:
+            data = json.loads(body)
+            lst = data.get("list") or data.get("vod_list") or []
+            if lst:
+                pu = str(lst[0].get("vod_play_url") or "")
+            if not (pu and "$" in pu):
+                vid = lst[0].get("vod_id") if lst else None
+                if vid is None:
+                    return None
+                base = list_url.split("?")[0]
+                sep = "&" if "?" in list_url else "?"
+                d = fetch(base + "?" + f"ac=detail&ids={vid}", timeout=timeout, max_bytes=3_000_000)
+                if d:
+                    dl = json.loads(d).get("list") or []
+                    if dl:
+                        pu = str(dl[0].get("vod_play_url") or "")
+        else:  # XML
+            m = _re.search(r"<dd[^>]*>([^<]+)</dd>", body) or _re.search(r"<play[^>]*>([^<]+)</play>", body)
+            pu = m.group(1) if m else ""
+            if not (pu and "$" in pu):
+                return None
+        if not pu or "$" not in pu:
+            return None
+        first = pu.split("#")[0]
+        url = first.split("$", 1)[-1].strip()
+        low = url.lower()
+        if url.startswith("http") and not any(
+                low.startswith(p) for p in ("magnet:", "ed2k:", "thunder:", "115://", "p3p://")):
+            return url
+        return None
+    except Exception:
+        return None
+
+
+def cdn_speed_check(list_url: str, t: int, timeout: float):
+    """真实播放测速：下载 m3u8 索引 + 第一个视频分片（限512KB），
+    返回 MB/s；无法测出返回 None。"""
+    try:
+        play = get_first_play_url(list_url, t, timeout)
+        if not play:
+            return None
+        segurl = play
+        if ".m3u8" in play.lower():
+            m3u8 = fetch(play, timeout=timeout, max_bytes=200_000)
+            if not m3u8:
+                return None
+            seg = next((l.strip() for l in m3u8.splitlines()
+                        if l.strip().endswith(".ts") and not l.startswith("#")), None)
+            if not seg:
+                # 索引里可能还有一层 m3u8
+                sub = next((l.strip() for l in m3u8.splitlines()
+                            if l.strip().endswith(".m3u8") and not l.startswith("#")), None)
+                if sub:
+                    base = play.rsplit("/", 1)[0]
+                    sub_url = sub if sub.startswith("http") else f"{base}/{sub}"
+                    m3u8 = fetch(sub_url, timeout=timeout, max_bytes=200_000) or ""
+                    seg = next((l.strip() for l in m3u8.splitlines()
+                                if l.strip().endswith(".ts") and not l.startswith("#")), None)
+                    segurl = sub_url if seg else segurl.rsplit("/", 1)[0] + "/" + (seg or "")
+                if not seg:
+                    return None
+            base = segurl.rsplit("/", 1)[0]
+            segurl = seg if seg.startswith("http") else f"{base}/{seg}"
+        t0 = time.perf_counter()
+        body = fetch(segurl, timeout=timeout + 5, max_bytes=512_000)
+        if not body:
+            return None
+        dt = time.perf_counter() - t0
+        if dt <= 0.05:
+            dt = 0.05
+        return round(len(body.encode("utf-8", errors="ignore")) / dt / 1024 / 1024, 2)
+    except Exception:
+        return None
+
+
 def test_site(site: dict, timeout: float) -> dict:
     """存活 + 延迟 + 质量评分(片单数量) + 真实可播性。
     type 3 只测 ext 规则文件可达性。"""
     t = site.get("type", 0)
     api = (site.get("api") or "").strip()
     name = site.get("name") or site.get("key", "?")
-    r = {"site": site, "ok": False, "ms": None, "count": 0, "play": None, "note": ""}
+    r = {"site": site, "ok": False, "ms": None, "count": 0, "play": None,
+         "cdn_speed": None, "note": ""}
     if t == 3:
         ext = site.get("ext")
         if isinstance(ext, dict):  # 内联规则对象，无需外部文件
@@ -297,6 +381,8 @@ def test_site(site: dict, timeout: float) -> dict:
         if r["play"] is False:
             r["note"] += " + 播放链接无效"
             r["ok"] = False  # 有片单但播不了 = 判定失效
+    if r["ok"] and r["play"] is True:
+        r["cdn_speed"] = cdn_speed_check(url, t, timeout)  # 真实视频CDN下载测速
     return r
 
 
@@ -401,7 +487,7 @@ def upsert_super_source(latest: dict, api_token: str) -> bool:
 
 
 def write_report(path, alive_sites, dead_sites, alive_ch, dead_ch, crawl_failed, crawl_stats, selected_sites):
-    alive_sites.sort(key=lambda r: (r["play"] is not True, -min(r["count"], 50), r["ms"] or 99999))
+    alive_sites.sort(key=lambda r: (r["play"] is not True, -min(r["count"], 50), -(r.get("cdn_speed") or 0), r["ms"] or 99999))
     selected_keys = {id(s) for s in selected_sites}
     L = ["# 源自动采集检测报告", "",
          f"- 时间：{time.strftime('%Y-%m-%d %H:%M:%S')}",
@@ -544,7 +630,7 @@ def auto_mode(args):
 
     # ===== 点播源分拣：可播性优先 → 片单量 → 速度，只留前 top 个 =====
     good = [r for r in alive_sites if r["play"] is not False]  # play False 已在检测时标记失效
-    good.sort(key=lambda r: (r["play"] is not True, -min(r["count"], 50), r["ms"] or 99999))
+    good.sort(key=lambda r: (r["play"] is not True, -min(r["count"], 50), -(r.get("cdn_speed") or 0), r["ms"] or 99999))
     selected_sites = []
     seen_cn = set()
     # 有 jar 候选时给 type 3 高级源预留 3 个名额，避免普通源占满后高级源无位可进
@@ -615,7 +701,7 @@ def auto_mode(args):
     Path(args.out).write_text(json.dumps(latest, ensure_ascii=False, indent=2), encoding="utf-8")
     write_report(args.report, alive_sites, dead_sites, alive_ch, dead_ch, failed, crawl_stats, selected_sites)
 
-    alive_sites.sort(key=lambda r: (r["play"] is not True, -min(r["count"], 50), r["ms"] or 99999))
+    alive_sites.sort(key=lambda r: (r["play"] is not True, -min(r["count"], 50), -(r.get("cdn_speed") or 0), r["ms"] or 99999))
     fastest = alive_sites[0] if alive_sites else None
     print(f"\n[结果] 点播存活 {len(alive_sites)}"
           + (f"（最快: {fastest['ms']}ms {fastest['site'].get('name','')[:20]}）" if fastest else "")

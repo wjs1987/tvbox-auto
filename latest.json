@@ -5,9 +5,9 @@
       "key": "super",
       "name": "全网汇总",
       "type": 1,
-      "api": "https://tvbox-juxu-spegz3xv.edgeone.cool/api?eo_token=a0ca1c47c26458c4326bf23d6eba43ef&eo_time=1795675140",
+      "api": "https://tvbox-juxu-spegz3xv.edgeone.cool/api?eo_token=ffacd1fcc041fe9cb32382bdc8a9a2d0&eo_time=1795675698",
       "header": {
-        "Cookie": "eo_token=a0ca1c47c26458c4326bf23d6eba43ef; eo_time=1795675140"
+        "Cookie": "eo_token=ffacd1fcc041fe9cb32382bdc8a9a2d0; eo_time=1795675698"
       },
       "searchable": 1,
       "quickSearch": 1,
@@ -74,49 +74,47 @@
       ]
     },
     {
-      "key": "src216",
-      "name": "光速资源(切)",
+      "key": "src190",
+      "name": "影视 极速[直连]",
       "type": 1,
-      "api": "https://api.guangsuapi.com/api.php/provide/vod/",
+      "api": "https://jszyapi.com/api.php/provide/vod/?ac=list",
       "searchable": 1,
-      "quickSearch": 1
-    },
-    {
-      "key": "src162",
-      "name": "非凡 资源",
-      "type": 1,
-      "api": "http://ffzy1.tv/api.php/provide/vod/",
-      "playurl": "json:http://jx.84jia.com/m3u8ts.php?url=",
-      "searchable": 1,
-      "quickSearch": 1,
-      "filterable": 1,
       "categories": [
+        "欧美剧",
+        "香港剧",
+        "韩剧",
+        "日剧",
+        "马泰剧",
         "动作片",
+        "爱情片",
         "喜剧片",
         "科幻片",
         "恐怖片",
-        "爱情片",
         "剧情片",
         "战争片",
         "记录片",
-        "国产剧",
-        "欧美剧",
-        "香港剧",
-        "韩国剧",
+        "动漫",
+        "内地剧",
+        "动画片",
+        "中国动漫",
+        "日本动漫",
+        " 欧美动漫",
+        "综艺",
         "台湾剧",
-        "日本剧",
-        "海外剧",
-        "泰国剧",
-        "国产动漫",
-        "日韩动漫",
-        "欧美动漫",
-        "港台动漫",
-        "海外动漫",
+        "体育赛事",
         "大陆综艺",
-        "港台综艺",
         "日韩综艺",
-        "欧美综艺"
-      ]
+        "港台综艺",
+        "欧美综艺",
+        "灾难片",
+        "悬疑片",
+        "犯罪片",
+        "奇幻片",
+        "短剧"
+      ],
+      "header": {
+        "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 15_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0 Mobile/15E148 Safari/604.1"
+      }
     },
     {
       "key": "src214",
@@ -127,13 +125,12 @@
       "quickSearch": 1
     },
     {
-      "key": "src138",
-      "name": "忍者 影视",
-      "type": 3,
-      "playerType": "2",
-      "api": "csp_AppRZ",
-      "ext": "http://rzys.xyz/",
-      "jar": "./libs/jar/Panda.jar"
+      "key": "src216",
+      "name": "光速资源(切)",
+      "type": 1,
+      "api": "https://api.guangsuapi.com/api.php/provide/vod/",
+      "searchable": 1,
+      "quickSearch": 1
     },
     {
       "key": "src236",
@@ -144,6 +141,15 @@
       "quickSearch": 1,
       "changeable": 1,
       "ext": "https://agit.ai/fantaiying/fty/raw/branch/master/ext/nmys.json"
+    },
+    {
+      "key": "src138",
+      "name": "忍者 影视",
+      "type": 3,
+      "playerType": "2",
+      "api": "csp_AppRZ",
+      "ext": "http://rzys.xyz/",
+      "jar": "./libs/jar/Panda.jar"
     },
     {
       "key": "src258",

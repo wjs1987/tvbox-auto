@@ -2,6 +2,23 @@
   "spider": "https://img2.gelonghui.com/library/3f9b9-de4a5d2c-7fea-4d70-8a85-79be6c379621.png",
   "sites": [
     {
+      "key": "super",
+      "name": "全网汇总",
+      "type": 1,
+      "api": "https://tvbox-juxu-spegz3xv.edgeone.cool/api",
+      "header": {
+        "Cookie": "eo_token=e727654ad7ae7db3a5c25bbfc9650b7a; eo_time=1795684333"
+      },
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 1,
+      "style": {
+        "type": "rect",
+        "ratio": 0.75
+      },
+      "timeout": 20
+    },
+    {
       "key": "src76",
       "name": "*91麻豆",
       "type": 1,
@@ -73,62 +90,48 @@
       "playerType": 2
     },
     {
-      "key": "src160",
-      "name": "索尼 高清",
-      "type": 1,
-      "api": "https://suoniapi.com/api.php/provide/vod/?ac=list",
+      "key": "src189",
+      "name": "影视 索尼[直连]",
+      "type": 0,
+      "api": "https://suoniapi.com/api.php/provide/vod/at/xml/",
       "searchable": 1,
-      "quickSearch": 1,
-      "filterable": 1,
       "categories": [
         "动作片",
         "喜剧片",
+        "爱情片",
         "科幻片",
         "恐怖片",
-        "爱情片",
         "剧情片",
         "战争片",
-        "记录片",
         "国产剧",
         "欧美剧",
-        "香港剧",
-        "韩国剧",
-        "台湾剧",
-        "日本剧",
+        "港剧",
+        "台剧",
+        "韩剧",
+        "日剧",
+        "泰剧",
+        "纪录片",
         "海外剧",
-        "泰国剧",
+        "大陆综艺",
+        "港台综艺",
+        "日韩综艺",
+        "欧美综艺",
         "国产动漫",
         "日韩动漫",
         "欧美动漫",
         "港台动漫",
         "海外动漫",
-        "大陆综艺",
-        "港台综艺",
-        "日韩综艺",
-        "欧美综艺"
+        "影视解说"
       ]
     },
     {
-      "key": "src123",
-      "name": "在线 外剧",
+      "key": "src138",
+      "name": "忍者 影视",
       "type": 3,
-      "api": "csp_Zxzj",
-      "timeout": 15,
-      "searchable": 1,
-      "quickSearch": 1,
-      "changeable": 1,
-      "ext": "https://www.zxzjhd.com/"
-    },
-    {
-      "key": "src128",
-      "name": "Aue 无广",
-      "type": 3,
-      "api": "csp_Auete",
-      "timeout": 15,
-      "searchable": 1,
-      "quickSearch": 1,
-      "changeable": 1,
-      "ext": "https://auete.pro/"
+      "playerType": "2",
+      "api": "csp_AppRZ",
+      "ext": "http://rzys.xyz/",
+      "jar": "./libs/jar/Panda.jar"
     },
     {
       "key": "src258",
@@ -139,6 +142,16 @@
       "quickSearch": 0,
       "filterable": 0,
       "ext": "http://xhztv.top/xhz/js/JRKAN直播.js"
+    },
+    {
+      "key": "src257",
+      "name": "虎牙直播",
+      "type": 3,
+      "api": "http://xhztv.top/xhz/js/lib/drpy2.min.js",
+      "searchable": 0,
+      "quickSearch": 0,
+      "filterable": 0,
+      "ext": "http://xhztv.top/xhz/js/虎牙直播.js"
     },
     {
       "key": "pan_search",
@@ -184,9 +197,9 @@
       "url": "http://xhztv.top/xhz/live.txt"
     },
     {
-      "name": "Kimentanm",
+      "name": "综合直播",
       "type": 0,
-      "url": "https://ghproxy.net/https://raw.githubusercontent.com/Kimentanm/aptv/master/m3u/iptv.m3u"
+      "url": "http://193.123.86.190:14888/TV/iptv.php"
     }
   ],
   "parses": [

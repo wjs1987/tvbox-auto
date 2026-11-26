@@ -126,8 +126,8 @@ async function rebuild(env) {
   const maxUp = parseInt(env.MAX_UPSTREAMS || "6", 10);
   const pages = parseInt(env.PAGES_PER_SOURCE || "8", 10);
   // 按分类深挖：每个源再并行抓它的电影/剧集等分类列表，大幅扩充资源量
-  const catPages = parseInt(env.CAT_PAGES_PER_SOURCE || "3", 10);
-  const maxCats = parseInt(env.MAX_CATS_PER_SOURCE || "6", 10);
+  const catPages = parseInt(env.CAT_PAGES_PER_SOURCE || "6", 10);
+  const maxCats = parseInt(env.MAX_CATS_PER_SOURCE || "8", 10);
 
   const latest = await fetchLatest(env);
   // latest.json 拉不到时用内置兜底列表，服务永不中断
@@ -166,9 +166,16 @@ async function rebuild(env) {
     }
 
     // 并行抓取：最新列表N页 + 各分类各M页（分类列表是片库主力，电影/剧集在这里）
+    // 分类选择：主流分类（电影/剧/综艺/动漫）优先，避免抓一串"海外xx"冷门类
+    const MAIN_CAT = /电影|剧集|电视剧|连续|综艺|动漫|动画|片/;
+    const ordered = [...catIds].sort((a, b) => {
+      const ma = MAIN_CAT.test(out.cats.get(a) || "") ? 0 : 1;
+      const mb = MAIN_CAT.test(out.cats.get(b) || "") ? 0 : 1;
+      return ma - mb;
+    });
     const fetches = [];
     for (let pg = 1; pg <= pages; pg++) fetches.push(jfetch(`${api}${sep(api)}ac=list&pg=${pg}`));
-    for (const tid of catIds.slice(0, maxCats)) {
+    for (const tid of ordered.slice(0, maxCats)) {
       for (let pg = 1; pg <= catPages; pg++) {
         fetches.push(jfetch(`${api}${sep(api)}ac=list&t=${tid}&pg=${pg}`));
       }

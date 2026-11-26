@@ -190,7 +190,7 @@ def play_check(list_url: str, t: int, timeout: float):
     import re as _re
     try:
         if t == 1:  # JSON
-            body = fetch(list_url, timeout=timeout, max_bytes=200_000)
+            body = fetch(list_url, timeout=timeout, max_bytes=3_000_000)
             if not body:
                 return None
             data = json.loads(body)
@@ -200,14 +200,22 @@ def play_check(list_url: str, t: int, timeout: float):
             vid = lst[0].get("vod_id") or lst[0].get("id")
             if vid is None:
                 return None
+            base = list_url.split("?")[0]
             sep = "&" if "?" in list_url else "?"
-            d = fetch(list_url.split("?")[0] + sep + f"ac=detail&ids={vid}", timeout=timeout, max_bytes=200_000)
+            # 先试 ac=detail，再试 ac=videolist&ids=
+            d = None
+            for q in (f"ac=detail&ids={vid}", f"ac=videolist&ids={vid}"):
+                d = fetch(base + sep + q, timeout=timeout, max_bytes=3_000_000)
+                if d:
+                    break
             if not d:
                 return None
-            dl = (json.loads(d).get("list") or [{}])[0]
-            return bool(dl.get("vod_play_url") and "$" in dl["vod_play_url"])
+            dl = json.loads(d).get("list") or []
+            if dl and dl[0].get("vod_play_url") and "$" in dl[0]["vod_play_url"]:
+                return True
+            return False
         else:  # XML (type 0)
-            body = fetch(list_url, timeout=timeout, max_bytes=200_000)
+            body = fetch(list_url, timeout=timeout, max_bytes=3_000_000)
             if not body:
                 return None
             m = _re.search(r"<id>([^<]+)</id>", body)
@@ -215,7 +223,7 @@ def play_check(list_url: str, t: int, timeout: float):
                 return None
             base = list_url.split("?")[0]
             sep = "&" if "?" in list_url else "?"
-            d = fetch(base + sep + f"ac=videolist&ids={m.group(1)}", timeout=timeout, max_bytes=200_000)
+            d = fetch(base + sep + f"ac=videolist&ids={m.group(1)}", timeout=timeout, max_bytes=3_000_000)
             if not d:
                 return None
             return ("<dd" in d and "$" in d)

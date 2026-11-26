@@ -5,7 +5,7 @@
       "key": "super",
       "name": "全网汇总",
       "type": 1,
-      "api": "https://tvbox-juxu-bxpfcmyn.edgeone.cool/api?eo_token=ffdc896c1d8d734433802b9175eb221a&eo_time=1795669446",
+      "api": "https://tvbox-juxu-bxpfcmyn.edgeone.cool/api?eo_token=4da549900746f6a28f59fc91eb0e2c07&eo_time=1795669681",
       "searchable": 1,
       "quickSearch": 1,
       "filterable": 1
@@ -51,41 +51,6 @@
       ]
     },
     {
-      "key": "src189",
-      "name": "影视 索尼[直连]",
-      "type": 0,
-      "api": "https://suoniapi.com/api.php/provide/vod/at/xml/",
-      "searchable": 1,
-      "categories": [
-        "动作片",
-        "喜剧片",
-        "爱情片",
-        "科幻片",
-        "恐怖片",
-        "剧情片",
-        "战争片",
-        "国产剧",
-        "欧美剧",
-        "港剧",
-        "台剧",
-        "韩剧",
-        "日剧",
-        "泰剧",
-        "纪录片",
-        "海外剧",
-        "大陆综艺",
-        "港台综艺",
-        "日韩综艺",
-        "欧美综艺",
-        "国产动漫",
-        "日韩动漫",
-        "欧美动漫",
-        "港台动漫",
-        "海外动漫",
-        "影视解说"
-      ]
-    },
-    {
       "key": "src244",
       "name": "索尼 资源",
       "type": 1,
@@ -106,41 +71,79 @@
       ]
     },
     {
-      "key": "src197",
-      "name": "天堂 采集",
+      "key": "src217",
+      "name": "新浪资源(切)",
       "type": 1,
-      "api": "http://caiji.dyttzyapi.com/api.php/provide/vod/from/dyttm3u8/at/m3u8/",
+      "api": "http://api.xinlangapi.com/xinlangapi.php/provide/vod/",
       "searchable": 1,
-      "quickSearch": 1,
-      "changeable": 1,
-      "filterable": 1,
-      "timeout": 10
+      "quickSearch": 1
     },
     {
-      "key": "src192",
-      "name": "百度",
+      "key": "src168",
+      "name": "虎牙采集",
       "type": 1,
-      "api": "https://api.apibdzy.com/api.php/provide/vod?ac=list",
+      "api": "https://www.huyaapi.com/api.php/provide/vod/from/hym3u8",
       "searchable": 1,
-      "filterable": 0,
+      "quickSearch": 1,
       "categories": [
-        "国产动漫",
-        "日韩动漫",
-        "大陆剧",
-        "欧美剧",
+        "内地剧",
+        "动作片",
+        "科幻片",
+        "战争片",
+        "喜剧片",
+        "爱情片",
+        "恐怖片",
+        "犯罪片",
+        "剧情片",
+        "冒险片",
+        "记录片",
         "韩剧",
+        "香港剧",
+        "台湾剧",
+        "欧美剧",
         "日剧",
+        "马泰剧",
+        "体育赛事",
+        "综艺",
+        "动画片",
+        "中国动漫",
+        "日本动漫",
+        "欧美动漫"
+      ]
+    },
+    {
+      "key": "src188",
+      "name": "影视 非凡[直连]",
+      "type": 1,
+      "api": "http://ffzy.tv/api.php/provide/vod/",
+      "searchable": 1,
+      "categories": [
         "动作片",
         "喜剧片",
         "爱情片",
         "科幻片",
         "恐怖片",
         "剧情片",
-        "战争片"
-      ],
-      "header": {
-        "User-Agent": "Mozilla/5.0"
-      }
+        "战争片",
+        "国产剧",
+        "香港剧",
+        "韩国剧",
+        "欧美剧",
+        "记录片",
+        "台湾剧",
+        "日本剧",
+        "海外剧",
+        "泰国剧",
+        "大陆综艺",
+        "港台综艺",
+        "日韩综艺",
+        "欧美综艺",
+        "国产动漫",
+        "日韩动漫",
+        "欧美动漫",
+        "港台动漫",
+        "海外动漫"
+      ]
     },
     {
       "key": "src138",
@@ -152,16 +155,6 @@
       "jar": "./libs/jar/Panda.jar"
     },
     {
-      "key": "src236",
-      "name": "农民 直连",
-      "type": 3,
-      "api": "csp_Nmys",
-      "searchable": 1,
-      "quickSearch": 1,
-      "changeable": 1,
-      "ext": "https://agit.ai/fantaiying/fty/raw/branch/master/ext/nmys.json"
-    },
-    {
       "key": "src258",
       "name": "JRKAN直播",
       "type": 3,
@@ -170,6 +163,16 @@
       "quickSearch": 0,
       "filterable": 0,
       "ext": "http://xhztv.top/xhz/js/JRKAN直播.js"
+    },
+    {
+      "key": "src236",
+      "name": "农民 直连",
+      "type": 3,
+      "api": "csp_Nmys",
+      "searchable": 1,
+      "quickSearch": 1,
+      "changeable": 1,
+      "ext": "https://agit.ai/fantaiying/fty/raw/branch/master/ext/nmys.json"
     }
   ],
   "lives": [
@@ -184,9 +187,9 @@
       "url": "http://xhztv.top/xhz/live.txt"
     },
     {
-      "name": "斗鱼一起看",
+      "name": "直播-pool",
       "type": 0,
-      "url": "https://sub.ottiptv.cc/douyuyqk.m3u"
+      "url": "https://live.zbds.top/tv/iptv4.txt"
     }
   ],
   "parses": [

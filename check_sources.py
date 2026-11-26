@@ -412,6 +412,19 @@ def build_latest(seed_cfg: dict, selected_sites: list, alive_channels: list, liv
         s.pop("_src", None)
         s.pop("_spider", None)
         sites.append(s)
+    # ---------- 固定精选：网盘/磁力爬虫源 ----------
+    # OK影视(FongMi)原生迅雷引擎可直接播磁力/ed2k；云盘搜索聚合夸克/UC/阿里等公开分享
+    # jar 来自 regtostudy/TVBox_warehouse（PizazzGY 原仓库已失效，此 fork 保持同步）
+    PAN_JAR = ("https://gh-proxy.com/https://raw.githubusercontent.com/"
+               "regtostudy/TVBox_warehouse/main/spider.jar")
+    sites.extend([
+        {"key": "pan_search", "name": "云盘搜索", "type": 3, "api": "csp_PanSearch",
+         "jar": PAN_JAR, "searchable": 1, "quickSearch": 1, "filterable": 0},
+        {"key": "seedhub", "name": "SeedHub磁力", "type": 3, "api": "csp_SeedHub",
+         "jar": PAN_JAR, "searchable": 1, "quickSearch": 1, "filterable": 1},
+        {"key": "new6v", "name": "New6V磁力", "type": 3, "api": "csp_New6v", "jar": PAN_JAR,
+         "ext": "https://www.xb6v.com", "searchable": 1, "quickSearch": 1, "filterable": 1},
+    ])
     lives = list(live_refs)
     if alive_channels:
         lives.append({"group": "精选直播", "channels": alive_channels})

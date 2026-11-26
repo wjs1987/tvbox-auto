@@ -2,21 +2,12 @@
   "spider": "https://img2.gelonghui.com/library/3f9b9-de4a5d2c-7fea-4d70-8a85-79be6c379621.png",
   "sites": [
     {
-      "key": "super",
-      "name": "全网汇总",
+      "key": "src76",
+      "name": "*91麻豆",
       "type": 1,
-      "api": "https://tvbox-juxu-spegz3xv.edgeone.cool/api",
-      "header": {
-        "Cookie": "eo_token=3b239d7fafceaa347fe08eb89c9e6155; eo_time=1795683885"
-      },
-      "searchable": 1,
-      "quickSearch": 1,
-      "filterable": 1,
-      "style": {
-        "type": "rect",
-        "ratio": 0.75
-      },
-      "timeout": 20
+      "api": "https://91md.me/api.php/provide/vod/",
+      "searchable": 0,
+      "quickSearch": 0
     },
     {
       "key": "src105",
@@ -25,14 +16,6 @@
       "api": "https://91md.me/api.php/provide/vod/from/mdm3u8/",
       "tag": "qb,tj,rm",
       "categories": []
-    },
-    {
-      "key": "src76",
-      "name": "*91麻豆",
-      "type": 1,
-      "api": "https://91md.me/api.php/provide/vod/",
-      "searchable": 0,
-      "quickSearch": 0
     },
     {
       "key": "src161",
@@ -90,43 +73,62 @@
       "playerType": 2
     },
     {
-      "key": "src244",
-      "name": "索尼 资源",
+      "key": "src160",
+      "name": "索尼 高清",
       "type": 1,
-      "api": "https://suoniapi.com/api.php/provide/vod/",
+      "api": "https://suoniapi.com/api.php/provide/vod/?ac=list",
       "searchable": 1,
-      "filterable": 0,
+      "quickSearch": 1,
+      "filterable": 1,
       "categories": [
-        "欧美剧",
-        "韩剧",
-        "日剧",
         "动作片",
         "喜剧片",
-        "爱情片",
         "科幻片",
         "恐怖片",
+        "爱情片",
         "剧情片",
-        "战争片"
+        "战争片",
+        "记录片",
+        "国产剧",
+        "欧美剧",
+        "香港剧",
+        "韩国剧",
+        "台湾剧",
+        "日本剧",
+        "海外剧",
+        "泰国剧",
+        "国产动漫",
+        "日韩动漫",
+        "欧美动漫",
+        "港台动漫",
+        "海外动漫",
+        "大陆综艺",
+        "港台综艺",
+        "日韩综艺",
+        "欧美综艺"
       ]
     },
     {
-      "key": "src138",
-      "name": "忍者 影视",
+      "key": "src123",
+      "name": "在线 外剧",
       "type": 3,
-      "playerType": "2",
-      "api": "csp_AppRZ",
-      "ext": "http://rzys.xyz/",
-      "jar": "./libs/jar/Panda.jar"
-    },
-    {
-      "key": "src236",
-      "name": "农民 直连",
-      "type": 3,
-      "api": "csp_Nmys",
+      "api": "csp_Zxzj",
+      "timeout": 15,
       "searchable": 1,
       "quickSearch": 1,
       "changeable": 1,
-      "ext": "https://agit.ai/fantaiying/fty/raw/branch/master/ext/nmys.json"
+      "ext": "https://www.zxzjhd.com/"
+    },
+    {
+      "key": "src128",
+      "name": "Aue 无广",
+      "type": 3,
+      "api": "csp_Auete",
+      "timeout": 15,
+      "searchable": 1,
+      "quickSearch": 1,
+      "changeable": 1,
+      "ext": "https://auete.pro/"
     },
     {
       "key": "src258",
@@ -182,9 +184,9 @@
       "url": "http://xhztv.top/xhz/live.txt"
     },
     {
-      "name": "综合直播",
+      "name": "Kimentanm",
       "type": 0,
-      "url": "http://193.123.86.190:14888/TV/iptv.php"
+      "url": "https://ghproxy.net/https://raw.githubusercontent.com/Kimentanm/aptv/master/m3u/iptv.m3u"
     }
   ],
   "parses": [

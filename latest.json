@@ -5,9 +5,9 @@
       "key": "super",
       "name": "全网汇总",
       "type": 1,
-      "api": "https://tvbox-juxu-spegz3xv.edgeone.cool/api?eo_token=e3b12d43b9da6a519d89038857f3d00b&eo_time=1795674375",
+      "api": "https://tvbox-juxu-spegz3xv.edgeone.cool/api?eo_token=a0ca1c47c26458c4326bf23d6eba43ef&eo_time=1795675140",
       "header": {
-        "Cookie": "eo_token=e3b12d43b9da6a519d89038857f3d00b; eo_time=1795674375"
+        "Cookie": "eo_token=a0ca1c47c26458c4326bf23d6eba43ef; eo_time=1795675140"
       },
       "searchable": 1,
       "quickSearch": 1,
@@ -74,17 +74,6 @@
       ]
     },
     {
-      "key": "src197",
-      "name": "天堂 采集",
-      "type": 1,
-      "api": "http://caiji.dyttzyapi.com/api.php/provide/vod/from/dyttm3u8/at/m3u8/",
-      "searchable": 1,
-      "quickSearch": 1,
-      "changeable": 1,
-      "filterable": 1,
-      "timeout": 10
-    },
-    {
       "key": "src216",
       "name": "光速资源(切)",
       "type": 1,
@@ -93,38 +82,58 @@
       "quickSearch": 1
     },
     {
-      "key": "src188",
-      "name": "影视 非凡[直连]",
+      "key": "src162",
+      "name": "非凡 资源",
       "type": 1,
-      "api": "http://ffzy.tv/api.php/provide/vod/",
+      "api": "http://ffzy1.tv/api.php/provide/vod/",
+      "playurl": "json:http://jx.84jia.com/m3u8ts.php?url=",
       "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 1,
       "categories": [
         "动作片",
         "喜剧片",
-        "爱情片",
         "科幻片",
         "恐怖片",
+        "爱情片",
         "剧情片",
         "战争片",
+        "记录片",
         "国产剧",
+        "欧美剧",
         "香港剧",
         "韩国剧",
-        "欧美剧",
-        "记录片",
         "台湾剧",
         "日本剧",
         "海外剧",
         "泰国剧",
-        "大陆综艺",
-        "港台综艺",
-        "日韩综艺",
-        "欧美综艺",
         "国产动漫",
         "日韩动漫",
         "欧美动漫",
         "港台动漫",
-        "海外动漫"
+        "海外动漫",
+        "大陆综艺",
+        "港台综艺",
+        "日韩综艺",
+        "欧美综艺"
       ]
+    },
+    {
+      "key": "src214",
+      "name": "红牛资源(切)",
+      "type": 1,
+      "api": "https://www.hongniuzy2.com/api.php/provide/vod/",
+      "searchable": 1,
+      "quickSearch": 1
+    },
+    {
+      "key": "src138",
+      "name": "忍者 影视",
+      "type": 3,
+      "playerType": "2",
+      "api": "csp_AppRZ",
+      "ext": "http://rzys.xyz/",
+      "jar": "./libs/jar/Panda.jar"
     },
     {
       "key": "src236",
@@ -145,33 +154,23 @@
       "quickSearch": 0,
       "filterable": 0,
       "ext": "http://xhztv.top/xhz/js/JRKAN直播.js"
-    },
-    {
-      "key": "src257",
-      "name": "虎牙直播",
-      "type": 3,
-      "api": "http://xhztv.top/xhz/js/lib/drpy2.min.js",
-      "searchable": 0,
-      "quickSearch": 0,
-      "filterable": 0,
-      "ext": "http://xhztv.top/xhz/js/虎牙直播.js"
     }
   ],
   "lives": [
-    {
-      "name": "live",
-      "type": 0,
-      "url": "http://xhztv.top/xhz/live.txt"
-    },
     {
       "name": "咪咕",
       "type": 0,
       "url": "https://develop202.github.io/migu_video/interface.txt"
     },
     {
-      "name": "斗鱼一起看",
+      "name": "live",
       "type": 0,
-      "url": "https://sub.ottiptv.cc/douyuyqk.m3u"
+      "url": "http://xhztv.top/xhz/live.txt"
+    },
+    {
+      "name": "Kimentanm",
+      "type": 0,
+      "url": "https://ghproxy.net/https://raw.githubusercontent.com/Kimentanm/aptv/master/m3u/iptv.m3u"
     }
   ],
   "parses": [

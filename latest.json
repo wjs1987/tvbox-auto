@@ -5,7 +5,10 @@
       "key": "super",
       "name": "全网汇总",
       "type": 1,
-      "api": "https://tvbox-juxu-spegz3xv.edgeone.cool/api?eo_token=2701b6ad65aae85be5dbcd011df8a6ac&eo_time=1795673165",
+      "api": "https://tvbox-juxu-spegz3xv.edgeone.cool/api?eo_token=e3b12d43b9da6a519d89038857f3d00b&eo_time=1795674375",
+      "header": {
+        "Cookie": "eo_token=e3b12d43b9da6a519d89038857f3d00b; eo_time=1795674375"
+      },
       "searchable": 1,
       "quickSearch": 1,
       "filterable": 1
@@ -51,56 +54,24 @@
       ]
     },
     {
-      "key": "src216",
-      "name": "光速资源(切)",
+      "key": "src244",
+      "name": "索尼 资源",
       "type": 1,
-      "api": "https://api.guangsuapi.com/api.php/provide/vod/",
+      "api": "https://suoniapi.com/api.php/provide/vod/",
       "searchable": 1,
-      "quickSearch": 1
-    },
-    {
-      "key": "src160",
-      "name": "索尼 高清",
-      "type": 1,
-      "api": "https://suoniapi.com/api.php/provide/vod/?ac=list",
-      "searchable": 1,
-      "quickSearch": 1,
-      "filterable": 1,
+      "filterable": 0,
       "categories": [
+        "欧美剧",
+        "韩剧",
+        "日剧",
         "动作片",
         "喜剧片",
+        "爱情片",
         "科幻片",
         "恐怖片",
-        "爱情片",
         "剧情片",
-        "战争片",
-        "记录片",
-        "国产剧",
-        "欧美剧",
-        "香港剧",
-        "韩国剧",
-        "台湾剧",
-        "日本剧",
-        "海外剧",
-        "泰国剧",
-        "国产动漫",
-        "日韩动漫",
-        "欧美动漫",
-        "港台动漫",
-        "海外动漫",
-        "大陆综艺",
-        "港台综艺",
-        "日韩综艺",
-        "欧美综艺"
+        "战争片"
       ]
-    },
-    {
-      "key": "src214",
-      "name": "红牛资源(切)",
-      "type": 1,
-      "api": "https://www.hongniuzy2.com/api.php/provide/vod/",
-      "searchable": 1,
-      "quickSearch": 1
     },
     {
       "key": "src197",
@@ -112,6 +83,58 @@
       "changeable": 1,
       "filterable": 1,
       "timeout": 10
+    },
+    {
+      "key": "src216",
+      "name": "光速资源(切)",
+      "type": 1,
+      "api": "https://api.guangsuapi.com/api.php/provide/vod/",
+      "searchable": 1,
+      "quickSearch": 1
+    },
+    {
+      "key": "src188",
+      "name": "影视 非凡[直连]",
+      "type": 1,
+      "api": "http://ffzy.tv/api.php/provide/vod/",
+      "searchable": 1,
+      "categories": [
+        "动作片",
+        "喜剧片",
+        "爱情片",
+        "科幻片",
+        "恐怖片",
+        "剧情片",
+        "战争片",
+        "国产剧",
+        "香港剧",
+        "韩国剧",
+        "欧美剧",
+        "记录片",
+        "台湾剧",
+        "日本剧",
+        "海外剧",
+        "泰国剧",
+        "大陆综艺",
+        "港台综艺",
+        "日韩综艺",
+        "欧美综艺",
+        "国产动漫",
+        "日韩动漫",
+        "欧美动漫",
+        "港台动漫",
+        "海外动漫"
+      ]
+    },
+    {
+      "key": "src236",
+      "name": "农民 直连",
+      "type": 3,
+      "api": "csp_Nmys",
+      "searchable": 1,
+      "quickSearch": 1,
+      "changeable": 1,
+      "ext": "https://agit.ai/fantaiying/fty/raw/branch/master/ext/nmys.json"
     },
     {
       "key": "src258",
@@ -132,33 +155,23 @@
       "quickSearch": 0,
       "filterable": 0,
       "ext": "http://xhztv.top/xhz/js/虎牙直播.js"
-    },
-    {
-      "key": "src236",
-      "name": "农民 直连",
-      "type": 3,
-      "api": "csp_Nmys",
-      "searchable": 1,
-      "quickSearch": 1,
-      "changeable": 1,
-      "ext": "https://agit.ai/fantaiying/fty/raw/branch/master/ext/nmys.json"
     }
   ],
   "lives": [
     {
-      "name": "直播-pool",
+      "name": "live",
       "type": 0,
-      "url": "https://live.zbds.top/tv/iptv4.txt"
-    },
-    {
-      "name": "斗鱼一起看",
-      "type": 0,
-      "url": "https://sub.ottiptv.cc/douyuyqk.m3u"
+      "url": "http://xhztv.top/xhz/live.txt"
     },
     {
       "name": "咪咕",
       "type": 0,
       "url": "https://develop202.github.io/migu_video/interface.txt"
+    },
+    {
+      "name": "斗鱼一起看",
+      "type": 0,
+      "url": "https://sub.ottiptv.cc/douyuyqk.m3u"
     }
   ],
   "parses": [

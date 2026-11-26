@@ -16,6 +16,7 @@ TVBox/OK影视 源自动采集 + 检测 + 生成工具 v2
 import argparse
 import json
 import os
+import re
 import ssl
 import sys
 import time
@@ -501,6 +502,173 @@ def upsert_super_source(latest: dict, api_token: str) -> bool:
     return True
 
 
+# ==================== 超级源目录生成（super_catalog.json） ====================
+# 将"聚合片单"这一重活从边缘函数挪到流水线：Actions 深挖生成静态目录，
+# 边缘函数只做秒级加载+内存检索，根治 KV 未批期间冷启动 9 秒重建的卡顿。
+
+FIXED_CLASSES_PY = [
+    {"type_id": "c_all", "type_name": "全部"},
+    {"type_id": "c_movie", "type_name": "电影"},
+    {"type_id": "c_tv", "type_name": "剧集"},
+    {"type_id": "c_variety", "type_name": "综艺"},
+    {"type_id": "c_anime", "type_name": "动漫"},
+    {"type_id": "c_doc", "type_name": "纪录"},
+]
+CAT_RULES_PY = [
+    (re.compile(r"电影|院线|动作|喜剧|爱情|科幻|恐怖|剧情|战争|犯罪|奇幻|冒险|灾难"), "c_movie"),
+    (re.compile(r"剧|连续|国产|港台|韩|美|海外"), "c_tv"),
+    (re.compile(r"综艺|娱乐|真人秀|脱口"), "c_variety"),
+    (re.compile(r"动漫|动画|番剧|漫画"), "c_anime"),
+    (re.compile(r"纪录|纪实|解说"), "c_doc"),
+]
+MAIN_CAT_PY = re.compile(r"电影|剧集|电视剧|综艺|动漫|动画|片|连续")
+
+
+def norm_name_py(s: str) -> str:
+    """对齐 JS normName: toLowerCase + 去除空白/标点/符号。"""
+    import unicodedata
+    s = str(s or "").lower()
+    out = []
+    for ch in s:
+        cat = unicodedata.category(ch)
+        if ch.isspace() or cat.startswith(("P", "S")):
+            continue
+        out.append(ch)
+    return "".join(out)
+
+
+def js_hash_id(s: str) -> str:
+    """对齐 JS hashId: uint32 h*131+charCodeAt, base36, 前缀 m。charCodeAt 按 UTF-16 码元。"""
+    units = s.encode("utf-16-le")
+    h = 0
+    for i in range(0, len(units), 2):
+        code = units[i] | (units[i + 1] << 8)
+        h = (h * 131 + code) & 0xFFFFFFFF
+    digits = "0123456789abcdefghijklmnopqrstuvwxyz"
+    if h == 0:
+        b36 = "0"
+    else:
+        b36 = ""
+        while h:
+            b36 = digits[h % 36] + b36
+            h //= 36
+    return "m" + b36
+
+
+def classify_py(name: str, cat: str, remarks: str) -> str:
+    """对齐 JS 分类规则：第N期优先判综艺，再按关键词顺序匹配。"""
+    if re.search(r"第\d+期", remarks or ""):
+        return "c_variety"
+    for rx, cid in CAT_RULES_PY:
+        if rx.search(cat or "") or rx.search(name or ""):
+            return cid
+    return "c_all"
+
+
+def build_super_catalog(selected_sites: list, timeout: float = 8,
+                        latest_pages: int = 10, cat_pages: int = 6,
+                        max_cats: int = 10, max_items: int = 15000,
+                        max_lines: int = 4) -> dict:
+    """深挖各上游源生成汇总目录（去重+多源线路+分类），输出超级源静态目录。"""
+    upstreams = [s for s in selected_sites if s.get("type", 0) in (0, 1) and s.get("api")]
+    if not upstreams:
+        return {"updated": "", "upstreams": [], "classes": FIXED_CLASSES_PY, "items": []}
+    print(f"[目录] 深挖 {len(upstreams)} 个上游（最新{latest_pages}页 + 主流分类{cat_pages}页）...")
+
+    def sep(u):
+        return "&" if "?" in u else "?"
+
+    def pjson(u):
+        # 部分采集站对并发突发限流：失败退避重试2次（0.5s/1.5s）
+        for delay in (0, 0.5, 1.5):
+            if delay:
+                time.sleep(delay)
+            try:
+                return json.loads(fetch(u, timeout=timeout, ua=UA_OKHTTP))
+            except Exception:
+                continue
+        return None
+
+    jobs = []  # (src_name, api, v)
+    for site in upstreams:
+        api = site["api"]
+        base = f"{api}{sep(api)}"
+        # 1) 分类表
+        cls = pjson(api) or {}
+        cat_list = [(str(c.get("type_id")), str(c.get("type_name") or ""))
+                    for c in (cls.get("class") or []) if c.get("type_id") is not None]
+        # 2) 探测 t 参数是否有效：无效的源（如淘片）改为往深翻页
+        first = pjson(f"{base}ac=list&pg=1")
+        t_ok = False
+        if cat_list and first and first.get("list"):
+            probe = pjson(f"{base}ac=list&t={cat_list[0][0]}&pg=1")
+            fids = [v.get("vod_id") for v in first.get("list", [])[:10]]
+            pids = [v.get("vod_id") for v in (probe or {}).get("list", [])[:10]]
+            t_ok = bool(pids) and pids != fids  # 同页码下列表不同=分类过滤生效
+        # 3) 生成抓取 URL
+        urls = []
+        if t_ok:
+            main = [c for c in cat_list if MAIN_CAT_PY.search(c[1])]
+            rest = [c for c in cat_list if c not in main]
+            for _tid, _cname in (main + rest)[:max_cats]:
+                urls += [f"{base}ac=list&t={_tid}&pg={p}" for p in range(1, cat_pages + 1)]
+        else:
+            # t 无效：深翻最新列表（片库按更新排序，翻得越深片越多）
+            urls = [f"{base}ac=list&pg={p}" for p in range(1, latest_pages + 1)]
+        for u in urls:
+            jobs.append((site.get("name") or "", api, u))
+        print(f"[目录] {site.get('name','')[:12]}: t参数{'有效' if t_ok else '无效(深翻页)'}，任务 {len(urls)} 个")
+
+    print(f"[目录] 共 {len(jobs)} 个抓取任务，并发拉取 ...")
+    fetched = {}  # api -> list of (src_name, data)
+    def work(job):
+        name, api, u = job
+        d = pjson(u)
+        return (name, api, d)
+    # 注意：采集站对高并发限流（16并发全被拒），用低并发+重试保证成功率
+    with ThreadPoolExecutor(max_workers=6) as ex:
+        for name, api, d in ex.map(work, jobs):
+            if d and isinstance(d.get("list"), list):
+                fetched.setdefault(api, []).append((name, d))
+
+    # 3) 去重合并（按源优先级，同片名保留多源作备用线路）
+    seen = {}
+    for site in upstreams:  # 按排名顺序处理，保证优先级
+        api = site["api"]
+        src_name = site.get("name") or ""
+        for _name, d in fetched.get(api, []):
+            for v in d["list"]:
+                vn = v.get("vod_name")
+                if not vn or v.get("vod_id") is None:
+                    continue
+                key = norm_name_py(str(vn))
+                if not key:
+                    continue
+                entry = seen.get(key)
+                if entry:
+                    if len(entry["srcs"]) < max_lines:
+                        entry["srcs"].append({"oid": str(v["vod_id"]), "api": api, "name": src_name})
+                    continue
+                seen[key] = {
+                    "id": js_hash_id(key),
+                    "name": str(vn),
+                    "pic": str(v.get("vod_pic") or ""),
+                    "remarks": str(v.get("vod_remarks") or ""),
+                    "cat": classify_py(str(vn), str(v.get("type_name") or ""), str(v.get("vod_remarks") or "")),
+                    "srcs": [{"oid": str(v["vod_id"]), "api": api, "name": src_name}],
+                }
+
+    items = list(seen.values())[:max_items]
+    catalog = {
+        "updated": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+        "upstreams": [s.get("name") or "" for s in upstreams],
+        "classes": FIXED_CLASSES_PY,
+        "items": items,
+    }
+    print(f"[目录] 完成：{len(items)} 部去重片单（深挖前合并 {sum(len(e['srcs']) for e in seen.values())} 条记录）")
+    return catalog
+
+
 def write_report(path, alive_sites, dead_sites, alive_ch, dead_ch, crawl_failed, crawl_stats, selected_sites):
     alive_sites.sort(key=lambda r: (r["play"] is not True, -min(r["count"], 50), -(r.get("cdn_speed") or 0), r["ms"] or 99999))
     selected_keys = {id(s) for s in selected_sites}
@@ -712,6 +880,16 @@ def auto_mode(args):
     super_token = os.environ.get("EDGEONE_TOKEN", "")
     if super_token:
         upsert_super_source(latest, super_token)
+
+    # 生成超级源静态目录（边缘函数直接秒级加载，不再实时聚合）
+    try:
+        catalog = build_super_catalog(selected_sites, timeout=args.timeout)
+        catalog_path = Path(args.out).with_name("super_catalog.json")
+        catalog_path.write_text(json.dumps(catalog, ensure_ascii=False, separators=(",", ":")),
+                                encoding="utf-8")
+        print(f"[输出] {catalog_path.name}（{catalog_path.stat().st_size // 1024}KB）")
+    except Exception as e:
+        print(f"[目录] 生成失败（边缘函数会回退到实时聚合）: {e}")
 
     Path(args.out).write_text(json.dumps(latest, ensure_ascii=False, indent=2), encoding="utf-8")
     write_report(args.report, alive_sites, dead_sites, alive_ch, dead_ch, failed, crawl_stats, selected_sites)

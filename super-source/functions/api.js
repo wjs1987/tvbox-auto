@@ -119,6 +119,15 @@ async function fetchLatest(env) {
   return null;
 }
 
+// 静态目录（流水线每日深挖生成的 super_catalog.json，边缘函数只做秒级加载）
+const CATALOG_URLS = [
+  "https://raw.githubusercontent.com/WJS1987/tvbox-auto/main/super_catalog.json",
+  "https://cdn.jsdelivr.net/gh/WJS1987/tvbox-auto@main/super_catalog.json",
+  "https://gh-proxy.com/https://raw.githubusercontent.com/WJS1987/tvbox-auto/main/super_catalog.json",
+];
+let memCatalog = null;
+let memCatalogAt = 0;
+
 // ---------- 汇总重建 ----------
 
 async function rebuild(env) {
@@ -232,18 +241,32 @@ async function rebuild(env) {
 // ---------- 请求处理 ----------
 
 async function getCatalog(env) {
-  const cat = await kvGet(env, KV_KEY);
-  const fresh = cat && cat.updated && Date.now() - new Date(cat.updated).getTime() < REFRESH_INTERVAL_MS;
-  if (fresh) return cat;
-  if (cat) {
-    // 有旧数据但过期：立即返回旧版保证秒开，后台静默重建（下次请求用新的）
-    rebuild(env).catch(() => {});
-    return cat;
+  // 1) 内存缓存 20h 内直接用（同实例请求零开销）
+  if (memCatalog && Date.now() - memCatalogAt < REFRESH_INTERVAL_MS) return memCatalog;
+  // 2) 从 CDN 加载流水线生成的静态目录（多线路回退）
+  const urls = [env.CATALOG_URL, ...CATALOG_URLS].filter(Boolean);
+  for (const u of urls) {
+    const d = await jfetch(u, 15000, 12_000_000);
+    if (d?.items?.length) {
+      memCatalog = d;
+      memCatalogAt = Date.now();
+      kvPut(env, KV_KEY, d).catch(() => {});
+      return d;
+    }
+  }
+  // 3) CDN 全挂：退回 KV 缓存，再退回边端实时聚合
+  const kv = await kvGet(env, KV_KEY);
+  if (kv?.items?.length) {
+    memCatalog = kv;
+    memCatalogAt = Date.now();
+    return kv;
   }
   try {
-    return await rebuild(env);
+    memCatalog = await rebuild(env);
+    memCatalogAt = Date.now();
+    return memCatalog;
   } catch {
-    return cat || { updated: "", upstreams: [], classes: FIXED_CLASSES, items: [] };
+    return memCatalog || kv || { updated: "", upstreams: [], classes: FIXED_CLASSES, items: [] };
   }
 }
 
@@ -253,8 +276,30 @@ async function handleList(q, env, cat) {
   const pg = Math.max(1, parseInt(q.get("pg") || "1", 10));
   const limit = 40;
 
-  // 全局搜索：并发搜所有上游，按片名去重
+  // 全局搜索：优先本地目录检索（毫秒级），无结果才回源跨站实时搜
   if (wd) {
+    const normWd = normName(wd);
+    if (normWd) {
+      const hits = (cat.items || []).filter((x) => normName(x.name).includes(normWd));
+      if (hits.length) {
+        // 片名以关键词开头（如"庆余年 第一季"命中"庆余年"）置顶
+        hits.sort((a, b) => (normName(b.name).startsWith(normWd) ? 1 : 0) - (normName(a.name).startsWith(normWd) ? 1 : 0));
+        const catName = (id) => (cat.classes || FIXED_CLASSES).find((c) => c.type_id === id)?.type_name || "全部";
+        const list = hits.slice((pg - 1) * limit, pg * limit).map((x) => ({
+          vod_id: x.id,
+          vod_name: x.name,
+          vod_pic: x.pic,
+          vod_remarks: x.remarks,
+          type_id: x.cat,
+          type_name: catName(x.cat),
+        }));
+        return json({
+          code: 1, msg: "数据列表", page: pg, limit,
+          total: hits.length, pagecount: Math.ceil(hits.length / limit) || 1,
+          class: FIXED_CLASSES, list,
+        });
+      }
+    }
     const latest = await fetchLatest(env);
     const apis = latest ? getUpstreams(env, latest, 6) : DEFAULT_UPSTREAMS.slice(0, 6);
     const found = new Map();
@@ -279,7 +324,6 @@ async function handleList(q, env, cat) {
     );
     const all = [...found.values()];
     // 片名以关键词开头（如"庆余年 第一季"命中"庆余年"）置顶，其余保持源返回顺序
-    const normWd = normName(wd);
     all.sort((a, b) => (normName(b.vod_name).startsWith(normWd) ? 1 : 0) - (normName(a.vod_name).startsWith(normWd) ? 1 : 0));
     const list = all.slice((pg - 1) * limit, pg * limit);
     return json({

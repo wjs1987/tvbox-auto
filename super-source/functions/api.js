@@ -115,9 +115,9 @@ function getUpstreams(env, latest, n) {
 
 // 拉取 latest.json，多线路回退；全部失败返回 null（加时间戳穿透CDN缓存，保证改源后立即生效）
 async function fetchLatest(env) {
-  const bust = `&_cb=${Date.now()}`;
   const urls = [env.LATEST_URL || DEFAULT_LATEST, ...LATEST_FALLBACKS];
   for (const u of urls) {
+    const bust = (u.includes("?") ? "&" : "?") + "_cb=" + Date.now();
     const d = await jfetch(u + bust, 12000);
     if (d?.sites?.length) return d;
   }

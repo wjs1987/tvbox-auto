@@ -527,7 +527,7 @@ def auto_mode(args):
             alive_t3 = [r for r in good if r["site"].get("type", 0) == 3]
             jar2cnt = _C(r["site"].get("_spider", "") for r in alive_t3
                          if r["site"].get("_spider") in jar_results)
-            spider_url = max(jar_results, key=lambda j: (jar2cnt.get(j, 0), -j)) if jar2cnt \
+            spider_url = max(jar_results, key=lambda j: jar2cnt.get(j, 0)) if jar2cnt \
                 else jar_results[0]
             print(f"[jar] 可用 {len(jar_results)} 个，选用: {spider_url[:60]}"
                   f"（配对 {jar2cnt.get(spider_url, 0)} 个 type3 存活源）")

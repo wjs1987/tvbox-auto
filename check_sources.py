@@ -559,13 +559,27 @@ CAT_RULES_PY = [
 ]
 MAIN_CAT_PY = re.compile(r"电影|剧集|电视剧|综艺|动漫|动画|片|连续")
 
-# 成人内容过滤：站点名/片名命中即整站/整条排除（91md/麻豆/扣扣传媒等曾混入排名）
-ADULT_RE = re.compile(
-    r"麻豆|扣扣|91md|91fans|91传媒|天美|果冻传媒|星空传媒|乌鸦传媒|蜜桃|精东|杏吧|"
-    r"swag|女优|无码|有码|人妻|巨乳|淫|兽性|肉欲|情色|风月|mdx|"
-    r"做爱|性爱|嫖|妓|菠萝传媒|兔子传媒|爱娘|翰丝传媒|"
-    r"18\+|成人|伦理",
-    re.IGNORECASE)
+# 家庭网络实测稳定失效的源（GitHub 海外机房测出来是活的，但国内连不上，点进去一直转圈）。
+# 2026-11-27 家里网络两轮探测均为 0 成功。按完整 API 地址匹配，避免误杀同域名的正常源。
+# 源若日后恢复，从本列表删除对应行即可重新入选。
+HOME_DEAD_APIS = [
+    "https://ikunzyapi.com/api.php/provide/vod",
+    "https://apilj.com/api.php/provide/vod/at/json/",
+    "https://shayuapi.com/api.php/provide/vod/",
+    "https://lbapi9.com/api.php/provide/vod/at/xml",
+    "https://jszyapi.com/api.php/provide/vod/",
+    "https://suoniapi.com/api.php/provide/vod/",
+    "https://suoniapi.com/api.php/provide/vod/?ac=list",
+    "http://api.xinlangapi.com/xinlangapi.php/provide/vod/",
+    "http://caiji.dyttzyapi.com/api.php/provide/vod/from/dyttm3u8/at/m3u8/",
+    "http://caiji.dyttzyapi.com/api.php/provide/vod",
+]
+
+
+def is_home_dead(site: dict) -> bool:
+    """站点 API 是否在家庭网络实测失效名单里（去尾部斜杠后精确匹配）。"""
+    api = str(site.get("api") or "").strip().rstrip("/")
+    return any(api == str(d).strip().rstrip("/") for d in HOME_DEAD_APIS)
 
 
 def norm_name_py(s: str) -> str:
@@ -614,13 +628,8 @@ def build_super_catalog(selected_sites: list, timeout: float = 8,
                         max_cats: int = 20, max_items: int = 30000,
                         max_lines: int = 4) -> dict:
     """深挖各上游源生成汇总目录（去重+多源线路+分类），输出超级源静态目录。"""
-    upstreams = [s for s in selected_sites if s.get("type", 0) in (0, 1) and s.get("api")]
-    # 成人站整站排除
-    clean_ups = [s for s in upstreams if not ADULT_RE.search(s.get("name") or "")]
-    skipped = len(upstreams) - len(clean_ups)
-    if skipped:
-        print(f"[目录] 排除成人源 {skipped} 个")
-    upstreams = clean_ups
+    upstreams = [s for s in selected_sites
+                 if s.get("type", 0) in (0, 1) and s.get("api") and not is_home_dead(s)]
     if not upstreams:
         return {"updated": "", "upstreams": [], "classes": FIXED_CLASSES_PY, "items": []}
     print(f"[目录] 深挖 {len(upstreams)} 个上游（最新{latest_pages}页 + 主流分类{cat_pages}页）...")
@@ -692,8 +701,6 @@ def build_super_catalog(selected_sites: list, timeout: float = 8,
                 if not vn or v.get("vod_id") is None:
                     continue
                 vn = str(vn)
-                if ADULT_RE.search(vn):  # 成人片名整条排除
-                    continue
                 key = norm_name_py(vn)
                 if not key:
                     continue
@@ -879,11 +886,10 @@ def auto_mode(args):
     for r in good:
         if r["site"].get("type", 0) != 0 and r["site"].get("type", 0) != 1:
             continue  # type 3 后面按 jar 配对单独处理
+        if is_home_dead(r["site"]):
+            continue  # 家庭网络实测打不开的源，剔除（否则点进去一直转圈）
         cn = clean_name(r["site"].get("name", ""))
         if cn in seen_cn:
-            continue
-        # 成人站整站排除（不进 latest.json 也不进超级源目录）
-        if ADULT_RE.search(r["site"].get("name", "") or ""):
             continue
         seen_cn.add(cn)
         selected_sites.append(r["site"])

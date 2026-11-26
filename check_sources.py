@@ -31,6 +31,11 @@ UA_OKHTTP = "okhttp/3.12.0"  # 聚合配置站大多只认 okhttp UA
 CTX = ssl.create_default_context()
 CTX.check_hostname = False
 CTX.verify_mode = ssl.CERT_NONE
+# 强制直连：测源必须反映真实网络。若本机设了 HTTP_PROXY，urllib 默认走代理，
+# 会把"家宽直连可达"的源误判为失效（实测 43333 图片域被代理返回 502）。
+# GitHub Actions 上本来就没有代理，行为不变。
+OPENER = urllib.request.build_opener(
+    urllib.request.ProxyHandler({}), urllib.request.HTTPSHandler(context=CTX))
 
 
 # ---------- 网络基础 ----------
@@ -59,7 +64,7 @@ def fetch(url: str, timeout: float = 8, ua: str = UA_OKHTTP, max_bytes: int = 3_
         if headers:
             h.update(headers)
         req = urllib.request.Request(ascii_url(url), headers=h)
-        with urllib.request.urlopen(req, timeout=timeout, context=CTX) as r:
+        with OPENER.open(req, timeout=timeout) as r:
             return r.read(max_bytes).decode("utf-8", errors="replace")
     except Exception:
         return None
@@ -74,7 +79,7 @@ def fetch_bytes(url: str, timeout: float = 8, headers: dict = None,
     t0 = time.perf_counter()
     try:
         req = urllib.request.Request(ascii_url(url), headers=h)
-        with urllib.request.urlopen(req, timeout=timeout, context=CTX) as r:
+        with OPENER.open(req, timeout=timeout) as r:
             return r.read(max_bytes), int((time.perf_counter() - t0) * 1000)
     except Exception:
         return None, int((time.perf_counter() - t0) * 1000)

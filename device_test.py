@@ -24,6 +24,10 @@ from pathlib import Path
 CTX = ssl.create_default_context()
 CTX.check_hostname = False
 CTX.verify_mode = ssl.CERT_NONE
+# 强制直连：魔屏没有系统代理，若脚本走了本机 HTTP_PROXY，测出来的存活/速度全是假象
+# （实测曾把 43333 端口的图片域误判为"502 代理失败"，实际家宽直连是通的）
+OPENER = urllib.request.build_opener(
+    urllib.request.ProxyHandler({}), urllib.request.HTTPSHandler(context=CTX))
 UA = "okhttp/3.12.0"
 REPO = "WJS1987/tvbox-auto"
 RAW = f"https://raw.githubusercontent.com/{REPO}/main/latest.json"
@@ -41,7 +45,7 @@ def fetch_bytes(url, timeout=12, headers=None, max_bytes=2_000_000):
     t0 = time.perf_counter()
     try:
         req = urllib.request.Request(url, headers=h)
-        with urllib.request.urlopen(req, timeout=timeout, context=CTX) as r:
+        with OPENER.open(req, timeout=timeout) as r:
             return r.read(max_bytes), int((time.perf_counter() - t0) * 1000)
     except Exception:
         return None, int((time.perf_counter() - t0) * 1000)

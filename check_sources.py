@@ -498,6 +498,9 @@ def auto_mode(args):
     good.sort(key=lambda r: (r["play"] is not True, -min(r["count"], 50), r["ms"] or 99999))
     selected_sites = []
     seen_cn = set()
+    # 有 jar 候选时给 type 3 高级源预留 3 个名额，避免普通源占满后高级源无位可进
+    reserve = min(3, len(jar_candidates)) if jar_candidates else 0
+    cap = max(1, args.top - reserve)
     for r in good:
         if r["site"].get("type", 0) != 0 and r["site"].get("type", 0) != 1:
             continue  # type 3 后面按 jar 配对单独处理
@@ -506,7 +509,7 @@ def auto_mode(args):
             continue
         seen_cn.add(cn)
         selected_sites.append(r["site"])
-        if len(selected_sites) >= args.top:
+        if len(selected_sites) >= cap:
             break
 
     # ===== spider jar 测试：让 type 3 高质量源复活 =====

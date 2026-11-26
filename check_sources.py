@@ -74,7 +74,9 @@ def parse_spider(sp) -> str:
     if not isinstance(sp, str):
         return ""
     first = sp.split(";")[0].strip()
-    return first if first.startswith("http") and first.endswith(".jar") else ""
+    # 很多仓把 jar 伪装成 .png/.jpg/.txt 等链接，只要求 http 开头即可，
+    # 真伪由后续下载验证（大小 >= 10KB 且 ZIP 头 PK）判定
+    return first if first.startswith("http") else ""
 
 
 def crawl_pool(pool_urls: list, timeout: float):
@@ -516,7 +518,8 @@ def auto_mode(args):
             futs = {ex.submit(fetch, j, args.timeout, UA_OKHTTP, 60_000): j for j in jar_candidates}
             for f in as_completed(futs):
                 body = f.result()
-                if body and len(body) >= 10_000:
+                # jar 是 ZIP 包（PK 头），且至少 10KB——过滤伪装链接和错误页
+                if body and len(body) >= 10_000 and body[:2] == "PK":
                     jar_results.append(futs[f])
         if jar_results:
             spider_url = jar_results[0]

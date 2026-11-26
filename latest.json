@@ -7,7 +7,7 @@
       "type": 1,
       "api": "https://tvbox-juxu-spegz3xv.edgeone.cool/api",
       "header": {
-        "Cookie": "eo_token=35cb9d163829448ccbac6aeb0253d1a0; eo_time=1795711414"
+        "Cookie": "eo_token=97bc1d8391ef3ab391568c0bf1b18693; eo_time=1795712278"
       },
       "searchable": 1,
       "quickSearch": 1,
@@ -81,6 +81,16 @@
       "timeout": 15
     },
     {
+      "key": "src28",
+      "name": "(18+)乐播",
+      "type": 0,
+      "api": "https://lbapi9.com/api.php/provide/vod/at/xml",
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 0,
+      "timeout": 15
+    },
+    {
       "key": "src30",
       "name": "(18+)番号资源",
       "type": 1,
@@ -91,19 +101,10 @@
       "timeout": 15
     },
     {
-      "key": "src92",
-      "name": "*辣椒资源",
+      "key": "src93",
+      "name": "*乐播资源",
       "type": 1,
-      "api": "https://apilj.com/api.php/provide/vod/at/json/",
-      "searchable": 0,
-      "quickSearch": 0,
-      "timeout": 15
-    },
-    {
-      "key": "src101",
-      "name": "*鲨鱼资源",
-      "type": 1,
-      "api": "https://shayuapi.com/api.php/provide/vod/",
+      "api": "https://lbapi9.com/api.php/provide/vod/",
       "searchable": 0,
       "quickSearch": 0,
       "timeout": 15

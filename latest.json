@@ -42,6 +42,41 @@
       ]
     },
     {
+      "key": "src243",
+      "name": "豪华 资源",
+      "type": 1,
+      "api": "https://hhzyapi.com/api.php/provide/vod/?ac=list",
+      "searchable": 1,
+      "quickSearch": 1,
+      "categories": [
+        "内地剧",
+        "香港剧",
+        "欧美剧",
+        "韩剧",
+        "日剧",
+        "马泰剧",
+        "台湾剧",
+        "动画片",
+        "中国动漫",
+        "日本动漫",
+        "欧美动漫",
+        "剧情片",
+        "战争片",
+        "动作片",
+        "科幻片",
+        "记录片",
+        "爱情片",
+        "喜剧片",
+        "灾难片",
+        "悬疑片",
+        "犯罪片",
+        "大陆综艺",
+        "日韩综艺",
+        "港台综艺",
+        "欧美综艺"
+      ]
+    },
+    {
       "key": "src189",
       "name": "影视 索尼[直连]",
       "type": 0,
@@ -74,6 +109,39 @@
         "港台动漫",
         "海外动漫",
         "影视解说"
+      ]
+    },
+    {
+      "key": "src168",
+      "name": "虎牙采集",
+      "type": 1,
+      "api": "https://www.huyaapi.com/api.php/provide/vod/from/hym3u8",
+      "searchable": 1,
+      "quickSearch": 1,
+      "categories": [
+        "内地剧",
+        "动作片",
+        "科幻片",
+        "战争片",
+        "喜剧片",
+        "爱情片",
+        "恐怖片",
+        "犯罪片",
+        "剧情片",
+        "冒险片",
+        "记录片",
+        "韩剧",
+        "香港剧",
+        "台湾剧",
+        "欧美剧",
+        "日剧",
+        "马泰剧",
+        "体育赛事",
+        "综艺",
+        "动画片",
+        "中国动漫",
+        "日本动漫",
+        "欧美动漫"
       ]
     },
     {
@@ -113,20 +181,14 @@
       ]
     },
     {
-      "key": "src217",
-      "name": "新浪资源(切)",
-      "type": 1,
-      "api": "http://api.xinlangapi.com/xinlangapi.php/provide/vod/",
+      "key": "src236",
+      "name": "农民 直连",
+      "type": 3,
+      "api": "csp_Nmys",
       "searchable": 1,
-      "quickSearch": 1
-    },
-    {
-      "key": "src216",
-      "name": "光速资源(切)",
-      "type": 1,
-      "api": "https://api.guangsuapi.com/api.php/provide/vod/",
-      "searchable": 1,
-      "quickSearch": 1
+      "quickSearch": 1,
+      "changeable": 1,
+      "ext": "https://agit.ai/fantaiying/fty/raw/branch/master/ext/nmys.json"
     },
     {
       "key": "src138",
@@ -138,24 +200,15 @@
       "jar": "./libs/jar/Panda.jar"
     },
     {
-      "key": "src258",
-      "name": "JRKAN直播",
+      "key": "src123",
+      "name": "在线 外剧",
       "type": 3,
-      "api": "http://xhztv.top/xhz/js/lib/drpy.min.js",
-      "searchable": 0,
-      "quickSearch": 0,
-      "filterable": 0,
-      "ext": "http://xhztv.top/xhz/js/JRKAN直播.js"
-    },
-    {
-      "key": "src236",
-      "name": "农民 直连",
-      "type": 3,
-      "api": "csp_Nmys",
+      "api": "csp_Zxzj",
+      "timeout": 15,
       "searchable": 1,
       "quickSearch": 1,
       "changeable": 1,
-      "ext": "https://agit.ai/fantaiying/fty/raw/branch/master/ext/nmys.json"
+      "ext": "https://www.zxzjhd.com/"
     }
   ],
   "lives": [
@@ -165,14 +218,14 @@
       "url": "https://develop202.github.io/migu_video/interface.txt"
     },
     {
+      "name": "live",
+      "type": 0,
+      "url": "http://xhztv.top/xhz/live.txt"
+    },
+    {
       "name": "YY轮播",
       "type": 0,
       "url": "https://sub.ottiptv.cc/yylunbo.m3u"
-    },
-    {
-      "name": "斗鱼一起看",
-      "type": 0,
-      "url": "https://sub.ottiptv.cc/douyuyqk.m3u"
     }
   ],
   "parses": [

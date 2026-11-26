@@ -51,13 +51,33 @@ def ascii_url(u: str) -> str:
         return u
 
 
-def fetch(url: str, timeout: float = 8, ua: str = UA_OKHTTP, max_bytes: int = 3_000_000):
+def fetch(url: str, timeout: float = 8, ua: str = UA_OKHTTP, max_bytes: int = 3_000_000,
+          headers: dict = None):
+    """抓文本。headers 用于携带站点自带请求头（如超级源的 eo_token Cookie）。"""
     try:
-        req = urllib.request.Request(ascii_url(url), headers={"User-Agent": ua})
+        h = {"User-Agent": ua}
+        if headers:
+            h.update(headers)
+        req = urllib.request.Request(ascii_url(url), headers=h)
         with urllib.request.urlopen(req, timeout=timeout, context=CTX) as r:
             return r.read(max_bytes).decode("utf-8", errors="replace")
     except Exception:
         return None
+
+
+def fetch_bytes(url: str, timeout: float = 8, headers: dict = None,
+                max_bytes: int = 3_000_000):
+    """抓原始字节（jar/zip 校验用）。返回 (bytes|None, 耗时ms)，避免 decode 后字节数失真。"""
+    h = {"User-Agent": UA_OKHTTP}
+    if headers:
+        h.update(headers)
+    t0 = time.perf_counter()
+    try:
+        req = urllib.request.Request(ascii_url(url), headers=h)
+        with urllib.request.urlopen(req, timeout=timeout, context=CTX) as r:
+            return r.read(max_bytes), int((time.perf_counter() - t0) * 1000)
+    except Exception:
+        return None, int((time.perf_counter() - t0) * 1000)
 
 
 def parse_config_text(text: str):
@@ -168,7 +188,8 @@ def extract_lives(configs: list) -> list:
         for group in cfg.get("lives", []):
             if not isinstance(group, dict):
                 continue
-            for ch in group.get("channels", []):
+            # 两种字段名都兼容：老配置用 channels，build_live.py 输出用 channel
+            for ch in (group.get("channel") or group.get("channels") or []):
                 if not isinstance(ch, dict):
                     continue
                 urls = ch.get("urls") or []
@@ -191,12 +212,12 @@ def clean_name(name: str) -> str:
     return n or (name or "").strip()
 
 
-def play_check(list_url: str, t: int, timeout: float):
+def play_check(list_url: str, t: int, timeout: float, headers: dict = None):
     """真实可播性测试：优先从列表响应直接找播放链接（多数采集站列表自带），
     找不到再取首部影片详情验证。True=可播 / False=不可播 / None=无法判断。"""
     import re as _re
     try:
-        body = fetch(list_url, timeout=timeout, max_bytes=3_000_000)
+        body = fetch(list_url, timeout=timeout, max_bytes=3_000_000, headers=headers)
         if not body:
             return None
         if t == 1:  # JSON
@@ -215,7 +236,7 @@ def play_check(list_url: str, t: int, timeout: float):
             base = list_url.split("?")[0]
             sep = "&" if "?" in list_url else "?"
             for q in (f"ac=detail&ids={vid}", f"ac=videolist&ids={vid}"):
-                d = fetch(base + "?" + q, timeout=timeout, max_bytes=3_000_000)
+                d = fetch(base + "?" + q, timeout=timeout, max_bytes=3_000_000, headers=headers)
                 if not d:
                     continue
                 dl = json.loads(d).get("list") or []
@@ -232,21 +253,20 @@ def play_check(list_url: str, t: int, timeout: float):
                 return None
             base = list_url.split("?")[0]
             sep = "&" if "?" in list_url else "?"
-            d = fetch(base + "?" + f"ac=videolist&ids={m.group(1)}", timeout=timeout, max_bytes=3_000_000)
+            d = fetch(base + "?" + f"ac=videolist&ids={m.group(1)}", timeout=timeout,
+                      max_bytes=3_000_000, headers=headers)
             if not d:
                 return None
             return ("<dd" in d and "$" in d)
     except Exception:
         return None
-    except Exception:
-        return None
 
 
-def get_first_play_url(list_url: str, t: int, timeout: float):
+def get_first_play_url(list_url: str, t: int, timeout: float, headers: dict = None):
     """取第一个真实播放直链（m3u8/mp4）。失败返回 None。"""
     import re as _re
     try:
-        body = fetch(list_url, timeout=timeout, max_bytes=3_000_000)
+        body = fetch(list_url, timeout=timeout, max_bytes=3_000_000, headers=headers)
         if not body:
             return None
         pu = None
@@ -261,7 +281,8 @@ def get_first_play_url(list_url: str, t: int, timeout: float):
                     return None
                 base = list_url.split("?")[0]
                 sep = "&" if "?" in list_url else "?"
-                d = fetch(base + "?" + f"ac=detail&ids={vid}", timeout=timeout, max_bytes=3_000_000)
+                d = fetch(base + "?" + f"ac=detail&ids={vid}", timeout=timeout,
+                          max_bytes=3_000_000, headers=headers)
                 if d:
                     dl = json.loads(d).get("list") or []
                     if dl:
@@ -284,37 +305,37 @@ def get_first_play_url(list_url: str, t: int, timeout: float):
         return None
 
 
-def cdn_speed_check(list_url: str, t: int, timeout: float):
+def cdn_speed_check(list_url: str, t: int, timeout: float, headers: dict = None):
     """真实播放测速：下载 m3u8 索引 + 第一个视频分片（限512KB），
     返回 MB/s；无法测出返回 None。"""
     try:
-        play = get_first_play_url(list_url, t, timeout)
+        play = get_first_play_url(list_url, t, timeout, headers)
         if not play:
             return None
         segurl = play
         if ".m3u8" in play.lower():
-            m3u8 = fetch(play, timeout=timeout, max_bytes=200_000)
+            m3u8 = fetch(play, timeout=timeout, max_bytes=200_000, headers=headers)
             if not m3u8:
                 return None
             seg = next((l.strip() for l in m3u8.splitlines()
                         if l.strip().endswith(".ts") and not l.startswith("#")), None)
             if not seg:
-                # 索引里可能还有一层 m3u8
+                # 索引里可能还有一层 m3u8（master → media playlist）
                 sub = next((l.strip() for l in m3u8.splitlines()
                             if l.strip().endswith(".m3u8") and not l.startswith("#")), None)
                 if sub:
                     base = play.rsplit("/", 1)[0]
-                    sub_url = sub if sub.startswith("http") else f"{base}/{sub}"
-                    m3u8 = fetch(sub_url, timeout=timeout, max_bytes=200_000) or ""
+                    if not sub.startswith("http"):
+                        sub = urllib.parse.urljoin(play, sub)
+                    m3u8 = fetch(sub, timeout=timeout, max_bytes=200_000, headers=headers) or ""
                     seg = next((l.strip() for l in m3u8.splitlines()
                                 if l.strip().endswith(".ts") and not l.startswith("#")), None)
-                    segurl = sub_url if seg else segurl.rsplit("/", 1)[0] + "/" + (seg or "")
-                if not seg:
-                    return None
-            base = segurl.rsplit("/", 1)[0]
-            segurl = seg if seg.startswith("http") else f"{base}/{seg}"
+                    segurl = sub  # 相对分片路径要基于二级索引解析
+            if not seg:
+                return None
+            segurl = urllib.parse.urljoin(segurl, seg)
         t0 = time.perf_counter()
-        body = fetch(segurl, timeout=timeout + 5, max_bytes=512_000)
+        body = fetch(segurl, timeout=timeout + 5, max_bytes=512_000, headers=headers)
         if not body:
             return None
         dt = time.perf_counter() - t0
@@ -330,6 +351,7 @@ def test_site(site: dict, timeout: float) -> dict:
     type 3 只测 ext 规则文件可达性。"""
     t = site.get("type", 0)
     api = (site.get("api") or "").strip()
+    headers = site.get("header") if isinstance(site.get("header"), dict) else None
     name = site.get("name") or site.get("key", "?")
     r = {"site": site, "ok": False, "ms": None, "count": 0, "play": None,
          "cdn_speed": None, "note": ""}
@@ -337,6 +359,9 @@ def test_site(site: dict, timeout: float) -> dict:
         ext = site.get("ext")
         if isinstance(ext, dict):  # 内联规则对象，无需外部文件
             r.update(ok=True, ms=0, note="内联规则")
+            return r
+        if api.startswith("csp_"):  # 内核内置 CSP 爬虫（云盘搜索/SeedHub 等），无 ext 也有效
+            r.update(ok=True, ms=0, note="内置 CSP")
             return r
         url = (ext if isinstance(ext, str) else "").strip()
         if not url or not url.startswith("http"):
@@ -359,7 +384,7 @@ def test_site(site: dict, timeout: float) -> dict:
     else:
         url = api if "ac=" in api else api + sep + "ac=videolist"
     t0 = time.perf_counter()
-    body = fetch(url, timeout=timeout, ua=UA_OKHTTP, max_bytes=500_000)
+    body = fetch(url, timeout=timeout, ua=UA_OKHTTP, max_bytes=500_000, headers=headers)
     if body is None:
         r["note"] = "超时/连接失败"
         return r
@@ -381,12 +406,12 @@ def test_site(site: dict, timeout: float) -> dict:
         except Exception:
             r["note"] = "内容非 XML/JSON"
     if r["ok"] and t in (0, 1):
-        r["play"] = play_check(url, t, timeout)  # 真实可播性
+        r["play"] = play_check(url, t, timeout, headers)  # 真实可播性
         if r["play"] is False:
             r["note"] += " + 播放链接无效"
             r["ok"] = False  # 有片单但播不了 = 判定失效
     if r["ok"] and r["play"] is True:
-        r["cdn_speed"] = cdn_speed_check(url, t, timeout)  # 真实视频CDN下载测速
+        r["cdn_speed"] = cdn_speed_check(url, t, timeout, headers)  # 真实视频CDN下载测速
     return r
 
 
@@ -415,19 +440,22 @@ def build_latest(seed_cfg: dict, selected_sites: list, alive_channels: list, liv
         s["name"] = cn
         s.pop("_src", None)
         s.pop("_spider", None)
+        s.setdefault("timeout", 15)  # 显式超时，避免 FongMi 默认值过短误杀慢源
         sites.append(s)
     # ---------- 固定精选：网盘/磁力爬虫源 ----------
     # OK影视(FongMi)原生迅雷引擎可直接播磁力/ed2k；云盘搜索聚合夸克/UC/阿里等公开分享
     # jar 来自 regtostudy/TVBox_warehouse（PizazzGY 原仓库已失效，此 fork 保持同步）
-    PAN_JAR = ("https://gh-proxy.com/https://raw.githubusercontent.com/"
+    # 用 raw 直连：实测 gh-proxy 转 jar 2.7MB 要 51 秒，raw 直连仅 2 秒；
+    # 魔屏加载配置时下载 jar 是同步等待，这 50 秒会直接变成黑屏等待。
+    PAN_JAR = ("https://raw.githubusercontent.com/"
                "regtostudy/TVBox_warehouse/main/spider.jar")
     sites.extend([
         {"key": "pan_search", "name": "云盘搜索", "type": 3, "api": "csp_PanSearch",
-         "jar": PAN_JAR, "searchable": 1, "quickSearch": 1, "filterable": 0},
+         "jar": PAN_JAR, "searchable": 1, "quickSearch": 1, "filterable": 0, "timeout": 15},
         {"key": "seedhub", "name": "SeedHub磁力", "type": 3, "api": "csp_SeedHub",
-         "jar": PAN_JAR, "searchable": 1, "quickSearch": 1, "filterable": 1},
+         "jar": PAN_JAR, "searchable": 1, "quickSearch": 1, "filterable": 1, "timeout": 15},
         {"key": "new6v", "name": "New6V磁力", "type": 3, "api": "csp_New6v", "jar": PAN_JAR,
-         "ext": "https://www.xb6v.com", "searchable": 1, "quickSearch": 1, "filterable": 1},
+         "ext": "https://www.xb6v.com", "searchable": 1, "quickSearch": 1, "filterable": 1, "timeout": 15},
     ])
     lives = list(live_refs)
     if alive_channels:
@@ -692,6 +720,8 @@ def write_report(path, alive_sites, dead_sites, alive_ch, dead_ch, crawl_failed,
     alive_sites.sort(key=lambda r: (r["play"] is not True, -min(r["count"], 50), -(r.get("cdn_speed") or 0), r["ms"] or 99999))
     selected_keys = {id(s) for s in selected_sites}
     L = ["# 源自动采集检测报告", "",
+         "> 注意：本报告延迟由 GitHub 海外机房测得，**不代表国内家庭网络的真实速度**。",
+         "> 国内实测请在家里电脑运行 `python device_test.py`，生成 `device_report.md`。", "",
          f"- 时间：{time.strftime('%Y-%m-%d %H:%M:%S')}",
          f"- 爬取聚合配置：{crawl_stats}",
          f"- 点播源：采集去重 {len(alive_sites) + len(dead_sites)} → 存活 {len(alive_sites)} / 失效 {len(dead_sites)}"
@@ -818,14 +848,16 @@ def auto_mode(args):
     alive_ch = [r["ch"] for r in ch_results if r["ok"]]
     dead_ch = [r for r in ch_results if not r["ok"]]
 
-    # 测试直播源引用（整个文件可达即算存活），按响应速度排序，只留最快的几个
-    ref_results = []
-    for ref in ref_deduped:
+    # 测试直播源引用（整个文件可达即算存活），并发检测后按速度排序
+    def test_ref(ref):
         t0 = time.perf_counter()
         body = fetch(ref["url"], timeout=args.timeout, ua=UA_BROWSER, max_bytes=20_000)
         ms = int((time.perf_counter() - t0) * 1000)
         if body and ("#EXTM3U" in body[:300] or "genre#" in body[:300] or "#EXTINF" in body[:300]):
-            ref_results.append({"ref": ref, "ms": ms})
+            return {"ref": ref, "ms": ms}
+        return None
+    with ThreadPoolExecutor(max_workers=args.workers) as ex:
+        ref_results = [r for r in ex.map(test_ref, ref_deduped) if r]
     ref_results.sort(key=lambda x: x["ms"])
     alive_refs = [r["ref"] for r in ref_results[:args.top_lives] if r["ms"] <= 5000]
     print(f"[检测] 直播源引用存活 {len(ref_results)}/{len(ref_deduped)}，精选最快 {len(alive_refs)} 个")
@@ -858,11 +890,13 @@ def auto_mode(args):
         print(f"[jar] 测试 {len(jar_candidates)} 个爬虫包 ...")
         jar_results = []
         with ThreadPoolExecutor(max_workers=8) as ex:
-            futs = {ex.submit(fetch, j, args.timeout, UA_OKHTTP, 60_000): j for j in jar_candidates}
+            futs = {ex.submit(fetch_bytes, j, args.timeout, None, 3_000_000): j
+                    for j in jar_candidates}
             for f in as_completed(futs):
-                body = f.result()
-                # jar 是 ZIP 包（PK 头），且至少 10KB——过滤伪装链接和错误页
-                if body and len(body) >= 10_000 and body[:2] == "PK":
+                body, _ms = f.result()
+                # jar 是 ZIP 包（PK\x03\x04 头），按字节校验：decode 后字节数会失真，
+                # 用 str 比较 "PK" 也可能把 HTML 错误页误判为可用包
+                if body and len(body) >= 10_000 and body[:4] == b"PK\x03\x04":
                     jar_results.append(futs[f])
         if jar_results:
             # 选出能配对最多 type 3 存活源的 jar（并列时取源响应最快的）

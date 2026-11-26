@@ -50,6 +50,25 @@ GitHub Actions(每日) ──► latest.json（含 sites + lives）──► 魔
 | `HANDOFF.md` | 直播部分的交接说明（更细的操作步骤） |
 | `live.json` / `live.txt` | 直播成品（FongMi LiveConfig / 通用 TXT） |
 
+## 2026-11-27 补充：家庭网络实测工具 `device_test.py`
+
+Actions 机房在海外，测速对国内无意义。新增 `device_test.py`（家里电脑跑，与魔屏同出口），
+生成 `device_report.md`，测：三条配置地址速度 / 全部点播源存活+可播 / 超级源列表+详情 /
+spider jar PK 头 / 直播频道抽样可达率。`check_sources.py` 的 report.md 已注明海外测速局限。
+
+同步修复的 bug（都由这次实测暴露）：
+1. `extract_lives` 只认 `channels`，而 `build_live.py` 输出的是 `channel` → 直播频道被整批丢弃
+2. `test_site` 不传 `site.header` → 超级源（必须带 eo_token Cookie）每次检测都判死；
+   `fetch/play_check/get_first_play_url/cdn_speed_check` 全链路补上 headers 透传
+3. type3 内置 CSP 源（csp_PanSearch 等）无 ext 被误判失效 → 识别为有效
+4. jar 校验用 decode 后的 str 比 `"PK"` → 改 `fetch_bytes` 按字节校验 `PK\x03\x04`
+5. 固定 type3 站的 PAN_JAR 用 gh-proxy 转 2.7MB 要 51 秒 → 改 raw 直连约 2 秒
+6. `cdn_speed_check` 二级 m3u8 的分片 URL 拼接错误 → 用 `urljoin` 修正
+7. 直播源引用检测由串行改并发；play_check 重复 except 死代码删除
+
+实测基线（2026-11-27 家庭网络）：12 个站点中 11 个有效（仅「非凡 资源」超时）；
+超级源列表 156~199ms、详情 747ms、jar 1.15MB/214ms；直播抽样 60 频道 52 个列表可达（86%）。
+
 ## 常用命令
 
 ```bash

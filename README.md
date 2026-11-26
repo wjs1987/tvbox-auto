@@ -15,9 +15,26 @@
 ## 魔屏 OK影视 配置地址
 
 ```
-首选（国内快）：https://cdn.jsdelivr.net/gh/WJS1987/tvbox-auto@main/latest.json
-备用（官方源）：https://raw.githubusercontent.com/WJS1987/tvbox-auto/main/latest.json
+首选：https://cdn.jsdelivr.net/gh/WJS1987/tvbox-auto@main/latest.json
+备用1：https://raw.githubusercontent.com/WJS1987/tvbox-auto/main/latest.json
+备用2：https://gh-proxy.com/https://raw.githubusercontent.com/WJS1987/tvbox-auto/main/latest.json
 ```
+
+三条链路在上海移动家庭网络都可用，但速度波动大（实测单次 1~10 秒），
+gh-proxy 偶尔会被 Cloudflare 拦截。推送后如果魔屏没读到新配置，在地址末尾加
+`?t=时间戳` 穿透 CDN 缓存（例如 `...latest.json?t=1764160000`）。
+
+## 家庭网络实测（重要）
+
+GitHub Actions 机房在海外，报告里的延迟**不能代表魔屏真实体验**。在家里电脑跑：
+
+```bash
+python device_test.py           # 生成 device_report.md
+python device_test.py --quick   # 快速版：每条链路只测一次
+```
+
+它会测：三条配置下载地址速度、全部点播源存活性/可播性、超级源列表与详情接口、
+spider jar 真实性（PK 头）、直播频道抽样可达率。报告直接可用于判断配置好坏。
 
 ## 首次搭建步骤（只需做一次）
 
@@ -47,4 +64,5 @@ git push -u origin main   # 弹出授权窗口时点授权
 - 你的旧配置 `config/tv.json` 仍会作为兜底来源参与检测，参数（ads 黑名单等）沿用
 - 本地手动跑一次：`python check_sources.py --auto --limit 20`（限 20 个源快速试），
   全量跑：`python check_sources.py --auto`
+- 本地端到端实测：`python device_test.py`（**必须在家里的网络跑**，与魔屏同出口）
 - 注意：Public 仓库内容任何人可见

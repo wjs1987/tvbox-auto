@@ -390,7 +390,7 @@ function parseQId(first) {
   return { srcApi: rest.slice(0, i), oid: rest.slice(i + 1) };
 }
 
-async function handleDetail(ids, cat) {
+async function handleDetail(ids, cat, env) {
   const first = String(ids).split(",")[0];
   let srcs; // [{oid, api, name}]，第一个为主线路
   if (first.startsWith("q:")) {
@@ -466,7 +466,7 @@ export async function onRequest({ request, env }) {
     const cat = await getCatalog(env, url.origin);
     const ac = q.get("ac") || "list";
     // FongMi type1 约定：ac=detail&ids=xxx 是查详情；ac=detail&t=分类&pg=页 是分类浏览
-    if (ac === "detail" && q.get("ids")) return await handleDetail(q.get("ids"), cat);
+    if (ac === "detail" && q.get("ids")) return await handleDetail(q.get("ids"), cat, env);
     return await handleList(q, env, cat);
   } catch (e) {
     return json({ error: String(e && e.message || e) }, 500);

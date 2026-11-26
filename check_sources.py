@@ -15,12 +15,13 @@ TVBox/OK影视 源自动采集 + 检测 + 生成工具 v2
 """
 import argparse
 import json
+import os
 import ssl
 import sys
 import time
+import urllib.request
 import urllib.error
 import urllib.parse
-import urllib.request
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
@@ -351,6 +352,49 @@ def grade(ms):
     return "慢"
 
 
+# ---------- 超级源（全网汇总）置顶 ----------
+SUPER_SOURCE_DOMAIN = os.environ.get("SUPER_SOURCE_DOMAIN", "tvbox-juxu-bxpfcmyn.edgeone.cool")
+SUPER_SOURCE_PROJECT = os.environ.get("SUPER_SOURCE_PROJECT", "makers-xmxm7semuy4l")
+SUPER_SOURCE_NAME = "全网汇总"
+
+
+def mint_super_token(api_token: str):
+    """调用 EdgeOne API 为超级源域名签发新的预览访问 token（有效期约 3 小时）。"""
+    body = json.dumps({
+        "Action": "DescribePagesEncipherToken",
+        "Region": "ap-guangzhou",
+        "ProjectId": SUPER_SOURCE_PROJECT,
+        "Text": SUPER_SOURCE_DOMAIN,
+    }).encode()
+    req = urllib.request.Request(
+        "https://pages-api.cloud.tencent.com/v1", data=body,
+        headers={"Content-Type": "application/json", "Authorization": "Bearer " + api_token})
+    with urllib.request.urlopen(req, timeout=20) as r:
+        d = json.loads(r.read().decode())
+    resp = d.get("Data", {}).get("Response", d)
+    tok = resp.get("Token")
+    ts = resp.get("Timestamp")
+    if not tok or not ts:
+        raise RuntimeError(f"token 签发失败: {str(d)[:200]}")
+    return tok, ts
+
+
+def upsert_super_source(latest: dict, api_token: str) -> bool:
+    """在 latest.json 的 sites 列表置顶插入"全网汇总"超级源（带新鲜 token）。"""
+    try:
+        tok, ts = mint_super_token(api_token)
+    except Exception as e:
+        print(f"[超级源] token 签发失败，本轮跳过: {e}")
+        return False
+    url = f"https://{SUPER_SOURCE_DOMAIN}/api?eo_token={tok}&eo_time={ts}"
+    site = {"key": "super", "name": SUPER_SOURCE_NAME, "type": 1, "api": url,
+            "searchable": 1, "quickSearch": 1, "filterable": 1}
+    latest["sites"] = [s for s in latest.get("sites", []) if s.get("key") != "super"]
+    latest["sites"].insert(0, site)
+    print(f"[超级源] 已置顶 {SUPER_SOURCE_NAME}（token 有效期约 3 小时）")
+    return True
+
+
 def write_report(path, alive_sites, dead_sites, alive_ch, dead_ch, crawl_failed, crawl_stats, selected_sites):
     alive_sites.sort(key=lambda r: (r["play"] is not True, -min(r["count"], 50), r["ms"] or 99999))
     selected_keys = {id(s) for s in selected_sites}
@@ -559,6 +603,9 @@ def auto_mode(args):
         except Exception:
             pass
     latest = build_latest(seed_cfg, selected_sites, alive_ch, alive_refs, spider_url)
+    super_token = os.environ.get("EDGEONE_TOKEN", "")
+    if super_token:
+        upsert_super_source(latest, super_token)
 
     Path(args.out).write_text(json.dumps(latest, ensure_ascii=False, indent=2), encoding="utf-8")
     write_report(args.report, alive_sites, dead_sites, alive_ch, dead_ch, failed, crawl_stats, selected_sites)
@@ -586,12 +633,26 @@ def main():
     ap.add_argument("--out", default="latest.json")
     ap.add_argument("--report", default="report.md")
     ap.add_argument("--check", action="store_true", help="旧模式参数：联网检测")
+    ap.add_argument("--refresh-super", action="store_true",
+                    help="只刷新超级源 token 并更新 latest.json（轻量，每小时跑）")
     args = ap.parse_args()
 
     if args.legacy:
         legacy_mode(args)
     elif args.auto:
         auto_mode(args)
+    elif args.refresh_super:
+        token = os.environ.get("EDGEONE_TOKEN", "")
+        if not token:
+            print("[超级源] 缺少 EDGEONE_TOKEN 环境变量")
+            return 1
+        p = Path(args.out)
+        latest = json.loads(p.read_text(encoding="utf-8")) if p.exists() else {"sites": [], "lives": []}
+        if upsert_super_source(latest, token):
+            p.write_text(json.dumps(latest, ensure_ascii=False, indent=2), encoding="utf-8")
+            print(f"[输出] {args.out}")
+            return 0
+        return 1
     else:
         ap.print_help()
 

@@ -2,6 +2,15 @@
   "spider": "https://img2.gelonghui.com/library/3f9b9-de4a5d2c-7fea-4d70-8a85-79be6c379621.png",
   "sites": [
     {
+      "key": "super",
+      "name": "全网汇总",
+      "type": 1,
+      "api": "https://tvbox-juxu-bxpfcmyn.edgeone.cool/api?eo_token=ffdc896c1d8d734433802b9175eb221a&eo_time=1795669446",
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 1
+    },
+    {
       "key": "src161",
       "name": "淘片 采集",
       "type": 1,

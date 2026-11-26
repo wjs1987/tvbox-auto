@@ -24,6 +24,8 @@ jobs:
           python-version: '3.13'
 
       - name: Crawl + Test + Build latest.json
+        env:
+          EDGEONE_TOKEN: ${{ secrets.EDGEONE_TOKEN }}
         run: |
           python check_sources.py --auto --workers 30 --timeout 8
 
@@ -36,5 +38,10 @@ jobs:
             echo "配置无变化，跳过提交"
           else
             git commit -m "auto update $(date -u +%Y-%m-%d)"
-            git push
+            for i in 1 2 3; do
+              git pull --rebase origin main -q && git push origin main -q && exit 0
+              sleep 15
+            done
+            echo "推送失败（重试 3 次）"
+            exit 1
           fi

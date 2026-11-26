@@ -1,0 +1,50 @@
+name: Refresh Super Source Token
+
+on:
+  schedule:
+    - cron: '10 * * * *'   # 每小时第 10 分钟（token 有效期 3 小时，滚动续期）
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: refresh-super
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Mint fresh token and update latest.json
+        env:
+          EDGEONE_TOKEN: ${{ secrets.EDGEONE_TOKEN }}
+        run: |
+          python check_sources.py --refresh-super --out latest.json
+
+      - name: Commit if changed
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if git diff --quiet latest.json; then
+            echo "无变化，跳过提交"
+          else
+            git add latest.json
+            git commit -m "chore: refresh super source token [skip ci]"
+            for i in 1 2 3; do
+              git pull --rebase origin main -q && git push origin main -q && exit 0
+              sleep 15
+            done
+            echo "推送失败（重试 3 次）"
+            exit 1
+          fi

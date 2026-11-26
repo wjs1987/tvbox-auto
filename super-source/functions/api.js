@@ -230,11 +230,12 @@ async function handleList(q, env, cat) {
           const key = normName(v.vod_name);
           if (!key || found.has(key)) continue;
           found.set(key, {
-            id: "q:" + site.api + ":" + v.vod_id,
-            name: String(v.vod_name),
-            pic: String(v.vod_pic || ""),
-            remarks: String(v.vod_remarks || "在线"),
-            cat: "c_all",
+            vod_id: "q:" + site.api + ":" + v.vod_id,
+            vod_name: String(v.vod_name),
+            vod_pic: String(v.vod_pic || ""),
+            vod_remarks: String(v.vod_remarks || "在线"),
+            type_id: "c_all",
+            type_name: "全部",
             srcApi: site.api,
           });
         }
@@ -251,11 +252,21 @@ async function handleList(q, env, cat) {
   let items = cat.items || [];
   if (t && t !== "c_all") items = items.filter((x) => x.cat === t);
   const total = items.length;
+  // maccms 标准字段：播放器端按 vod_id/vod_name/vod_pic 解析，字段名不对会被整体丢弃
+  const catName = (id) => (cat.classes || FIXED_CLASSES).find((c) => c.type_id === id)?.type_name || "全部";
+  const list = items.slice((pg - 1) * limit, pg * limit).map((x) => ({
+    vod_id: x.id,
+    vod_name: x.name,
+    vod_pic: x.pic,
+    vod_remarks: x.remarks,
+    type_id: x.cat,
+    type_name: catName(x.cat),
+  }));
   return json({
     code: 1, msg: "数据列表", page: pg, limit,
     total, pagecount: Math.ceil(total / limit) || 1,
     class: cat.classes || FIXED_CLASSES,
-    list: items.slice((pg - 1) * limit, pg * limit),
+    list,
   });
 }
 

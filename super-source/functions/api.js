@@ -169,12 +169,18 @@ async function rebuild(env) {
     if (r.status !== "fulfilled") continue;
     for (const it of r.value.items) {
       const key = normName(it.name);
-      if (!key || seen.has(key)) continue;
+      if (!key) continue;
       let cid = "c_all";
       // 备注带"第N期"的是典型综艺（第6期/第20261126期），优先级最高，避免被"爱情"等词误判成电影
       if (/第\d+期/.test(it.remarks || "")) cid = "c_variety";
       else for (const [re, id] of CAT_MAP) {
         if (re.test(it.cat || "") || re.test(it.name || "")) { cid = id; break; }
+      }
+      const entry = seen.get(key);
+      if (entry) {
+        // 同一片名出现在多个采集站：保留全部源，详情页聚合为多线路（vod_play_from$$$规范）
+        if (entry.srcs.length < 4) entry.srcs.push({ oid: it.oid, api: r.value.api, name: r.value.name });
+        continue;
       }
       seen.set(key, {
         id: hashId(key),
@@ -182,9 +188,8 @@ async function rebuild(env) {
         pic: it.pic,
         remarks: it.remarks,
         cat: cid,
-        src: it.oid,
-        srcApi: r.value.api,
-        srcName: r.value.name,
+        // 全部来源（第一个为主线路），详情时并发拉取合并多线路
+        srcs: [{ oid: it.oid, api: r.value.api, name: r.value.name }],
       });
     }
   }
@@ -272,29 +277,50 @@ async function handleList(q, env, cat) {
   });
 }
 
+// 解析 "q:srcApi:oid" 形式的 id
+function parseQId(first) {
+  const rest = first.slice(2);
+  const i = rest.lastIndexOf(":"); // srcApi 是完整 URL 含冒号，必须从右往左切
+  return { srcApi: rest.slice(0, i), oid: rest.slice(i + 1) };
+}
+
 async function handleDetail(ids, cat) {
   const first = String(ids).split(",")[0];
-  let srcApi, oid;
+  let srcs; // [{oid, api, name}]，第一个为主线路
   if (first.startsWith("q:")) {
-    const rest = first.slice(2);
-    const i = rest.lastIndexOf(":"); // srcApi 是完整 URL 含冒号，必须从右往左切
-    srcApi = rest.slice(0, i);
-    oid = rest.slice(i + 1);
+    const { srcApi, oid } = parseQId(first);
+    srcs = [{ oid, api: srcApi, name: shortSrc(srcApi) }];
   } else {
     const item = (cat.items || []).find((x) => x.id === first);
     if (!item) return json({ code: 1, list: [] });
-    srcApi = item.srcApi;
-    oid = item.src;
+    srcs = item.srcs || (item.src ? [{ oid: item.src, api: item.srcApi, name: "" }] : []);
   }
-  if (!srcApi || oid == null) return json({ code: 1, list: [] });
+  srcs = (srcs || []).filter((s) => s.api && s.oid != null);
+  if (!srcs.length) return json({ code: 1, list: [] });
 
-  const data = await jfetch(`${srcApi}${sep(srcApi)}ac=detail&ids=${oid}`);
-  const v = data?.list?.[0];
-  if (!v) return json({ code: 1, list: [] });
-  return json({
-    code: 1,
-    list: [{ ...v, vod_id: first, vod_play_from: `${shortSrc(srcApi)}┃高速` }],
-  });
+  // 并发拉取各线路的上游详情（官方规范：多线路用$$$拼接）
+  const parts = await Promise.allSettled(
+    srcs.slice(0, 4).map(async (s, i) => {
+      const data = await jfetch(`${s.api}${sep(s.api)}ac=detail&ids=${s.oid}`);
+      const v = data?.list?.[0];
+      if (!v?.vod_play_url) return null;
+      // 主线路标"高速"，备用线路标"备用"，并带上源名便于识别
+      const tag = i === 0 ? "┃高速" : "┃备用";
+      const label = `${s.name || shortSrc(s.api)}${tag}`;
+      return { label, play: String(v.vod_play_url), info: v };
+    })
+  );
+
+  const ok = parts.filter((p) => p.status === "fulfilled" && p.value);
+  if (!ok.length) return json({ code: 1, list: [] });
+  const info = ok[0].value.info;
+  const vod = {
+    ...info,
+    vod_id: first,
+    vod_play_from: ok.map((p) => p.value.label).join("$$$"),
+    vod_play_url: ok.map((p) => p.value.play).join("$$$"),
+  };
+  return json({ code: 1, list: [vod] });
 }
 
 export async function onRequest({ request, env }) {

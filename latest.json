@@ -7,7 +7,7 @@
       "type": 1,
       "api": "https://tvbox-juxu-spegz3xv.edgeone.cool/api",
       "header": {
-        "Cookie": "eo_token=736e4266d447d6583613ee936ada4e98; eo_time=1795688951"
+        "Cookie": "eo_token=823bd1b7a1b465fa7f171a22c8219e32; eo_time=1795689371"
       },
       "searchable": 1,
       "quickSearch": 1,
@@ -74,50 +74,21 @@
       "playerType": 2
     },
     {
-      "key": "src162",
-      "name": "非凡 资源",
+      "key": "src123",
+      "name": "影视 极速[直连]",
       "type": 1,
-      "api": "http://ffzy1.tv/api.php/provide/vod/",
-      "playurl": "json:http://jx.84jia.com/m3u8ts.php?url=",
+      "api": "https://jszyapi.com/api.php/provide/vod/",
       "searchable": 1,
       "quickSearch": 1,
-      "filterable": 1,
-      "categories": [
-        "动作片",
-        "喜剧片",
-        "科幻片",
-        "恐怖片",
-        "爱情片",
-        "剧情片",
-        "战争片",
-        "记录片",
-        "国产剧",
-        "欧美剧",
-        "香港剧",
-        "韩国剧",
-        "台湾剧",
-        "日本剧",
-        "海外剧",
-        "泰国剧",
-        "国产动漫",
-        "日韩动漫",
-        "欧美动漫",
-        "港台动漫",
-        "海外动漫",
-        "大陆综艺",
-        "港台综艺",
-        "日韩综艺",
-        "欧美综艺"
-      ]
+      "filterable": 1
     },
     {
-      "key": "src169",
-      "name": "火狐采集",
+      "key": "src168",
+      "name": "虎牙采集",
       "type": 1,
-      "api": "https://hhzyapi.com/api.php/provide/vod/",
+      "api": "https://www.huyaapi.com/api.php/provide/vod/from/hym3u8",
       "searchable": 1,
-      "quickSearch": 0,
-      "filterable": 1,
+      "quickSearch": 1,
       "categories": [
         "内地剧",
         "动作片",
@@ -145,40 +116,12 @@
       ]
     },
     {
-      "key": "src160",
-      "name": "索尼 高清",
+      "key": "src216",
+      "name": "光速资源(切)",
       "type": 1,
-      "api": "https://suoniapi.com/api.php/provide/vod/?ac=list",
+      "api": "https://api.guangsuapi.com/api.php/provide/vod/",
       "searchable": 1,
-      "quickSearch": 1,
-      "filterable": 1,
-      "categories": [
-        "动作片",
-        "喜剧片",
-        "科幻片",
-        "恐怖片",
-        "爱情片",
-        "剧情片",
-        "战争片",
-        "记录片",
-        "国产剧",
-        "欧美剧",
-        "香港剧",
-        "韩国剧",
-        "台湾剧",
-        "日本剧",
-        "海外剧",
-        "泰国剧",
-        "国产动漫",
-        "日韩动漫",
-        "欧美动漫",
-        "港台动漫",
-        "海外动漫",
-        "大陆综艺",
-        "港台综艺",
-        "日韩综艺",
-        "欧美综艺"
-      ]
+      "quickSearch": 1
     },
     {
       "key": "src258",
@@ -191,25 +134,23 @@
       "ext": "http://xhztv.top/xhz/js/JRKAN直播.js"
     },
     {
-      "key": "src128",
-      "name": "Aue 无广",
+      "key": "src138",
+      "name": "忍者 影视",
       "type": 3,
-      "api": "csp_Auete",
-      "timeout": 15,
+      "playerType": "2",
+      "api": "csp_AppRZ",
+      "ext": "http://rzys.xyz/",
+      "jar": "./libs/jar/Panda.jar"
+    },
+    {
+      "key": "src236",
+      "name": "农民 直连",
+      "type": 3,
+      "api": "csp_Nmys",
       "searchable": 1,
       "quickSearch": 1,
       "changeable": 1,
-      "ext": "https://auete.pro/"
-    },
-    {
-      "key": "src257",
-      "name": "虎牙直播",
-      "type": 3,
-      "api": "http://xhztv.top/xhz/js/lib/drpy2.min.js",
-      "searchable": 0,
-      "quickSearch": 0,
-      "filterable": 0,
-      "ext": "http://xhztv.top/xhz/js/虎牙直播.js"
+      "ext": "https://agit.ai/fantaiying/fty/raw/branch/master/ext/nmys.json"
     },
     {
       "key": "pan_search",
@@ -250,14 +191,14 @@
       "url": "https://develop202.github.io/migu_video/interface.txt"
     },
     {
-      "name": "直播-pool",
-      "type": 0,
-      "url": "https://live.zbds.top/tv/iptv4.txt"
-    },
-    {
       "name": "live",
       "type": 0,
       "url": "http://xhztv.top/xhz/live.txt"
+    },
+    {
+      "name": "YY轮播",
+      "type": 0,
+      "url": "https://sub.ottiptv.cc/yylunbo.m3u"
     }
   ],
   "parses": [

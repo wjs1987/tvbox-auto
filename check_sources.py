@@ -185,48 +185,52 @@ def clean_name(name: str) -> str:
 
 
 def play_check(list_url: str, t: int, timeout: float):
-    """真实可播性测试：取第一部影片详情，验证播放链接存在。
-    返回 True=确认可播 / False=确认不可播 / None=无法判断。"""
+    """真实可播性测试：优先从列表响应直接找播放链接（多数采集站列表自带），
+    找不到再取首部影片详情验证。True=可播 / False=不可播 / None=无法判断。"""
     import re as _re
     try:
+        body = fetch(list_url, timeout=timeout, max_bytes=3_000_000)
+        if not body:
+            return None
         if t == 1:  # JSON
-            body = fetch(list_url, timeout=timeout, max_bytes=3_000_000)
-            if not body:
-                return None
             data = json.loads(body)
             lst = data.get("list") or data.get("vod_list") or []
             if not lst:
                 return None
+            # 1) 列表自带播放链接
+            p = str(lst[0].get("vod_play_url") or "")
+            if p and "$" in p:
+                return True
+            # 2) 请求首部影片详情
             vid = lst[0].get("vod_id") or lst[0].get("id")
             if vid is None:
                 return None
             base = list_url.split("?")[0]
             sep = "&" if "?" in list_url else "?"
-            # 先试 ac=detail，再试 ac=videolist&ids=
-            d = None
             for q in (f"ac=detail&ids={vid}", f"ac=videolist&ids={vid}"):
-                d = fetch(base + sep + q, timeout=timeout, max_bytes=3_000_000)
-                if d:
-                    break
-            if not d:
-                return None
-            dl = json.loads(d).get("list") or []
-            if dl and dl[0].get("vod_play_url") and "$" in dl[0]["vod_play_url"]:
-                return True
-            return False
+                d = fetch(base + "?" + q, timeout=timeout, max_bytes=3_000_000)
+                if not d:
+                    continue
+                dl = json.loads(d).get("list") or []
+                if dl:
+                    return bool(str(dl[0].get("vod_play_url") or "") and "$" in dl[0]["vod_play_url"])
+            return None
         else:  # XML (type 0)
-            body = fetch(list_url, timeout=timeout, max_bytes=3_000_000)
-            if not body:
-                return None
+            # 1) 列表自带播放节点
+            if "<dd" in body and "$" in body:
+                return True
+            # 2) 请求首部影片详情
             m = _re.search(r"<id>([^<]+)</id>", body)
             if not m:
                 return None
             base = list_url.split("?")[0]
             sep = "&" if "?" in list_url else "?"
-            d = fetch(base + sep + f"ac=videolist&ids={m.group(1)}", timeout=timeout, max_bytes=3_000_000)
+            d = fetch(base + "?" + f"ac=videolist&ids={m.group(1)}", timeout=timeout, max_bytes=3_000_000)
             if not d:
                 return None
             return ("<dd" in d and "$" in d)
+    except Exception:
+        return None
     except Exception:
         return None
 

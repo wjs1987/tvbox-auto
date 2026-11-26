@@ -7,7 +7,7 @@
       "type": 1,
       "api": "https://tvbox-juxu-spegz3xv.edgeone.cool/api",
       "header": {
-        "Cookie": "eo_token=5d12356819c8a566046b1e080a0f96f2; eo_time=1795678018"
+        "Cookie": "eo_token=f664be41a8c84bcd46a13bbc6097ca7e; eo_time=1795679460"
       },
       "searchable": 1,
       "quickSearch": 1,
@@ -54,31 +54,60 @@
       ]
     },
     {
-      "key": "src244",
-      "name": "索尼 资源",
+      "key": "src191",
+      "name": "影视 建安",
       "type": 1,
-      "api": "https://suoniapi.com/api.php/provide/vod/",
+      "api": "http://154.219.117.232:9981/jacloudapi.php/provide/vod",
+      "style": {
+        "type": "rect",
+        "ratio": 1.33
+      },
       "searchable": 1,
-      "filterable": 0,
+      "quickSearch": 1,
+      "filterable": 1,
+      "changeable": 1,
+      "playerType": 2
+    },
+    {
+      "key": "src189",
+      "name": "影视 索尼[直连]",
+      "type": 0,
+      "api": "https://suoniapi.com/api.php/provide/vod/at/xml/",
+      "searchable": 1,
       "categories": [
-        "欧美剧",
-        "韩剧",
-        "日剧",
         "动作片",
         "喜剧片",
         "爱情片",
         "科幻片",
         "恐怖片",
         "剧情片",
-        "战争片"
+        "战争片",
+        "国产剧",
+        "欧美剧",
+        "港剧",
+        "台剧",
+        "韩剧",
+        "日剧",
+        "泰剧",
+        "纪录片",
+        "海外剧",
+        "大陆综艺",
+        "港台综艺",
+        "日韩综艺",
+        "欧美综艺",
+        "国产动漫",
+        "日韩动漫",
+        "欧美动漫",
+        "港台动漫",
+        "海外动漫",
+        "影视解说"
       ]
     },
     {
-      "key": "src162",
-      "name": "非凡 资源",
+      "key": "src160",
+      "name": "索尼 高清",
       "type": 1,
-      "api": "http://ffzy1.tv/api.php/provide/vod/",
-      "playurl": "json:http://jx.84jia.com/m3u8ts.php?url=",
+      "api": "https://suoniapi.com/api.php/provide/vod/?ac=list",
       "searchable": 1,
       "quickSearch": 1,
       "filterable": 1,
@@ -111,56 +140,24 @@
       ]
     },
     {
-      "key": "src214",
-      "name": "红牛资源(切)",
+      "key": "src244",
+      "name": "索尼 资源",
       "type": 1,
-      "api": "https://www.hongniuzy2.com/api.php/provide/vod/",
+      "api": "https://suoniapi.com/api.php/provide/vod/",
       "searchable": 1,
-      "quickSearch": 1
-    },
-    {
-      "key": "src188",
-      "name": "影视 非凡[直连]",
-      "type": 1,
-      "api": "http://ffzy.tv/api.php/provide/vod/",
-      "searchable": 1,
+      "filterable": 0,
       "categories": [
+        "欧美剧",
+        "韩剧",
+        "日剧",
         "动作片",
         "喜剧片",
         "爱情片",
         "科幻片",
         "恐怖片",
         "剧情片",
-        "战争片",
-        "国产剧",
-        "香港剧",
-        "韩国剧",
-        "欧美剧",
-        "记录片",
-        "台湾剧",
-        "日本剧",
-        "海外剧",
-        "泰国剧",
-        "大陆综艺",
-        "港台综艺",
-        "日韩综艺",
-        "欧美综艺",
-        "国产动漫",
-        "日韩动漫",
-        "欧美动漫",
-        "港台动漫",
-        "海外动漫"
+        "战争片"
       ]
-    },
-    {
-      "key": "src258",
-      "name": "JRKAN直播",
-      "type": 3,
-      "api": "http://xhztv.top/xhz/js/lib/drpy.min.js",
-      "searchable": 0,
-      "quickSearch": 0,
-      "filterable": 0,
-      "ext": "http://xhztv.top/xhz/js/JRKAN直播.js"
     },
     {
       "key": "src138",
@@ -172,31 +169,41 @@
       "jar": "./libs/jar/Panda.jar"
     },
     {
-      "key": "src257",
-      "name": "虎牙直播",
+      "key": "src236",
+      "name": "农民 直连",
       "type": 3,
-      "api": "http://xhztv.top/xhz/js/lib/drpy2.min.js",
+      "api": "csp_Nmys",
+      "searchable": 1,
+      "quickSearch": 1,
+      "changeable": 1,
+      "ext": "https://agit.ai/fantaiying/fty/raw/branch/master/ext/nmys.json"
+    },
+    {
+      "key": "src258",
+      "name": "JRKAN直播",
+      "type": 3,
+      "api": "http://xhztv.top/xhz/js/lib/drpy.min.js",
       "searchable": 0,
       "quickSearch": 0,
       "filterable": 0,
-      "ext": "http://xhztv.top/xhz/js/虎牙直播.js"
+      "ext": "http://xhztv.top/xhz/js/JRKAN直播.js"
     }
   ],
   "lives": [
-    {
-      "name": "live",
-      "type": 0,
-      "url": "http://xhztv.top/xhz/live.txt"
-    },
     {
       "name": "咪咕",
       "type": 0,
       "url": "https://develop202.github.io/migu_video/interface.txt"
     },
     {
-      "name": "YY轮播",
+      "name": "live",
       "type": 0,
-      "url": "https://sub.ottiptv.cc/yylunbo.m3u"
+      "url": "http://xhztv.top/xhz/live.txt"
+    },
+    {
+      "name": "综合直播",
+      "type": 0,
+      "url": "http://193.123.86.190:14888/TV/iptv.php"
     }
   ],
   "parses": [

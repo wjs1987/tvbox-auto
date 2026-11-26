@@ -7,7 +7,7 @@
       "type": 1,
       "api": "https://tvbox-juxu-spegz3xv.edgeone.cool/api",
       "header": {
-        "Cookie": "eo_token=0cd644564e037b42098253ad55ae52bf; eo_time=1795680507"
+        "Cookie": "eo_token=3644813fb70d39367b593f6122ff4236; eo_time=1795681005"
       },
       "searchable": 1,
       "quickSearch": 1,
@@ -25,6 +25,14 @@
       "api": "https://91md.me/api.php/provide/vod/from/mdm3u8/",
       "tag": "qb,tj,rm",
       "categories": []
+    },
+    {
+      "key": "src76",
+      "name": "*91麻豆",
+      "type": 1,
+      "api": "https://91md.me/api.php/provide/vod/",
+      "searchable": 0,
+      "quickSearch": 0
     },
     {
       "key": "src161",
@@ -67,14 +75,6 @@
       ]
     },
     {
-      "key": "src76",
-      "name": "*91麻豆",
-      "type": 1,
-      "api": "https://91md.me/api.php/provide/vod/",
-      "searchable": 0,
-      "quickSearch": 0
-    },
-    {
       "key": "src191",
       "name": "影视 建安",
       "type": 1,
@@ -90,23 +90,39 @@
       "playerType": 2
     },
     {
-      "key": "src244",
-      "name": "索尼 资源",
+      "key": "src160",
+      "name": "索尼 高清",
       "type": 1,
-      "api": "https://suoniapi.com/api.php/provide/vod/",
+      "api": "https://suoniapi.com/api.php/provide/vod/?ac=list",
       "searchable": 1,
-      "filterable": 0,
+      "quickSearch": 1,
+      "filterable": 1,
       "categories": [
-        "欧美剧",
-        "韩剧",
-        "日剧",
         "动作片",
         "喜剧片",
-        "爱情片",
         "科幻片",
         "恐怖片",
+        "爱情片",
         "剧情片",
-        "战争片"
+        "战争片",
+        "记录片",
+        "国产剧",
+        "欧美剧",
+        "香港剧",
+        "韩国剧",
+        "台湾剧",
+        "日本剧",
+        "海外剧",
+        "泰国剧",
+        "国产动漫",
+        "日韩动漫",
+        "欧美动漫",
+        "港台动漫",
+        "海外动漫",
+        "大陆综艺",
+        "港台综艺",
+        "日韩综艺",
+        "欧美综艺"
       ]
     },
     {
@@ -120,15 +136,6 @@
       "ext": "http://xhztv.top/xhz/js/JRKAN直播.js"
     },
     {
-      "key": "src138",
-      "name": "忍者 影视",
-      "type": 3,
-      "playerType": "2",
-      "api": "csp_AppRZ",
-      "ext": "http://rzys.xyz/",
-      "jar": "./libs/jar/Panda.jar"
-    },
-    {
       "key": "src236",
       "name": "农民 直连",
       "type": 3,
@@ -137,6 +144,16 @@
       "quickSearch": 1,
       "changeable": 1,
       "ext": "https://agit.ai/fantaiying/fty/raw/branch/master/ext/nmys.json"
+    },
+    {
+      "key": "src257",
+      "name": "虎牙直播",
+      "type": 3,
+      "api": "http://xhztv.top/xhz/js/lib/drpy2.min.js",
+      "searchable": 0,
+      "quickSearch": 0,
+      "filterable": 0,
+      "ext": "http://xhztv.top/xhz/js/虎牙直播.js"
     },
     {
       "key": "pan_search",
@@ -182,9 +199,9 @@
       "url": "http://xhztv.top/xhz/live.txt"
     },
     {
-      "name": "综合直播",
+      "name": "虎牙一起看",
       "type": 0,
-      "url": "http://193.123.86.190:14888/TV/iptv.php"
+      "url": "https://sub.ottiptv.cc/huyayqk.m3u"
     }
   ],
   "parses": [

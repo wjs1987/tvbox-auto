@@ -42,21 +42,6 @@
       ]
     },
     {
-      "key": "src186",
-      "name": "影视 天涯",
-      "type": 1,
-      "api": "http://tyyszy.com/api.php/provide/vod",
-      "style": {
-        "type": "rect",
-        "ratio": 1.33
-      },
-      "searchable": 1,
-      "quickSearch": 1,
-      "filterable": 1,
-      "changeable": 1,
-      "playerType": 2
-    },
-    {
       "key": "src192",
       "name": "百度",
       "type": 1,
@@ -83,6 +68,21 @@
       }
     },
     {
+      "key": "src186",
+      "name": "影视 天涯",
+      "type": 1,
+      "api": "http://tyyszy.com/api.php/provide/vod",
+      "style": {
+        "type": "rect",
+        "ratio": 1.33
+      },
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 1,
+      "changeable": 1,
+      "playerType": 2
+    },
+    {
       "key": "src241",
       "name": "爱坤 资源",
       "type": 1,
@@ -103,17 +103,6 @@
       ]
     },
     {
-      "key": "src185",
-      "name": "影视 电影天堂",
-      "type": 1,
-      "api": "http://caiji.dyttzyapi.com/api.php/provide/vod",
-      "searchable": 1,
-      "quickSearch": 1,
-      "filterable": 1,
-      "changeable": 1,
-      "playerType": 2
-    },
-    {
       "key": "src191",
       "name": "影视 建安",
       "type": 1,
@@ -122,6 +111,17 @@
         "type": "rect",
         "ratio": 1.33
       },
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 1,
+      "changeable": 1,
+      "playerType": 2
+    },
+    {
+      "key": "src185",
+      "name": "影视 电影天堂",
+      "type": 1,
+      "api": "http://caiji.dyttzyapi.com/api.php/provide/vod",
       "searchable": 1,
       "quickSearch": 1,
       "filterable": 1,
@@ -140,19 +140,19 @@
   ],
   "lives": [
     {
+      "name": "直播-pool",
+      "type": 0,
+      "url": "https://live.zbds.top/tv/iptv4.txt"
+    },
+    {
       "name": "咪咕",
       "type": 0,
       "url": "https://develop202.github.io/migu_video/interface.txt"
     },
     {
-      "name": "live",
+      "name": "斗鱼一起看",
       "type": 0,
-      "url": "http://xhztv.top/xhz/live.txt"
-    },
-    {
-      "name": "Kimentanm",
-      "type": 0,
-      "url": "https://ghproxy.net/https://raw.githubusercontent.com/Kimentanm/aptv/master/m3u/iptv.m3u"
+      "url": "https://sub.ottiptv.cc/douyuyqk.m3u"
     }
   ],
   "parses": [

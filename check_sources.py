@@ -523,6 +523,13 @@ CAT_RULES_PY = [
 ]
 MAIN_CAT_PY = re.compile(r"电影|剧集|电视剧|综艺|动漫|动画|片|连续")
 
+# 成人内容过滤：站点名/片名命中即整站/整条排除（91md/麻豆/扣扣传媒等曾混入排名）
+ADULT_RE = re.compile(
+    r"麻豆|扣扣|91md|91fans|91传媒|天美|果冻传媒|星空传媒|乌鸦传媒|蜜桃|精东|杏吧|"
+    r"swag|女优|无码|有码|人妻|巨乳|淫|兽性|肉欲|情色|风月|mdx|"
+    r"做爱|性爱|嫖|妓|菠萝传媒|兔子传媒|爱娘|翰丝传媒",
+    re.IGNORECASE)
+
 
 def norm_name_py(s: str) -> str:
     """对齐 JS normName: toLowerCase + 去除空白/标点/符号。"""
@@ -571,6 +578,12 @@ def build_super_catalog(selected_sites: list, timeout: float = 8,
                         max_lines: int = 4) -> dict:
     """深挖各上游源生成汇总目录（去重+多源线路+分类），输出超级源静态目录。"""
     upstreams = [s for s in selected_sites if s.get("type", 0) in (0, 1) and s.get("api")]
+    # 成人站整站排除
+    clean_ups = [s for s in upstreams if not ADULT_RE.search(s.get("name") or "")]
+    skipped = len(upstreams) - len(clean_ups)
+    if skipped:
+        print(f"[目录] 排除成人源 {skipped} 个")
+    upstreams = clean_ups
     if not upstreams:
         return {"updated": "", "upstreams": [], "classes": FIXED_CLASSES_PY, "items": []}
     print(f"[目录] 深挖 {len(upstreams)} 个上游（最新{latest_pages}页 + 主流分类{cat_pages}页）...")
@@ -641,7 +654,10 @@ def build_super_catalog(selected_sites: list, timeout: float = 8,
                 vn = v.get("vod_name")
                 if not vn or v.get("vod_id") is None:
                     continue
-                key = norm_name_py(str(vn))
+                vn = str(vn)
+                if ADULT_RE.search(vn):  # 成人片名整条排除
+                    continue
+                key = norm_name_py(vn)
                 if not key:
                     continue
                 entry = seen.get(key)
@@ -651,7 +667,7 @@ def build_super_catalog(selected_sites: list, timeout: float = 8,
                     continue
                 seen[key] = {
                     "id": js_hash_id(key),
-                    "name": str(vn),
+                    "name": vn,
                     "pic": str(v.get("vod_pic") or ""),
                     "remarks": str(v.get("vod_remarks") or ""),
                     "cat": classify_py(str(vn), str(v.get("type_name") or ""), str(v.get("vod_remarks") or "")),
@@ -824,6 +840,9 @@ def auto_mode(args):
             continue  # type 3 后面按 jar 配对单独处理
         cn = clean_name(r["site"].get("name", ""))
         if cn in seen_cn:
+            continue
+        # 成人站整站排除（不进 latest.json 也不进超级源目录）
+        if ADULT_RE.search(r["site"].get("name", "") or ""):
             continue
         seen_cn.add(cn)
         selected_sites.append(r["site"])

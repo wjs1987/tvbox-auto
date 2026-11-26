@@ -97,6 +97,10 @@ function shortSrc(api) {
   }
 }
 
+// 成人内容运行时过滤（旧目录可能残留，双保险；流水线侧已整站+整条排除）
+const ADULT_RE = /麻豆|扣扣|91md|91fans|91传媒|天美|果冻传媒|星空传媒|乌鸦传媒|蜜桃|精东|杏吧|swag|女优|无码|有码|人妻|巨乳|淫|兽性|肉欲|情色|风月|mdx|做爱|性爱|嫖|妓|菠萝传媒|兔子传媒|爱娘|翰丝传媒/i;
+const isAdult = (s) => ADULT_RE.test(String(s || ""));
+
 function hashId(s) {
   let h = 0;
   for (let i = 0; i < s.length; i++) h = (h * 131 + s.charCodeAt(i)) >>> 0;
@@ -234,6 +238,7 @@ async function rebuild(env) {
   for (const r of results) {
     if (r.status !== "fulfilled") continue;
     for (const it of r.value.items) {
+      if (isAdult(it.name)) continue; // 成人内容排除
       const key = normName(it.name);
       if (!key) continue;
       let cid = "c_all";
@@ -309,7 +314,7 @@ async function handleList(q, env, cat) {
   if (wd) {
     const normWd = normName(wd);
     if (normWd) {
-      const hits = (cat.items || []).filter((x) => normName(x.name).includes(normWd));
+      const hits = (cat.items || []).filter((x) => !isAdult(x.name) && normName(x.name).includes(normWd));
       if (hits.length) {
         // 片名以关键词开头（如"庆余年 第一季"命中"庆余年"）置顶
         hits.sort((a, b) => (normName(b.name).startsWith(normWd) ? 1 : 0) - (normName(a.name).startsWith(normWd) ? 1 : 0));
@@ -362,7 +367,7 @@ async function handleList(q, env, cat) {
     });
   }
 
-  let items = cat.items || [];
+  let items = (cat.items || []).filter((x) => !isAdult(x.name));
   if (t && t !== "c_all") items = items.filter((x) => x.cat === t);
   const total = items.length;
   // maccms 标准字段：播放器端按 vod_id/vod_name/vod_pic 解析，字段名不对会被整体丢弃

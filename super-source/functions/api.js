@@ -125,6 +125,9 @@ async function rebuild(env) {
   const latestUrl = env.LATEST_URL || DEFAULT_LATEST;
   const maxUp = parseInt(env.MAX_UPSTREAMS || "6", 10);
   const pages = parseInt(env.PAGES_PER_SOURCE || "8", 10);
+  // 按分类深挖：每个源再并行抓它的电影/剧集等分类列表，大幅扩充资源量
+  const catPages = parseInt(env.CAT_PAGES_PER_SOURCE || "3", 10);
+  const maxCats = parseInt(env.MAX_CATS_PER_SOURCE || "6", 10);
 
   const latest = await fetchLatest(env);
   // latest.json 拉不到时用内置兜底列表，服务永不中断
@@ -133,31 +136,46 @@ async function rebuild(env) {
     : DEFAULT_UPSTREAMS.slice(0, maxUp);
   if (!upstreams.length) throw new Error("无可用上游源");
 
+  function extract(out, list) {
+    for (const v of list || []) {
+      if (!v?.vod_name || v.vod_id == null) continue;
+      out.items.push({
+        oid: String(v.vod_id),
+        name: String(v.vod_name),
+        pic: String(v.vod_pic || ""),
+        remarks: String(v.vod_remarks || ""),
+        // 优先用条目自带的 type_name（如"电视剧/台湾剧"），其次查分类表
+        cat: String(v.type_name || out.cats.get(String(v.type_id)) || ""),
+      });
+    }
+  }
+
   const tasks = upstreams.map(async (site) => {
     const api = site.api;
     const out = { name: site.name || shortSrc(api), api, cats: new Map(), items: [] };
     const cls = await jfetch(`${api}${sep(api)}ac=list`);
+    const catIds = [];
     if (cls && Array.isArray(cls.class)) {
       for (const c of cls.class) {
-        if (c?.type_id != null) out.cats.set(String(c.type_id), String(c.type_name || ""));
+        if (c?.type_id != null) {
+          const tid = String(c.type_id);
+          out.cats.set(tid, String(c.type_name || ""));
+          catIds.push(tid);
+        }
       }
     }
-    for (let pg = 1; pg <= pages; pg++) {
-      const data = await jfetch(`${api}${sep(api)}ac=list&pg=${pg}`);
-      const list = data?.list;
-      if (!Array.isArray(list) || !list.length) break;
-      for (const v of list) {
-        if (!v?.vod_name || v.vod_id == null) continue;
-        out.items.push({
-          oid: String(v.vod_id),
-          name: String(v.vod_name),
-          pic: String(v.vod_pic || ""),
-          remarks: String(v.vod_remarks || ""),
-          // 优先用条目自带的 type_name（如"电视剧/台湾剧"），其次查分类表
-          cat: String(v.type_name || out.cats.get(String(v.type_id)) || ""),
-        });
+
+    // 并行抓取：最新列表N页 + 各分类各M页（分类列表是片库主力，电影/剧集在这里）
+    const fetches = [];
+    for (let pg = 1; pg <= pages; pg++) fetches.push(jfetch(`${api}${sep(api)}ac=list&pg=${pg}`));
+    for (const tid of catIds.slice(0, maxCats)) {
+      for (let pg = 1; pg <= catPages; pg++) {
+        fetches.push(jfetch(`${api}${sep(api)}ac=list&t=${tid}&pg=${pg}`));
       }
-      if (data.pagecount && pg >= Number(data.pagecount)) break;
+    }
+    const data = await Promise.allSettled(fetches);
+    for (const d of data) {
+      if (d.status === "fulfilled" && d.value) extract(out, d.value.list);
     }
     return out;
   });
@@ -208,7 +226,11 @@ async function rebuild(env) {
 
 async function getCatalog(env) {
   const cat = await kvGet(env, KV_KEY);
-  if (cat && cat.updated && Date.now() - new Date(cat.updated).getTime() < REFRESH_INTERVAL_MS) {
+  const fresh = cat && cat.updated && Date.now() - new Date(cat.updated).getTime() < REFRESH_INTERVAL_MS;
+  if (fresh) return cat;
+  if (cat) {
+    // 有旧数据但过期：立即返回旧版保证秒开，后台静默重建（下次请求用新的）
+    rebuild(env).catch(() => {});
     return cat;
   }
   try {
@@ -302,6 +324,13 @@ async function handleDetail(ids, cat) {
   srcs = (srcs || []).filter((s) => s.api && s.oid != null);
   if (!srcs.length) return json({ code: 1, list: [] });
 
+  // 详情缓存：6小时内点过的片直接秒开，不再回源
+  const cacheKey = "d:" + first;
+  const cached = await kvGet(env, cacheKey);
+  if (cached?.vod && Date.now() - new Date(cached.t).getTime() < 6 * 3600 * 1000) {
+    return json({ code: 1, list: [cached.vod] });
+  }
+
   // 并发拉取各线路的上游详情（官方规范：多线路用$$$拼接）
   const parts = await Promise.allSettled(
     srcs.slice(0, 4).map(async (s, i) => {
@@ -333,6 +362,7 @@ async function handleDetail(ids, cat) {
     vod_play_from: ok.flatMap((p) => p.value.groups.map((g) => g.label)).join("$$$"),
     vod_play_url: ok.flatMap((p) => p.value.groups.map((g) => g.play)).join("$$$"),
   };
+  kvPut(env, cacheKey, { t: new Date().toISOString(), vod }).catch(() => {});
   return json({ code: 1, list: [vod] });
 }
 

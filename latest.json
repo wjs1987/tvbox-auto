@@ -42,73 +42,23 @@
       ]
     },
     {
-      "key": "src243",
-      "name": "豪华 资源",
+      "key": "src244",
+      "name": "索尼 资源",
       "type": 1,
-      "api": "https://hhzyapi.com/api.php/provide/vod/?ac=list",
+      "api": "https://suoniapi.com/api.php/provide/vod/",
       "searchable": 1,
-      "quickSearch": 1,
+      "filterable": 0,
       "categories": [
-        "内地剧",
-        "香港剧",
         "欧美剧",
         "韩剧",
         "日剧",
-        "马泰剧",
-        "台湾剧",
-        "动画片",
-        "中国动漫",
-        "日本动漫",
-        "欧美动漫",
-        "剧情片",
-        "战争片",
-        "动作片",
-        "科幻片",
-        "记录片",
-        "爱情片",
-        "喜剧片",
-        "灾难片",
-        "悬疑片",
-        "犯罪片",
-        "大陆综艺",
-        "日韩综艺",
-        "港台综艺",
-        "欧美综艺"
-      ]
-    },
-    {
-      "key": "src189",
-      "name": "影视 索尼[直连]",
-      "type": 0,
-      "api": "https://suoniapi.com/api.php/provide/vod/at/xml/",
-      "searchable": 1,
-      "categories": [
         "动作片",
         "喜剧片",
         "爱情片",
         "科幻片",
         "恐怖片",
         "剧情片",
-        "战争片",
-        "国产剧",
-        "欧美剧",
-        "港剧",
-        "台剧",
-        "韩剧",
-        "日剧",
-        "泰剧",
-        "纪录片",
-        "海外剧",
-        "大陆综艺",
-        "港台综艺",
-        "日韩综艺",
-        "欧美综艺",
-        "国产动漫",
-        "日韩动漫",
-        "欧美动漫",
-        "港台动漫",
-        "海外动漫",
-        "影视解说"
+        "战争片"
       ]
     },
     {
@@ -145,40 +95,55 @@
       ]
     },
     {
-      "key": "src160",
-      "name": "索尼 高清",
+      "key": "src216",
+      "name": "光速资源(切)",
       "type": 1,
-      "api": "https://suoniapi.com/api.php/provide/vod/?ac=list",
+      "api": "https://api.guangsuapi.com/api.php/provide/vod/",
       "searchable": 1,
-      "quickSearch": 1,
-      "filterable": 1,
+      "quickSearch": 1
+    },
+    {
+      "key": "src188",
+      "name": "影视 非凡[直连]",
+      "type": 1,
+      "api": "http://ffzy.tv/api.php/provide/vod/",
+      "searchable": 1,
       "categories": [
         "动作片",
         "喜剧片",
+        "爱情片",
         "科幻片",
         "恐怖片",
-        "爱情片",
         "剧情片",
         "战争片",
-        "记录片",
         "国产剧",
-        "欧美剧",
         "香港剧",
         "韩国剧",
+        "欧美剧",
+        "记录片",
         "台湾剧",
         "日本剧",
         "海外剧",
         "泰国剧",
+        "大陆综艺",
+        "港台综艺",
+        "日韩综艺",
+        "欧美综艺",
         "国产动漫",
         "日韩动漫",
         "欧美动漫",
         "港台动漫",
-        "海外动漫",
-        "大陆综艺",
-        "港台综艺",
-        "日韩综艺",
-        "欧美综艺"
+        "海外动漫"
       ]
+    },
+    {
+      "key": "src138",
+      "name": "忍者 影视",
+      "type": 3,
+      "playerType": "2",
+      "api": "csp_AppRZ",
+      "ext": "http://rzys.xyz/",
+      "jar": "./libs/jar/Panda.jar"
     },
     {
       "key": "src236",
@@ -191,24 +156,14 @@
       "ext": "https://agit.ai/fantaiying/fty/raw/branch/master/ext/nmys.json"
     },
     {
-      "key": "src138",
-      "name": "忍者 影视",
+      "key": "src258",
+      "name": "JRKAN直播",
       "type": 3,
-      "playerType": "2",
-      "api": "csp_AppRZ",
-      "ext": "http://rzys.xyz/",
-      "jar": "./libs/jar/Panda.jar"
-    },
-    {
-      "key": "src123",
-      "name": "在线 外剧",
-      "type": 3,
-      "api": "csp_Zxzj",
-      "timeout": 15,
-      "searchable": 1,
-      "quickSearch": 1,
-      "changeable": 1,
-      "ext": "https://www.zxzjhd.com/"
+      "api": "http://xhztv.top/xhz/js/lib/drpy.min.js",
+      "searchable": 0,
+      "quickSearch": 0,
+      "filterable": 0,
+      "ext": "http://xhztv.top/xhz/js/JRKAN直播.js"
     }
   ],
   "lives": [
@@ -218,14 +173,14 @@
       "url": "https://develop202.github.io/migu_video/interface.txt"
     },
     {
+      "name": "斗鱼一起看",
+      "type": 0,
+      "url": "https://sub.ottiptv.cc/douyuyqk.m3u"
+    },
+    {
       "name": "live",
       "type": 0,
       "url": "http://xhztv.top/xhz/live.txt"
-    },
-    {
-      "name": "YY轮播",
-      "type": 0,
-      "url": "https://sub.ottiptv.cc/yylunbo.m3u"
     }
   ],
   "parses": [

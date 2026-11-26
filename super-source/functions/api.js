@@ -97,6 +97,62 @@ function shortSrc(api) {
   }
 }
 
+// ---------- 图片代理 ----------
+// 问题：upstream 采集站的海报域名在国内被 DNS 污染（1.1.1.1）或解析失败，
+//       OK影视 只能显示片名首字占位。由 EdgeOne 海外边缘节点代拉图片再转给客户端。
+// 关键点：只对下列已知坏域名做代理，绝不把函数变成开放代理（防止被滥用）。
+// 注意：需部署到「正式域名」（无 eo_token 预览鉴权），否则图片请求会 401。
+const PROXY_PIC_HOSTS = [
+  "taopianimage.xyz",     // 非标端口 43333，国内 DNS 污染成 1.1.1.1
+  "un.shayu260522.top",   // 国内 DNS 污染成 1.1.1.1
+  "fb.lj260522.top",      // 国内 DNS 解析失败
+  "2609.senlin2026.com",  // 国内解析到但返回 404，一并代拉尝试
+];
+
+function needProxy(pic) {
+  try {
+    const h = new URL(pic).hostname.toLowerCase();
+    return PROXY_PIC_HOSTS.some((x) => h === x || h.endsWith("." + x));
+  } catch {
+    return false;
+  }
+}
+
+// 把坏域名海报 URL 转成经本函数代理的地址（origin 用请求进来的域名，自动适配绑定域名）
+function imgProxy(pic, origin) {
+  if (!pic || !needProxy(pic)) return pic;
+  return `${origin}/api?ac=img&u=${encodeURIComponent(pic)}`;
+}
+
+// 图片代理：海外节点 DNS 干净，能解析真实 IP 拉图
+async function handleImg(q) {
+  const u = q.get("u") || "";
+  if (!needProxy(u)) return new Response("forbidden", { status: 403 });
+  const ctl = new AbortController();
+  const timer = setTimeout(() => ctl.abort(), 12000);
+  try {
+    let ref = u;
+    try { ref = new URL(u).origin + "/"; } catch { /* ignore */ }
+    const r = await fetch(u, {
+      headers: { "User-Agent": "Mozilla/5.0", "Referer": ref },
+      signal: ctl.signal,
+    });
+    if (!r.ok) return new Response("upstream " + r.status, { status: 502 });
+    const buf = await r.arrayBuffer();
+    return new Response(buf, {
+      status: 200,
+      headers: {
+        "Content-Type": r.headers.get("Content-Type") || "image/jpeg",
+        "Cache-Control": "public, max-age=604800", // 缓存 7 天，减少回源
+      },
+    });
+  } catch (e) {
+    return new Response("fetch failed: " + (e && e.message || e), { status: 502 });
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 // 成人内容运行时过滤（旧目录可能残留，双保险；流水线侧已整站+整条排除）
 const ADULT_RE = /麻豆|扣扣|91md|91fans|91传媒|天美|果冻传媒|星空传媒|乌鸦传媒|蜜桃|精东|杏吧|swag|女优|无码|有码|人妻|巨乳|淫|兽性|肉欲|情色|风月|mdx|做爱|性爱|嫖|妓|菠萝传媒|兔子传媒|爱娘|翰丝传媒/i;
 const isAdult = (s) => ADULT_RE.test(String(s || ""));
@@ -305,7 +361,7 @@ async function getCatalog(env, origin) {
   }
 }
 
-async function handleList(q, env, cat) {
+async function handleList(q, env, cat, origin) {
   const wd = (q.get("wd") || "").trim();
   const t = q.get("t") || "";
   const pg = Math.max(1, parseInt(q.get("pg") || "1", 10));
@@ -323,7 +379,7 @@ async function handleList(q, env, cat) {
         const list = hits.slice((pg - 1) * limit, pg * limit).map((x) => ({
           vod_id: x.id,
           vod_name: x.name,
-          vod_pic: x.pic,
+          vod_pic: imgProxy(x.pic, origin),
           vod_remarks: x.remarks,
           type_id: x.cat,
           type_name: catName(x.cat),
@@ -348,7 +404,7 @@ async function handleList(q, env, cat) {
           found.set(key, {
             vod_id: "q:" + site.api + ":" + v.vod_id,
             vod_name: String(v.vod_name),
-            vod_pic: String(v.vod_pic || ""),
+            vod_pic: imgProxy(String(v.vod_pic || ""), origin),
             vod_remarks: String(v.vod_remarks || "在线"),
             type_id: "c_all",
             type_name: "全部",
@@ -376,7 +432,7 @@ async function handleList(q, env, cat) {
   const list = items.slice((pg - 1) * limit, pg * limit).map((x) => ({
     vod_id: x.id,
     vod_name: x.name,
-    vod_pic: x.pic,
+    vod_pic: imgProxy(x.pic, origin),
     vod_remarks: x.remarks,
     type_id: x.cat,
     type_name: catName(x.cat),
@@ -396,7 +452,7 @@ function parseQId(first) {
   return { srcApi: rest.slice(0, i), oid: rest.slice(i + 1) };
 }
 
-async function handleDetail(ids, cat, env) {
+async function handleDetail(ids, cat, env, origin) {
   const first = String(ids).split(",")[0];
   let srcs; // [{oid, api, name}]，第一个为主线路
   if (first.startsWith("q:")) {
@@ -445,6 +501,7 @@ async function handleDetail(ids, cat, env) {
   const vod = {
     ...info,
     vod_id: first,
+    vod_pic: imgProxy(info.vod_pic, origin),
     vod_play_from: ok.flatMap((p) => p.value.groups.map((g) => g.label)).join("$$$"),
     vod_play_url: ok.flatMap((p) => p.value.groups.map((g) => g.play)).join("$$$"),
   };
@@ -469,11 +526,14 @@ export async function onRequest({ request, env }) {
       return json({ updated: cat.updated, upstreams: cat.upstreams, total: (cat.items || []).length });
     }
 
-    const cat = await getCatalog(env, url.origin);
     const ac = q.get("ac") || "list";
+    // 图片代理走海外节点拉取，不依赖目录，放最前面（无需 getCatalog，响应更快）
+    if (ac === "img") return await handleImg(q);
+
+    const cat = await getCatalog(env, url.origin);
     // FongMi type1 约定：ac=detail&ids=xxx 是查详情；ac=detail&t=分类&pg=页 是分类浏览
-    if (ac === "detail" && q.get("ids")) return await handleDetail(q.get("ids"), cat, env);
-    return await handleList(q, env, cat);
+    if (ac === "detail" && q.get("ids")) return await handleDetail(q.get("ids"), cat, env, url.origin);
+    return await handleList(q, env, cat, url.origin);
   } catch (e) {
     return json({ error: String(e && e.message || e) }, 500);
   }

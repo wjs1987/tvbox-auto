@@ -105,7 +105,7 @@ function hashId(s) {
 
 function getUpstreams(env, latest, n) {
   return (latest?.sites || [])
-    .filter((s) => (s.type === 0 || s.type === 1) && s.api)
+    .filter((s) => (s.type === 0 || s.type === 1) && s.api && s.key !== "super") // 排除超级源自身
     .slice(0, n);
 }
 

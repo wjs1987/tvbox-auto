@@ -388,6 +388,9 @@ def upsert_super_source(latest: dict, api_token: str) -> bool:
         return False
     url = f"https://{SUPER_SOURCE_DOMAIN}/api?eo_token={tok}&eo_time={ts}"
     site = {"key": "super", "name": SUPER_SOURCE_NAME, "type": 1, "api": url,
+            # FongMi/TV 无 CookieJar，无法跟随 EdgeOne 的 302 换 cookie 流程，
+            # 必须把 token 直接放进请求头，才能通过 EdgeOne 域名验证
+            "header": {"Cookie": f"eo_token={tok}; eo_time={ts}"},
             "searchable": 1, "quickSearch": 1, "filterable": 1}
     latest["sites"] = [s for s in latest.get("sites", []) if s.get("key") != "super"]
     latest["sites"].insert(0, site)

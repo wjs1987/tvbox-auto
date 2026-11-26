@@ -1,0 +1,23 @@
+{
+  "urls": [
+    "https://raw.githubusercontent.com/ReneT3/tvbox-ysc-config/main/output/单仓聚合.json",
+    "https://gh-proxy.com/https://raw.githubusercontent.com/ReneT3/tvbox-ysc-config/main/output/单仓聚合.json",
+    "https://raw.githubusercontent.com/Lightconer/tvbox-ysc-config/main/output/多仓订阅.json",
+    "https://gh-proxy.com/https://raw.githubusercontent.com/Lightconer/tvbox-ysc-config/main/output/多仓订阅.json",
+    "https://raw.githubusercontent.com/ReneT3/tvbox-ysc-config/main/output/ouge.json",
+    "https://raw.githubusercontent.com/ReneT3/tvbox-ysc-config/main/output/shiguang.json",
+    "https://raw.githubusercontent.com/ReneT3/tvbox-ysc-config/main/output/tinghao.json",
+    "https://raw.githubusercontent.com/ReneT3/tvbox-ysc-config/main/output/4k.json",
+    "https://gh-proxy.com/https://raw.githubusercontent.com/niubihu1/tvbox/main/tv8.json",
+    "https://gh-proxy.com/https://raw.githubusercontent.com/xiaolong69/tv/main/duo.json",
+    "https://gitee.com/guot54/YGBH777/raw/main/dc2.json",
+    "http://tv.nxog.top/m/",
+    "http://cdn.qiaoji8.com/tvbox.json",
+    "http://xmbjm.fh4u.org/dc.txt",
+    "http://ztha.top/TVBox/GYCK.json",
+    "https://盒子迷.top/禁止贩卖",
+    "https://live.zbds.top/tv/iptv4.txt",
+    "https://www.iyouhun.com/tv/zb"
+  ],
+  "_说明": "聚合配置站列表，多仓会自动递归展开（深度2）。前两条是每日自动更新的聚合仓库（主+备用加速），中间是各大仓直连，最后两个是直播源文件。可自行增删。"
+}

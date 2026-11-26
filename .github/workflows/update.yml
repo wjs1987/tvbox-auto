@@ -4,7 +4,9 @@ on:
   schedule:
     # UTC 19:00 = 北京时间凌晨 3:00（GitHub 定时任务可能有 0~60 分钟延迟，属正常）
     - cron: '0 19 * * *'
-  workflow_dispatch: {}  # 允许手动点按钮触发
+  workflow_dispatch: {}   # 允许手动触发
+  push:
+    branches: [main]      # 每次推送代码后自动跑一轮验证
 
 permissions:
   contents: write
@@ -21,12 +23,9 @@ jobs:
         with:
           python-version: '3.13'
 
-      - name: Run source check
+      - name: Crawl + Test + Build latest.json
         run: |
-          python check_sources.py config/tv.json --check --workers 30 --timeout 8
-          # 把检测结果复制到仓库根目录的固定文件名，魔屏的地址永远不用改
-          cp config/tv_clean.json latest.json
-          cp config/tv_report.md report.md
+          python check_sources.py --auto --workers 30 --timeout 8
 
       - name: Commit and Push
         run: |

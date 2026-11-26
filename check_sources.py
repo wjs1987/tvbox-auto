@@ -1,135 +1,254 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-TVBox / OK影视 配置源批量检测工具
-功能：
-  1. 解析配置文件（容忍 # 注释行、BOM）
-  2. 按 api 地址去重（同址多写只保留一个，优先保留 searchable=1 的）
-  3. 并发检测每个源是否存活 + 响应速度（毫秒）
-  4. 输出：检测报告（Markdown 表格） + 清理后的新配置文件（仅含存活源，按速度排序）
+TVBox/OK影视 源自动采集 + 检测 + 生成工具 v2
 
-用法：
-  python check_sources.py <配置文件>                 # 仅解析+去重，不发网络请求
-  python check_sources.py <配置文件> --check         # 解析+去重+联网检测
-  python check_sources.py <配置文件> --check --workers 30 --timeout 8
-  可选参数：
-    --out   输出清理后配置的路径（默认 <原名>_clean.json）
-    --report 输出报告路径（默认 <原名>_report.md）
+流程（--auto 全自动模式）：
+  1. 爬取 sources_pool.json 里的聚合配置站（含多仓递归展开）
+  2. 提取所有 点播源(sites) 和 直播源(lives)，按 (type, api) 去重
+  3. 并发检测：存活 + 延迟 + 质量评分（返回片单数据量）
+  4. 生成 latest.json（只含合格源，按速度排序）+ report.md 检测报告
+
+其他模式：
+  python check_sources.py <文件> --check     # 旧模式：只检测单个配置文件
+  python check_sources.py --auto --crawl-only# 只爬取统计，不联网测源
 """
 import argparse
 import json
+import ssl
 import sys
 import time
-import urllib.request
 import urllib.error
-import ssl
+import urllib.parse
+import urllib.request
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
-UA = "Mozilla/5.0 (Linux; Android 11) AppleWebKit/537.36 Chrome/120 Mobile Safari/537.36"
+UA_BROWSER = "Mozilla/5.0 (Linux; Android 11) AppleWebKit/537.36 Chrome/120 Mobile Safari/537.36"
+UA_OKHTTP = "okhttp/3.12.0"  # 聚合配置站大多只认 okhttp UA
 CTX = ssl.create_default_context()
 CTX.check_hostname = False
-CTX.verify_mode = ssl.CERT_NONE  # 这类采集站证书大多不规范，忽略校验
+CTX.verify_mode = ssl.CERT_NONE
 
 
-# ---------- 解析 ----------
-def load_config(path: str) -> dict:
-    raw = Path(path).read_text(encoding="utf-8-sig")
-    # 去掉 JSON 不支持的 # 注释行（如 "# 直播"）
-    lines = [ln for ln in raw.splitlines() if not ln.lstrip().startswith("#")]
-    return json.loads("\n".join(lines))
+# ---------- 网络基础 ----------
+def ascii_url(u: str) -> str:
+    """中文域名/路径转 ASCII，urllib 才能处理（如 肥猫.com）。"""
+    try:
+        p = urllib.parse.urlsplit(u.strip())
+        host = p.hostname or ""
+        try:
+            host = host.encode("idna").decode()
+        except Exception:
+            pass
+        netloc = host if p.port is None else f"{host}:{p.port}"
+        return urllib.parse.urlunsplit((p.scheme, netloc,
+                                        urllib.parse.quote(p.path or ""),
+                                        urllib.parse.quote(p.query, safe="=&?/:+"), ""))
+    except Exception:
+        return u
 
 
-def norm_url(u: str) -> str:
-    return (u or "").strip().rstrip("/").lower()
+def fetch(url: str, timeout: float = 8, ua: str = UA_OKHTTP, max_bytes: int = 3_000_000):
+    try:
+        req = urllib.request.Request(ascii_url(url), headers={"User-Agent": ua})
+        with urllib.request.urlopen(req, timeout=timeout, context=CTX) as r:
+            return r.read(max_bytes).decode("utf-8", errors="replace")
+    except Exception:
+        return None
 
 
-def dedup_sites(sites: list) -> tuple[list, list]:
-    """按 (type, api) 去重；同名同址冲突时优先保留 searchable=1 的条目。返回(去重后, 被去掉的)。"""
-    seen = {}
-    dropped = []
-    for s in sites:
-        key = (s.get("type", 0), norm_url(s.get("api", "")))
-        if not key[1]:
-            dropped.append((s, "api 为空"))
+def parse_config_text(text: str):
+    """容错解析配置 JSON（跳过 # 注释行）。"""
+    lines = [ln for ln in text.splitlines() if not ln.lstrip().startswith("#")]
+    try:
+        data = json.loads("\n".join(lines))
+        return data if isinstance(data, dict) else None
+    except Exception:
+        return None
+
+
+# ---------- 爬取聚合配置 ----------
+def crawl_pool(pool_urls: list, timeout: float):
+    """BFS 爬取多仓配置（深度 2），返回 (configs列表, 失败列表, 直播源引用列表)。"""
+    configs, failed, live_refs = [], [], []
+    visited = set()
+    queue = [(u, 0, "pool") for u in pool_urls]
+    while queue:
+        url, depth, tag = queue.pop(0)
+        if url in visited:
             continue
-        if key in seen:
-            old = seen[key]
-            # 优先保留可搜索、信息更全的
-            score = lambda x: (x.get("searchable", 0), bool(x.get("name")), bool(x.get("playUrl")))
-            if score(s) > score(old):
-                dropped.append((old, "重复(保留更优)"))
-                seen[key] = s
+        visited.add(url)
+        text = fetch(url, timeout=timeout)
+        if text is None:
+            failed.append(f"{tag}: {url[:60]}")
+            continue
+        cfg = parse_config_text(text)
+        if cfg is None:
+            # 不是 JSON → 尝试识别为直播列表文件 (m3u / txt genre 格式)
+            head = text[:500].lstrip()
+            if head.startswith("#EXTM3U") or "#genre#" in head:
+                live_refs.append({"name": f"直播-{tag}", "type": 0, "url": url})
             else:
-                dropped.append((s, "重复"))
-        else:
-            seen[key] = s
-    return list(seen.values()), dropped
+                failed.append(f"解析失败: {url[:60]}")
+            continue
+        # 多仓格式1: {"urls": ["...", ...]}
+        if isinstance(cfg.get("urls"), list) and depth < 2:
+            for sub in cfg["urls"]:
+                if isinstance(sub, str) and sub.startswith("http"):
+                    queue.append((sub, depth + 1, tag + "/sub"))
+            continue
+        # 多仓格式2: {"storeHouse": [{"sourceUrl": ...}]}
+        if isinstance(cfg.get("storeHouse"), list) and depth < 2:
+            for item in cfg["storeHouse"]:
+                su = (item or {}).get("sourceUrl", "")
+                if isinstance(su, str) and su.startswith("http"):
+                    queue.append((su, depth + 1, tag + "/house"))
+            continue
+        if cfg.get("sites"):
+            configs.append((tag, url, cfg))
+        # JSON 配置里的直播引用（{"name":..., "type":0, "url":"...txt"}）
+        for lv in cfg.get("lives", []):
+            if isinstance(lv, dict) and lv.get("type") == 0 and isinstance(lv.get("url"), str) \
+                    and lv["url"].startswith("http"):
+                live_refs.append({"name": lv.get("name") or f"直播-{tag}", "type": 0, "url": lv["url"]})
+    return configs, failed, live_refs
+
+
+def extract_sites(configs: list) -> list:
+    """提取并标准化所有点播源（按 api 去重）。"""
+    sites, seen = [], set()
+    n = 0
+    for tag, src_url, cfg in configs:
+        for s in cfg.get("sites", []):
+            if not isinstance(s, dict):
+                continue
+            api = (s.get("api") or "").strip()
+            if not api.startswith("http") and not api.startswith("csp_"):
+                continue
+            key = (s.get("type", 0), api.strip().rstrip("/").lower())
+            if key in seen:
+                continue
+            seen.add(key)
+            n += 1
+            site = dict(s)
+            site["key"] = f"src{n}"
+            site["_src"] = tag
+            sites.append(site)
+    return sites
+
+
+def extract_lives(configs: list) -> list:
+    """提取直播频道：[{name, urls:[...]}]，按地址去重。"""
+    channels, seen = [], set()
+    for tag, src_url, cfg in configs:
+        for group in cfg.get("lives", []):
+            if not isinstance(group, dict):
+                continue
+            for ch in group.get("channels", []):
+                if not isinstance(ch, dict):
+                    continue
+                urls = ch.get("urls") or []
+                u0 = urls[0] if urls else None
+                if not u0 or u0 in seen:
+                    continue
+                seen.add(u0)
+                channels.append({"name": ch.get("name", "未命名"), "urls": urls})
+    return channels
 
 
 # ---------- 检测 ----------
-def build_test_url(site: dict) -> str | None:
-    """构造探测用的列表请求地址。type 3 检测其 ext 规则文件。"""
+def test_site(site: dict, timeout: float) -> dict:
+    """存活 + 延迟 + 质量评分(片单数量)。type 3 只测 ext 规则文件可达性。"""
     t = site.get("type", 0)
     api = (site.get("api") or "").strip()
-    if not api:
-        return None
+    name = site.get("name") or site.get("key", "?")
+    r = {"site": site, "ok": False, "ms": None, "count": 0, "note": ""}
     if t == 3:
-        return (site.get("ext") or "").strip() or None
+        ext = site.get("ext")
+        if isinstance(ext, dict):  # 内联规则对象，无需外部文件
+            r.update(ok=True, ms=0, note="内联规则")
+            return r
+        url = (ext if isinstance(ext, str) else "").strip()
+        if not url or not url.startswith("http"):
+            r["note"] = "type3 无 ext"
+            return r
+        t0 = time.perf_counter()
+        body = fetch(url, timeout=timeout, ua=UA_BROWSER)
+        if body and len(body) > 20:
+            r.update(ok=True, ms=int((time.perf_counter() - t0) * 1000),
+                     note="规则文件可达")
+        else:
+            r["note"] = "ext 不可达"
+        return r
+    if not api.startswith("http"):
+        r["note"] = "api 非法"
+        return r
     sep = "&" if "?" in api else "?"
-    if t == 1:  # JSON 接口
-        return api + sep + "ac=list"
-    # type 0 XML 接口
-    return api if "ac=" in api else api + sep + "ac=videolist"
-
-
-def validate(resp_text: str) -> tuple[bool, str]:
-    """宽松校验返回内容是否像有效的视频数据。"""
-    txt = resp_text.strip()
-    if len(txt) < 50:
-        return False, "响应过短"
-    low = txt[:2000].lower()
+    if t == 1:
+        url = api + sep + "ac=list"
+    else:
+        url = api if "ac=" in api else api + sep + "ac=videolist"
+    t0 = time.perf_counter()
+    body = fetch(url, timeout=timeout, ua=UA_OKHTTP, max_bytes=500_000)
+    if body is None:
+        r["note"] = "超时/连接失败"
+        return r
+    r["ms"] = int((time.perf_counter() - t0) * 1000)
+    txt = body.strip()
+    low = txt[:3000].lower()
     if "<video" in low or "<list" in low:
-        return True, "XML格式"
+        r.update(ok=True, count=txt.count("<video"), note="XML")
+        return r
     try:
         data = json.loads(txt)
-        if isinstance(data, dict) and any(k in data for k in ("list", "vod_list", "data")):
-            return True, "JSON格式"
-        if isinstance(data, list) and data:
-            return True, "JSON数组"
-        return False, "JSON无数据"
+        lst = data.get("list") if isinstance(data, dict) else data
+        if isinstance(data, dict) and data.get("vod_list"):
+            lst = data["vod_list"]
+        if isinstance(lst, list) and lst:
+            r.update(ok=True, count=len(lst), note="JSON")
+        else:
+            r["note"] = "JSON 无片单"
     except Exception:
-        return False, "非XML/JSON"
+        r["note"] = "内容非 XML/JSON"
+    return r
 
 
-def check_site(site: dict, timeout: float, retries: int = 1) -> dict:
-    url = build_test_url(site)
-    name = site.get("name", "?")
-    skey = (site.get("type", 0), norm_url(site.get("api", "")))
-    if not url:
-        return {"name": name, "key": skey, "ok": False, "ms": None, "note": "无可用探测地址"}
-    last_err = ""
-    for attempt in range(retries + 1):
+def test_channel(ch: dict, timeout: float) -> dict:
+    url = (ch.get("urls") or [""])[0]
+    ok, ms = False, None
+    if url:
         t0 = time.perf_counter()
-        try:
-            req = urllib.request.Request(url, headers={"User-Agent": UA})
-            with urllib.request.urlopen(req, timeout=timeout, context=CTX) as resp:
-                body = resp.read(200_000).decode("utf-8", errors="replace")
-                ms = int((time.perf_counter() - t0) * 1000)
-                ok, note = validate(body)
-                return {"name": name, "ok": ok, "ms": ms, "note": note if ok else f"内容无效({note})"}
-        except urllib.error.HTTPError as e:
-            last_err = f"HTTP {e.code}"
-        except Exception as e:
-            last_err = type(e).__name__
-        time.sleep(0.3)
-    return {"name": name, "key": skey, "ok": False, "ms": None, "note": f"{last_err}(重试{retries + 1}次)"}
+        body = fetch(url, timeout=timeout, ua=UA_BROWSER, max_bytes=60_000)
+        ms = int((time.perf_counter() - t0) * 1000)
+        if body and ("#EXTM3U" in body[:200] or "<" in body[:200]):
+            ok = True
+    return {"ch": ch, "ok": ok, "ms": ms}
 
 
-# ---------- 输出 ----------
+# ---------- 生成 ----------
+def build_latest(seed_cfg: dict, alive_sites: list, alive_channels: list, live_refs: list, max_sites: int) -> dict:
+    spider = seed_cfg.get("spider", "")
+    sites = [dict(r["site"]) for r in alive_sites if r["site"].get("type", 0) != 3]
+    for s in sites:  # 清理内部字段
+        s.pop("_src", None)
+    lives = list(live_refs)
+    if alive_channels:
+        lives.append({"group": "自动采集直播", "channels": alive_channels})
+    out = {
+        "spider": spider if spider.startswith("http") else "",
+        "sites": sites[:max_sites],
+        "lives": lives,
+        "parses": [{"name": "Json轮询", "type": 2, "url": "Sequence"}],
+        "flags": ["youku", "qq", "iqiyi", "qiyi", "letv", "sohu", "tudou", "pptv", "mgtv", "wasu", "bilibili"],
+        "ads": seed_cfg.get("ads", []),
+    }
+    return out
+
+
 def grade(ms):
     if ms is None:
-        return "超时"
+        return "?"
     if ms < 800:
         return "极快"
     if ms < 2000:
@@ -139,97 +258,182 @@ def grade(ms):
     return "慢"
 
 
-def write_report(path, alive, dead, spider_ok, spider_ms, dup_count):
-    alive.sort(key=lambda x: (x["ms"] is None, x["ms"] or 0))
-    L = ["# 源检测报告", "",
-         f"- 检测时间：{time.strftime('%Y-%m-%d %H:%M:%S')}",
-         f"- 去重剔除：{dup_count} 条",
-         f"- 存活：{len(alive)} 个 / 失效：{len(dead)} 个",
-         f"- 爬虫JAR：{'可用 ' + str(spider_ms) + 'ms' if spider_ok else '不可用（type 3 源将失效）'}",
-         "", "## 存活源（按速度排序）", "",
-         "| 速度 | 延迟 | 名称 | 说明 |", "|---|---|---|---|"]
-    for r in alive:
-        L.append(f"| {grade(r['ms'])} | {r['ms']}ms | {r['name']} | {r['note']} |")
-    L += ["", "## 失效源", "", "| 名称 | 原因 |", "|---|---|"]
-    for r in dead:
-        L.append(f"| {r['name']} | {r['note']} |")
+def write_report(path, alive_sites, dead_sites, alive_ch, dead_ch, crawl_failed, crawl_stats):
+    alive_sites.sort(key=lambda r: (r["count"] == 0, r["ms"] or 99999))
+    L = ["# 源自动采集检测报告", "",
+         f"- 时间：{time.strftime('%Y-%m-%d %H:%M:%S')}",
+         f"- 爬取聚合配置：{crawl_stats}",
+         f"- 点播源：采集去重 {len(alive_sites) + len(dead_sites)} → 存活 {len(alive_sites)} / 失效 {len(dead_sites)}",
+         f"- 直播频道：去重 {len(alive_ch) + len(dead_ch)} → 存活 {len(alive_ch)}",
+         f"- 配置站失效：{len(crawl_failed)} 个", "",
+         "## 点播源（按速度排序）", "",
+         "| 速度 | 延迟 | 片单数 | 来源 | 名称 |", "|---|---|---|---|---|"]
+    for r in alive_sites[:80]:
+        L.append(f"| {grade(r['ms'])} | {r['ms']}ms | {r['count']} | {r['site'].get('_src','')} | {r['site'].get('name','')} |")
+    L += ["", "## 失效点播源（前40）", "", "| 名称 | 原因 |", "|---|---|"]
+    for r in dead_sites[:40]:
+        L.append(f"| {r['site'].get('name','')} | {r['note']} |")
     Path(path).write_text("\n".join(L), encoding="utf-8")
 
 
-def build_clean_config(cfg: dict, alive: list, deduped: list) -> dict:
-    """仅保留存活源，按速度排序；其余段落原样保留。按 (type, api) 精确匹配，避免同名冲突。"""
-    key2site = {(s.get("type", 0), norm_url(s.get("api", ""))): s for s in deduped}
-    ordered = [key2site[r["key"]] for r in sorted(alive, key=lambda x: (x["ms"] is None, x["ms"] or 0))
-               if r.get("key") in key2site]
-    out = dict(cfg)
-    out["sites"] = ordered
-    return out
+# ---------- 旧模式：检测单个文件 ----------
+def legacy_mode(args):
+    p = Path(args.legacy)
+    raw = p.read_text(encoding="utf-8-sig")
+    lines = [ln for ln in raw.splitlines() if not ln.lstrip().startswith("#")]
+    cfg = json.loads("\n".join(lines))
+    sites = cfg.get("sites", [])
+    seen, deduped = set(), []
+    for s in sites:
+        key = (s.get("type", 0), (s.get("api") or "").strip().rstrip("/").lower())
+        if key in seen:
+            continue
+        seen.add(key)
+        deduped.append(s)
+    print(f"[解析] {len(sites)} → 去重 {len(deduped)}")
+    if not args.check:
+        return
+    results = []
+    with ThreadPoolExecutor(max_workers=args.workers) as ex:
+        futs = [ex.submit(test_site, s, args.timeout) for s in deduped]
+        for i, f in enumerate(as_completed(futs), 1):
+            results.append(f.result())
+            if i % 20 == 0 or i == len(futs):
+                print(f"[进度] {i}/{len(futs)}")
+    alive = [r for r in results if r["ok"]]
+    alive.sort(key=lambda r: (r["count"] == 0, r["ms"] or 99999))
+    out_cfg = dict(cfg)
+    out_cfg["sites"] = [r["site"] for r in alive]
+    Path(str(p.with_name(p.stem + "_clean.json"))).write_text(
+        json.dumps(out_cfg, ensure_ascii=False, indent=2), encoding="utf-8")
+    print(f"[结果] 存活 {len(alive)} / 失效 {len(results) - len(alive)}")
+
+
+# ---------- 全自动模式 ----------
+def auto_mode(args):
+    pool = json.loads(Path(args.pool).read_text(encoding="utf-8"))
+    urls = [u for u in (pool if isinstance(pool, list) else pool.get("urls", []))
+            if isinstance(u, str) and u.startswith("http")]
+    print(f"[爬取] 聚合配置站 {len(urls)} 个 ...")
+    configs, failed, live_refs = crawl_pool(urls, args.timeout)
+    crawl_stats = f"成功 {len(configs)} / 失败 {len(failed)}"
+    print(f"[爬取] {crawl_stats}")
+
+    sites = extract_sites(configs)
+    channels = extract_lives(configs)
+    # 用户的种子配置也参与（视为一个来源）
+    if args.seed and Path(args.seed).exists():
+        try:
+            seed = parse_config_text(Path(args.seed).read_text(encoding="utf-8-sig"))
+            if seed:
+                sites += extract_sites([("seed", "local", seed)])
+                channels += extract_lives([("seed", "local", seed)])
+        except Exception:
+            pass
+
+    # 兜底去重
+    seen, deduped = set(), []
+    for s in sites:
+        key = (s.get("type", 0), (s.get("api") or "").strip().rstrip("/").lower())
+        if key in seen:
+            continue
+        seen.add(key)
+        deduped.append(s)
+    seen_u, ch_deduped = set(), []
+    for c in channels:
+        u0 = (c.get("urls") or [""])[0]
+        if u0 and u0 not in seen_u:
+            seen_u.add(u0)
+            ch_deduped.append(c)
+    # 直播源引用（txt/m3u 文件整体引用）按 url 去重
+    seen_ref, ref_deduped = set(), []
+    for ref in live_refs:
+        if ref["url"] not in seen_ref:
+            seen_ref.add(ref["url"])
+            ref_deduped.append(ref)
+
+    print(f"[采集] 点播源 {len(deduped)} 个，直播频道 {len(ch_deduped)} 个，直播源引用 {len(ref_deduped)} 个（已去重）")
+    if args.crawl_only:
+        print("[结束] crawl-only 模式，不联网测源。")
+        return
+
+    if args.limit:
+        deduped = deduped[:args.limit]
+        ch_deduped = ch_deduped[:min(args.limit, 50)]
+        print(f"[限制] 本次仅测前 {args.limit} 个")
+
+    print(f"[检测] 点播源并发测试（{args.workers} 线程）...")
+    site_results = []
+    with ThreadPoolExecutor(max_workers=args.workers) as ex:
+        futs = [ex.submit(test_site, s, args.timeout) for s in deduped]
+        for i, f in enumerate(as_completed(futs), 1):
+            site_results.append(f.result())
+            if i % 25 == 0 or i == len(futs):
+                print(f"  {i}/{len(futs)}")
+    alive_sites = [r for r in site_results if r["ok"]]
+    dead_sites = [r for r in site_results if not r["ok"]]
+
+    print("[检测] 直播频道并发测试...")
+    ch_results = []
+    with ThreadPoolExecutor(max_workers=args.workers) as ex:
+        futs = [ex.submit(test_channel, c, args.timeout) for c in ch_deduped]
+        for i, f in enumerate(as_completed(futs), 1):
+            ch_results.append(f.result())
+            if i % 50 == 0 or i == len(futs):
+                print(f"  {i}/{len(futs)}")
+    alive_ch = [r["ch"] for r in ch_results if r["ok"]]
+    dead_ch = [r for r in ch_results if not r["ok"]]
+
+    # 测试直播源引用（整个文件可达即算存活）
+    alive_refs = []
+    for ref in ref_deduped:
+        body = fetch(ref["url"], timeout=args.timeout, ua=UA_BROWSER, max_bytes=20_000)
+        if body and ("#EXTM3U" in body[:300] or "genre#" in body[:300] or "#EXTINF" in body[:300]):
+            alive_refs.append(ref)
+    print(f"[检测] 直播源引用存活 {len(alive_refs)}/{len(ref_deduped)}")
+
+    # 种子配置里的 flags/ads 等参数沿用
+    seed_cfg = {}
+    if args.seed and Path(args.seed).exists():
+        try:
+            seed_cfg = parse_config_text(Path(args.seed).read_text(encoding="utf-8-sig")) or {}
+        except Exception:
+            pass
+    latest = build_latest(seed_cfg, alive_sites, alive_ch, alive_refs, args.max_sites)
+
+    Path(args.out).write_text(json.dumps(latest, ensure_ascii=False, indent=2), encoding="utf-8")
+    write_report(args.report, alive_sites, dead_sites, alive_ch, dead_ch, failed, crawl_stats)
+
+    alive_sites.sort(key=lambda r: (r["count"] == 0, r["ms"] or 99999))
+    fastest = alive_sites[0] if alive_sites else None
+    print(f"\n[结果] 点播存活 {len(alive_sites)}"
+          + (f"（最快: {fastest['ms']}ms {fastest['site'].get('name','')[:20]}）" if fastest else "")
+          + f" / 直播存活 {len(alive_ch)}")
+    print(f"[输出] {args.out} + {args.report}")
 
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("config", help="配置文件路径")
-    ap.add_argument("--check", action="store_true", help="执行联网检测（默认仅解析+去重）")
-    ap.add_argument("--workers", type=int, default=20)
+    ap.add_argument("legacy", nargs="?", help="旧模式：单个配置文件路径")
+    ap.add_argument("--auto", action="store_true", help="全自动：爬取+检测+生成")
+    ap.add_argument("--crawl-only", action="store_true", help="只爬取统计，不测源")
+    ap.add_argument("--pool", default="sources_pool.json")
+    ap.add_argument("--seed", default="config/tv.json", help="种子配置（参数沿用+兜底源）")
+    ap.add_argument("--workers", type=int, default=30)
     ap.add_argument("--timeout", type=float, default=8.0)
-    ap.add_argument("--out", default=None)
-    ap.add_argument("--report", default=None)
+    ap.add_argument("--limit", type=int, default=0, help="限制本次测试数量（调试用）")
+    ap.add_argument("--max-sites", type=int, default=100, help="最终配置最多保留多少个点播源")
+    ap.add_argument("--out", default="latest.json")
+    ap.add_argument("--report", default="report.md")
+    ap.add_argument("--check", action="store_true", help="旧模式参数：联网检测")
     args = ap.parse_args()
 
-    cfg = load_config(args.config)
-    sites = cfg.get("sites", [])
-    deduped, dropped = dedup_sites(sites)
-    p = Path(args.config)
-
-    print(f"[解析] 原始 {len(sites)} 个源 → 去重后 {len(deduped)} 个（剔除 {len(dropped)} 条冗余）")
-    if not args.check:
-        print("[提示] 未加 --check，仅做解析和去重，不发网络请求。")
-        print("       各源名称预览（前20个）：")
-        for s in deduped[:20]:
-            print(f"  - {s.get('name')}  (type={s.get('type')})")
-        return
-
-    # 检测 spider jar
-    spider = cfg.get("spider", "")
-    spider_ok, spider_ms = False, None
-    if spider:
-        t0 = time.perf_counter()
-        try:
-            req = urllib.request.Request(spider, headers={"User-Agent": UA})
-            with urllib.request.urlopen(req, timeout=args.timeout, context=CTX) as r:
-                if len(r.read(1000)) > 0:
-                    spider_ok, spider_ms = True, int((time.perf_counter() - t0) * 1000)
-        except Exception:
-            pass
-        print(f"[spider] {'可用 ' + str(spider_ms) + 'ms' if spider_ok else '不可用'}")
-
-    # 并发检测
-    results = []
-    with ThreadPoolExecutor(max_workers=args.workers) as ex:
-        futs = {ex.submit(check_site, s, args.timeout): s for s in deduped}
-        done = 0
-        for fut in as_completed(futs):
-            results.append(fut.result())
-            done += 1
-            if done % 10 == 0 or done == len(futs):
-                print(f"[进度] {done}/{len(futs)}")
-
-    alive = [r for r in results if r["ok"]]
-    dead = [r for r in results if not r["ok"]]
-
-    out_path = args.out or str(p.with_name(p.stem + "_clean.json"))
-    rep_path = args.report or str(p.with_name(p.stem + "_report.md"))
-    write_report(rep_path, alive, dead, spider_ok, spider_ms, len(dropped))
-    Path(out_path).write_text(json.dumps(build_clean_config(cfg, alive, deduped), ensure_ascii=False, indent=2),
-                              encoding="utf-8")
-
-    alive.sort(key=lambda x: (x["ms"] is None, x["ms"] or 0))
-    print(f"\n[结果] 存活 {len(alive)} / 失效 {len(dead)}")
-    print("最快的前10个：")
-    for r in alive[:10]:
-        print(f"  {r['ms']}ms  {grade(r['ms'])}  {r['name']}")
-    print(f"\n[输出] 报告: {rep_path}")
-    print(f"[输出] 清理后配置: {out_path}")
+    if args.legacy:
+        legacy_mode(args)
+    elif args.auto:
+        auto_mode(args)
+    else:
+        ap.print_help()
 
 
 if __name__ == "__main__":

@@ -7,7 +7,7 @@
       "type": 1,
       "api": "https://tvbox-juxu-spegz3xv.edgeone.cool/api",
       "header": {
-        "Cookie": "eo_token=567d4188fb6c0e2747fdcb3f79383c5e; eo_time=1795688798"
+        "Cookie": "eo_token=736e4266d447d6583613ee936ada4e98; eo_time=1795688951"
       },
       "searchable": 1,
       "quickSearch": 1,
@@ -74,40 +74,6 @@
       "playerType": 2
     },
     {
-      "key": "src188",
-      "name": "影视 非凡[直连]",
-      "type": 1,
-      "api": "http://ffzy.tv/api.php/provide/vod/",
-      "searchable": 1,
-      "categories": [
-        "动作片",
-        "喜剧片",
-        "爱情片",
-        "科幻片",
-        "恐怖片",
-        "剧情片",
-        "战争片",
-        "国产剧",
-        "香港剧",
-        "韩国剧",
-        "欧美剧",
-        "记录片",
-        "台湾剧",
-        "日本剧",
-        "海外剧",
-        "泰国剧",
-        "大陆综艺",
-        "港台综艺",
-        "日韩综艺",
-        "欧美综艺",
-        "国产动漫",
-        "日韩动漫",
-        "欧美动漫",
-        "港台动漫",
-        "海外动漫"
-      ]
-    },
-    {
       "key": "src162",
       "name": "非凡 资源",
       "type": 1,
@@ -145,23 +111,73 @@
       ]
     },
     {
-      "key": "src244",
-      "name": "索尼 资源",
+      "key": "src169",
+      "name": "火狐采集",
       "type": 1,
-      "api": "https://suoniapi.com/api.php/provide/vod/",
+      "api": "https://hhzyapi.com/api.php/provide/vod/",
       "searchable": 1,
-      "filterable": 0,
+      "quickSearch": 0,
+      "filterable": 1,
       "categories": [
-        "欧美剧",
-        "韩剧",
-        "日剧",
+        "内地剧",
         "动作片",
+        "科幻片",
+        "战争片",
         "喜剧片",
         "爱情片",
+        "恐怖片",
+        "犯罪片",
+        "剧情片",
+        "冒险片",
+        "记录片",
+        "韩剧",
+        "香港剧",
+        "台湾剧",
+        "欧美剧",
+        "日剧",
+        "马泰剧",
+        "体育赛事",
+        "综艺",
+        "动画片",
+        "中国动漫",
+        "日本动漫",
+        "欧美动漫"
+      ]
+    },
+    {
+      "key": "src160",
+      "name": "索尼 高清",
+      "type": 1,
+      "api": "https://suoniapi.com/api.php/provide/vod/?ac=list",
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 1,
+      "categories": [
+        "动作片",
+        "喜剧片",
         "科幻片",
         "恐怖片",
+        "爱情片",
         "剧情片",
-        "战争片"
+        "战争片",
+        "记录片",
+        "国产剧",
+        "欧美剧",
+        "香港剧",
+        "韩国剧",
+        "台湾剧",
+        "日本剧",
+        "海外剧",
+        "泰国剧",
+        "国产动漫",
+        "日韩动漫",
+        "欧美动漫",
+        "港台动漫",
+        "海外动漫",
+        "大陆综艺",
+        "港台综艺",
+        "日韩综艺",
+        "欧美综艺"
       ]
     },
     {
@@ -175,16 +191,6 @@
       "ext": "http://xhztv.top/xhz/js/JRKAN直播.js"
     },
     {
-      "key": "src257",
-      "name": "虎牙直播",
-      "type": 3,
-      "api": "http://xhztv.top/xhz/js/lib/drpy2.min.js",
-      "searchable": 0,
-      "quickSearch": 0,
-      "filterable": 0,
-      "ext": "http://xhztv.top/xhz/js/虎牙直播.js"
-    },
-    {
       "key": "src128",
       "name": "Aue 无广",
       "type": 3,
@@ -194,6 +200,16 @@
       "quickSearch": 1,
       "changeable": 1,
       "ext": "https://auete.pro/"
+    },
+    {
+      "key": "src257",
+      "name": "虎牙直播",
+      "type": 3,
+      "api": "http://xhztv.top/xhz/js/lib/drpy2.min.js",
+      "searchable": 0,
+      "quickSearch": 0,
+      "filterable": 0,
+      "ext": "http://xhztv.top/xhz/js/虎牙直播.js"
     },
     {
       "key": "pan_search",
@@ -229,11 +245,6 @@
   ],
   "lives": [
     {
-      "name": "live",
-      "type": 0,
-      "url": "http://xhztv.top/xhz/live.txt"
-    },
-    {
       "name": "咪咕",
       "type": 0,
       "url": "https://develop202.github.io/migu_video/interface.txt"
@@ -242,6 +253,11 @@
       "name": "直播-pool",
       "type": 0,
       "url": "https://live.zbds.top/tv/iptv4.txt"
+    },
+    {
+      "name": "live",
+      "type": 0,
+      "url": "http://xhztv.top/xhz/live.txt"
     }
   ],
   "parses": [

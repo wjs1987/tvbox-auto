@@ -119,14 +119,46 @@ async function fetchLatest(env) {
   return null;
 }
 
-// 静态目录（流水线每日深挖生成的 super_catalog.json，边缘函数只做秒级加载）
+// 静态目录（流水线每日深挖生成）：优先同源静态文件（毫秒级），GitHub CDN 兜底
 const CATALOG_URLS = [
-  "https://raw.githubusercontent.com/WJS1987/tvbox-auto/main/super_catalog.json",
-  "https://cdn.jsdelivr.net/gh/WJS1987/tvbox-auto@main/super_catalog.json",
-  "https://gh-proxy.com/https://raw.githubusercontent.com/WJS1987/tvbox-auto/main/super_catalog.json",
+  "https://cdn.jsdelivr.net/gh/wjs1987/tvbox-auto@main/super_catalog.json",
+  "https://raw.githubusercontent.com/wjs1987/tvbox-auto/main/super_catalog.json",
+  "https://gh-proxy.com/https://raw.githubusercontent.com/wjs1987/tvbox-auto/main/super_catalog.json",
 ];
+const CATALOG_MAX_AGE_MS = 30 * 3600 * 1000; // 同源副本超过30h才去GitHub拿新的（目录本就每日更新）
 let memCatalog = null;
 let memCatalogAt = 0;
+
+async function loadCatalogFrom(url, timeoutMs) {
+  try {
+    const d = await jfetch(url, timeoutMs, 12_000_000);
+    return d?.items?.length ? d : null;
+  } catch {
+    return null;
+  }
+}
+
+function catalogAge(d) {
+  try {
+    return Date.now() - new Date(d.updated).getTime();
+  } catch {
+    return Infinity;
+  }
+}
+
+async function fetchFreshCatalog(env, origin) {
+  // 1) 同源静态 catalog.json（部署时随函数一起发布，几乎零耗时）
+  if (origin) {
+    const d = await loadCatalogFrom(`${origin}/catalog.json`, 5000);
+    if (d && catalogAge(d) < CATALOG_MAX_AGE_MS) return d;
+  }
+  // 2) GitHub CDN（jsDelivr 对国内友好，放前面）
+  for (const u of CATALOG_URLS) {
+    const d = await loadCatalogFrom(u, 15000);
+    if (d) return d;
+  }
+  return null;
+}
 
 // ---------- 汇总重建 ----------
 
@@ -240,21 +272,18 @@ async function rebuild(env) {
 
 // ---------- 请求处理 ----------
 
-async function getCatalog(env) {
+async function getCatalog(env, origin) {
   // 1) 内存缓存 20h 内直接用（同实例请求零开销）
   if (memCatalog && Date.now() - memCatalogAt < REFRESH_INTERVAL_MS) return memCatalog;
-  // 2) 从 CDN 加载流水线生成的静态目录（多线路回退）
-  const urls = [env.CATALOG_URL, ...CATALOG_URLS].filter(Boolean);
-  for (const u of urls) {
-    const d = await jfetch(u, 15000, 12_000_000);
-    if (d?.items?.length) {
-      memCatalog = d;
-      memCatalogAt = Date.now();
-      kvPut(env, KV_KEY, d).catch(() => {});
-      return d;
-    }
+  // 2) 同源静态文件 → GitHub CDN 多级回退
+  const fresh = await fetchFreshCatalog(env, origin);
+  if (fresh) {
+    memCatalog = fresh;
+    memCatalogAt = Date.now();
+    kvPut(env, KV_KEY, fresh).catch(() => {});
+    return fresh;
   }
-  // 3) CDN 全挂：退回 KV 缓存，再退回边端实时聚合
+  // 3) 全部失败：退回 KV 缓存，再退回边端实时聚合
   const kv = await kvGet(env, KV_KEY);
   if (kv?.items?.length) {
     memCatalog = kv;
@@ -430,11 +459,11 @@ export async function onRequest({ request, env }) {
       return json({ ok: true, total: cat.items.length, upstreams: cat.upstreams });
     }
     if (mode === "status") {
-      const cat = await getCatalog(env);
+      const cat = await getCatalog(env, url.origin);
       return json({ updated: cat.updated, upstreams: cat.upstreams, total: (cat.items || []).length });
     }
 
-    const cat = await getCatalog(env);
+    const cat = await getCatalog(env, url.origin);
     const ac = q.get("ac") || "list";
     // FongMi type1 约定：ac=detail&ids=xxx 是查详情；ac=detail&t=分类&pg=页 是分类浏览
     if (ac === "detail" && q.get("ids")) return await handleDetail(q.get("ids"), cat);

@@ -5,9 +5,9 @@
       "key": "super",
       "name": "全网汇总",
       "type": 1,
-      "api": "https://tvbox-juxu-spegz3xv.edgeone.cool/api?eo_token=ffacd1fcc041fe9cb32382bdc8a9a2d0&eo_time=1795675698",
+      "api": "https://tvbox-juxu-spegz3xv.edgeone.cool/api",
       "header": {
-        "Cookie": "eo_token=ffacd1fcc041fe9cb32382bdc8a9a2d0; eo_time=1795675698"
+        "Cookie": "eo_token=71d1894490bd485465f88ddde0a621e5; eo_time=1795676932"
       },
       "searchable": 1,
       "quickSearch": 1,
@@ -74,47 +74,41 @@
       ]
     },
     {
-      "key": "src190",
-      "name": "影视 极速[直连]",
+      "key": "src162",
+      "name": "非凡 资源",
       "type": 1,
-      "api": "https://jszyapi.com/api.php/provide/vod/?ac=list",
+      "api": "http://ffzy1.tv/api.php/provide/vod/",
+      "playurl": "json:http://jx.84jia.com/m3u8ts.php?url=",
       "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 1,
       "categories": [
-        "欧美剧",
-        "香港剧",
-        "韩剧",
-        "日剧",
-        "马泰剧",
         "动作片",
-        "爱情片",
         "喜剧片",
         "科幻片",
         "恐怖片",
+        "爱情片",
         "剧情片",
         "战争片",
         "记录片",
-        "动漫",
-        "内地剧",
-        "动画片",
-        "中国动漫",
-        "日本动漫",
-        " 欧美动漫",
-        "综艺",
+        "国产剧",
+        "欧美剧",
+        "香港剧",
+        "韩国剧",
         "台湾剧",
-        "体育赛事",
+        "日本剧",
+        "海外剧",
+        "泰国剧",
+        "国产动漫",
+        "日韩动漫",
+        "欧美动漫",
+        "港台动漫",
+        "海外动漫",
         "大陆综艺",
-        "日韩综艺",
         "港台综艺",
-        "欧美综艺",
-        "灾难片",
-        "悬疑片",
-        "犯罪片",
-        "奇幻片",
-        "短剧"
-      ],
-      "header": {
-        "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 15_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0 Mobile/15E148 Safari/604.1"
-      }
+        "日韩综艺",
+        "欧美综艺"
+      ]
     },
     {
       "key": "src214",
@@ -125,22 +119,48 @@
       "quickSearch": 1
     },
     {
-      "key": "src216",
-      "name": "光速资源(切)",
+      "key": "src188",
+      "name": "影视 非凡[直连]",
       "type": 1,
-      "api": "https://api.guangsuapi.com/api.php/provide/vod/",
+      "api": "http://ffzy.tv/api.php/provide/vod/",
       "searchable": 1,
-      "quickSearch": 1
+      "categories": [
+        "动作片",
+        "喜剧片",
+        "爱情片",
+        "科幻片",
+        "恐怖片",
+        "剧情片",
+        "战争片",
+        "国产剧",
+        "香港剧",
+        "韩国剧",
+        "欧美剧",
+        "记录片",
+        "台湾剧",
+        "日本剧",
+        "海外剧",
+        "泰国剧",
+        "大陆综艺",
+        "港台综艺",
+        "日韩综艺",
+        "欧美综艺",
+        "国产动漫",
+        "日韩动漫",
+        "欧美动漫",
+        "港台动漫",
+        "海外动漫"
+      ]
     },
     {
-      "key": "src236",
-      "name": "农民 直连",
+      "key": "src258",
+      "name": "JRKAN直播",
       "type": 3,
-      "api": "csp_Nmys",
-      "searchable": 1,
-      "quickSearch": 1,
-      "changeable": 1,
-      "ext": "https://agit.ai/fantaiying/fty/raw/branch/master/ext/nmys.json"
+      "api": "http://xhztv.top/xhz/js/lib/drpy.min.js",
+      "searchable": 0,
+      "quickSearch": 0,
+      "filterable": 0,
+      "ext": "http://xhztv.top/xhz/js/JRKAN直播.js"
     },
     {
       "key": "src138",
@@ -152,31 +172,31 @@
       "jar": "./libs/jar/Panda.jar"
     },
     {
-      "key": "src258",
-      "name": "JRKAN直播",
+      "key": "src257",
+      "name": "虎牙直播",
       "type": 3,
-      "api": "http://xhztv.top/xhz/js/lib/drpy.min.js",
+      "api": "http://xhztv.top/xhz/js/lib/drpy2.min.js",
       "searchable": 0,
       "quickSearch": 0,
       "filterable": 0,
-      "ext": "http://xhztv.top/xhz/js/JRKAN直播.js"
+      "ext": "http://xhztv.top/xhz/js/虎牙直播.js"
     }
   ],
   "lives": [
-    {
-      "name": "咪咕",
-      "type": 0,
-      "url": "https://develop202.github.io/migu_video/interface.txt"
-    },
     {
       "name": "live",
       "type": 0,
       "url": "http://xhztv.top/xhz/live.txt"
     },
     {
-      "name": "Kimentanm",
+      "name": "咪咕",
       "type": 0,
-      "url": "https://ghproxy.net/https://raw.githubusercontent.com/Kimentanm/aptv/master/m3u/iptv.m3u"
+      "url": "https://develop202.github.io/migu_video/interface.txt"
+    },
+    {
+      "name": "YY轮播",
+      "type": 0,
+      "url": "https://sub.ottiptv.cc/yylunbo.m3u"
     }
   ],
   "parses": [

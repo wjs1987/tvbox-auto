@@ -353,8 +353,8 @@ def grade(ms):
 
 
 # ---------- 超级源（全网汇总）置顶 ----------
-SUPER_SOURCE_DOMAIN = os.environ.get("SUPER_SOURCE_DOMAIN", "tvbox-juxu-bxpfcmyn.edgeone.cool")
-SUPER_SOURCE_PROJECT = os.environ.get("SUPER_SOURCE_PROJECT", "makers-xmxm7semuy4l")
+SUPER_SOURCE_DOMAIN = os.environ.get("SUPER_SOURCE_DOMAIN", "tvbox-juxu-spegz3xv.edgeone.cool")
+SUPER_SOURCE_PROJECT = os.environ.get("SUPER_SOURCE_PROJECT", "makers-lxb2wlvf61qz")
 SUPER_SOURCE_NAME = "全网汇总"
 
 

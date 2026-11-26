@@ -249,9 +249,9 @@ async function handleList(q, env, cat) {
       })
     );
     const all = [...found.values()];
-    // 精确匹配置顶（同名完全一致优先），其余保持源返回顺序
+    // 片名以关键词开头（如"庆余年 第一季"命中"庆余年"）置顶，其余保持源返回顺序
     const normWd = normName(wd);
-    all.sort((a, b) => (b.vod_name === wd || normName(b.vod_name) === normWd ? 1 : 0) - (a.vod_name === wd || normName(a.vod_name) === normWd ? 1 : 0));
+    all.sort((a, b) => (normName(b.vod_name).startsWith(normWd) ? 1 : 0) - (normName(a.vod_name).startsWith(normWd) ? 1 : 0));
     const list = all.slice((pg - 1) * limit, pg * limit);
     return json({
       code: 1, msg: "数据列表", page: pg, limit,

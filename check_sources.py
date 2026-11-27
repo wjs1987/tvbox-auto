@@ -590,17 +590,25 @@ def fetch_china_probe(api_token: str) -> dict:
     """
     try:
         tok, ts = mint_super_token(api_token)
-        req = urllib.request.Request(
-            f"https://{SUPER_SOURCE_DOMAIN}/api?mode=probe_results&_t={int(time.time()*1000)}",
-            headers={"Cookie": f"eo_token={tok}; eo_time={ts}", "User-Agent": UA_BROWSER})
-        with urllib.request.urlopen(req, timeout=30, context=ssl._create_unverified_context()) as r:
-            d = json.loads(r.read().decode())
-        results = d.get("results") or {}
-        if results:
-            print(f"[国内探测] 读到 EdgeOne 结果 {len(results)} 条（节点标记: {d.get('meta', {}).get('mainland')}）")
-            return results
+        last_err = None
+        for attempt in range(3):  # 522 偶发超时，重试 3 次
+            try:
+                req = urllib.request.Request(
+                    f"https://{SUPER_SOURCE_DOMAIN}/api?mode=probe_results&_t={int(time.time()*1000)}",
+                    headers={"Cookie": f"eo_token={tok}; eo_time={ts}", "User-Agent": UA_BROWSER})
+                with urllib.request.urlopen(req, timeout=45, context=ssl._create_unverified_context()) as r:
+                    d = json.loads(r.read().decode())
+                results = d.get("results") or {}
+                if results:
+                    print(f"[国内探测] 读到 EdgeOne 结果 {len(results)} 条（节点标记: {d.get('meta', {}).get('mainland')}）")
+                    return results
+            except Exception as e:
+                last_err = e
+                print(f"[国内探测] 第 {attempt + 1}/3 次读取失败: {e}")
+                time.sleep(10)
+        print(f"[国内探测] 线上读取最终失败({last_err})，尝试本地文件")
     except Exception as e:
-        print(f"[国内探测] 线上读取失败({e})，尝试本地文件")
+        print(f"[国内探测] token 签发失败({e})，尝试本地文件")
     for f in ("china_alive.json", "home_alive.json"):
         try:
             data = json.loads(Path(f).read_text(encoding="utf-8"))

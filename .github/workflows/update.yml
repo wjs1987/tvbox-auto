@@ -11,6 +11,10 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: auto-update
+  cancel-in-progress: true   # 同时只跑一轮，防止两次运行撞车互相 rebase 冲突
+
 jobs:
   update:
     runs-on: ubuntu-latest

@@ -53,8 +53,11 @@ jobs:
             echo "配置无变化，跳过提交"
           else
             git commit -m "auto update $(date -u +%Y-%m-%d)"
+            # 并发冲突（refresh_token 作业同时改 latest.json）时，一律保留本次新生成的版本：
+            # -X ours 在 rebase 里指"正在重放的提交"，即刚跑出来的配置。
             for i in 1 2 3 4 5; do
-              git pull --rebase origin main -q && git push origin main -q && exit 0
+              git pull --rebase -X ours origin main -q && git push origin main -q && exit 0
+              git rebase --abort 2>/dev/null || true
               echo "第 $i 次推送失败，等待后重试"
               sleep 20
             done
@@ -63,9 +66,11 @@ jobs:
           fi
 
       - name: Deploy super source to EdgeOne Pages
+        if: always()
         # 超级源项目是"直接上传"型（Provider=Upload，没接 Git），push 代码不会自动上线：
         # 之前线上目录一直停在旧时间点，正是"汇总海报不出来/片单不更新"的根因。
         # 这里用官方 CLI 把 super-source 目录（函数 + catalog.json）直接部署成新版本。
+        # 即使提交失败也照部署（部署读工作区文件，不依赖远端）。
         env:
           EDGEONE_TOKEN: ${{ secrets.EDGEONE_TOKEN }}
         run: |

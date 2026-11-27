@@ -40,7 +40,7 @@ jobs:
         env:
           EDGEONE_TOKEN: ${{ secrets.EDGEONE_TOKEN }}
         run: |
-          python check_sources.py --auto --workers 30 --timeout 8
+          python check_sources.py --auto --workers 30 --timeout 8 --top 40
           # 目录同时复制到边缘函数部署目录（下次部署时同源秒级加载）
           cp -f super_catalog.json super-source/catalog.json 2>/dev/null || true
 
@@ -61,3 +61,12 @@ jobs:
             echo "推送失败（重试 5 次）"
             exit 1
           fi
+
+      - name: Purge jsDelivr cache
+        if: always()
+        # jsDelivr 对 @main 分支有静态缓存（实测能落后 9~10 小时），而超级源 token 只有 3 小时
+        # 有效期。不刷新缓存的话，用 jsDelivr 地址的客户端会一直拿到过期 token → 全网汇总 401。
+        run: |
+          for f in latest.json live.json; do
+            curl -fsS --max-time 20 "https://purge.jsdelivr.net/gh/WJS1987/tvbox-auto@main/$f" >/dev/null 2>&1 || true
+          done

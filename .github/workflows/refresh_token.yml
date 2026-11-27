@@ -51,3 +51,10 @@ jobs:
             echo "推送失败（重试 5 次）"
             exit 1
           fi
+
+      - name: Purge jsDelivr cache
+        if: always()
+        # token 每小时换一次，jsDelivr 的 @main 缓存却长达数小时。不刷新的话，
+        # 客户端会拿到已经过期的 token，全网汇总直接 401（实测能差 9 小时）。
+        run: |
+          curl -fsS --max-time 20 "https://purge.jsdelivr.net/gh/WJS1987/tvbox-auto@main/latest.json" >/dev/null 2>&1 || true

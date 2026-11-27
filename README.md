@@ -4,25 +4,39 @@
 每天凌晨 3 点（北京时间）+ 每次推送代码时，GitHub Actions 自动执行：
 
 ```
-爬取 18 个聚合配置站（含每日更新的 tvbox-ysc-config 聚合仓库、各大仓直连）
+爬取聚合配置站（含每日更新的 tvbox-ysc-config 聚合仓库、各大仓直连）
 → 提取点播源 + 直播频道 + 直播源引用
-→ 按 (type, api) 去重
-→ 并发测试：存活检测 + 延迟测速 + 质量评分（片单数据量）
-→ 只保留合格源，按速度排序 → 生成 latest.json
+→ 按 (type, 规范化 API) 去重（同一后台的 ?ac=list 写法算同一个）
+→ 并发测试：存活检测 + 延迟测速 + 质量评分（片单数据量）+ 真实可播性
+→ 只保留合格源，按速度排序 → 生成 latest.json（精选 40 个）
 → 自动提交回仓库
 ```
+
+## 关键设计（别随手改）
+
+- **站点 key 是 API 的短哈希**，不是序号。改回 `src1/src2` 递增会让客户端里收藏的影片全部失效。
+- **jar / 全局 spider 全部自托管在本仓库 libs/**，用 jsDelivr 的 `.png` 后缀直链分发
+  （jsDelivr 对 `.jar` 返回 403，对 `.png` 秒开；客户端只校验字节和 md5，不看后缀）。
+  raw 直连 2.7MB 的 jar 实测 142 秒后连接被重置，不能用。
+- **quickSearch 只给实测 1.8 秒内的源**，几十个源全开会把魔屏的搜索拖到十几秒。
+- **超级源 token 每 3 小时过期**，流水线每小时第 10 分钟续签一次；所以任何带 CDN 缓存的分发链路都必须 purge。
 
 ## 魔屏 OK影视 配置地址
 
 ```
-首选：https://cdn.jsdelivr.net/gh/WJS1987/tvbox-auto@main/latest.json
-备用1：https://raw.githubusercontent.com/WJS1987/tvbox-auto/main/latest.json
-备用2：https://gh-proxy.com/https://raw.githubusercontent.com/WJS1987/tvbox-auto/main/latest.json
+首选： https://gh-proxy.com/https://raw.githubusercontent.com/WJS1987/tvbox-auto/main/latest.json
+备用1：https://cdn.jsdelivr.net/gh/WJS1987/tvbox-auto@main/latest.json
+备用2：https://raw.githubusercontent.com/WJS1987/tvbox-auto/main/latest.json
 ```
 
-三条链路在上海移动家庭网络都可用，但速度波动大（实测单次 1~10 秒），
-gh-proxy 偶尔会被 Cloudflare 拦截。推送后如果魔屏没读到新配置，在地址末尾加
-`?t=时间戳` 穿透 CDN 缓存（例如 `...latest.json?t=1764160000`）。
+**为什么首选从 jsDelivr 换成 gh-proxy**（2026-11-27 家宽实测）：
+
+- jsDelivr 对 `@main` 分支有静态缓存，实测拿到的还是 **9.7 小时前**的旧文件（29 个站点 vs 实际 36 个）；
+- 而“全网汇总”用的 EdgeOne token 只有 3 小时有效期，每小时刷新一次 —— 旧文件里的 token 早就失效，
+  客户端拿着它请求会直接 401，第一个站点永远打不开；
+- 同一个文件 gh-proxy 0.6 秒返回且内容是实时的，raw 直连要 23 秒。
+- 已经在流水线里加了 jsDelivr 缓存刷新（purge），备用链路也不会再发旧 token，
+  但首选仍推荐 gh-proxy。地址后面带 `?t=时间戳` 可以进一步穿透中间层缓存。
 
 ## 家庭网络实测（重要）
 

@@ -109,6 +109,55 @@ def parse_spider(sp) -> str:
     return first if first.startswith("http") else ""
 
 
+def norm_api(api: str) -> str:
+    """规范化 API：去 query、去尾斜杠、域名小写。
+
+    用途一：去重。很多仓里同一个后台会写成
+    "https://x.com/api.php/provide/vod" 和 "https://x.com/api.php/provide/vod/?ac=list"
+    两种形式，原来按原始字符串去重会当成两个源，白占名额。
+    """
+    raw = (api or "").strip()
+    if raw.startswith("csp_"):
+        return raw.lower()
+    try:
+        p = urllib.parse.urlsplit(raw)
+        host = (p.hostname or "").lower()
+        if not host:
+            return raw.rstrip("/").lower()
+        port = f":{p.port}" if p.port else ""
+        return f"{p.scheme.lower()}://{host}{port}{(p.path or '').rstrip('/')}"
+    except Exception:
+        return raw.rstrip("/").lower()
+
+
+def site_key(site: dict) -> str:
+    """稳定 key：同一个 API 永远得到同一个 key。
+
+    原来 key 用 src1、src2……按提取顺序递增，池子一变全部重排，
+    客户端里收藏的影片/播放进度会全部失效。改成 API 的短哈希后就固定了。
+    """
+    import hashlib
+    base = norm_api(str(site.get("api") or "")) or str(site.get("api") or "")
+    return "s" + hashlib.md5(base.encode("utf-8")).hexdigest()[:8]
+
+
+def clean_ads(ads) -> list:
+    """广告域名黑名单去重，并剔除明显是正常前端公共库的域名（避免误伤播放页）。"""
+    if not isinstance(ads, list):
+        return []
+    whitelist = {"cdn.bootcss.com", "cdnjs.cloudflare.com", "unpkg.com", "cdn.jsdelivr.net"}
+    out, seen = [], set()
+    for a in ads:
+        if not isinstance(a, str):
+            continue
+        a = a.strip().lower()
+        if not a or a in seen or a in whitelist:
+            continue
+        seen.add(a)
+        out.append(a)
+    return out
+
+
 def crawl_pool(pool_urls: list, timeout: float):
     """BFS 爬取多仓配置（深度 2），返回 (configs列表, 失败列表, 直播源引用列表)。"""
     configs, failed, live_refs = [], [], []
@@ -171,13 +220,13 @@ def extract_sites(configs: list) -> list:
             api = (s.get("api") or "").strip()
             if not api.startswith("http") and not api.startswith("csp_"):
                 continue
-            key = (s.get("type", 0), api.strip().rstrip("/").lower())
+            key = (s.get("type", 0), norm_api(api))
             if key in seen:
                 continue
             seen.add(key)
             n += 1
             site = dict(s)
-            site["key"] = f"src{n}"
+            site["key"] = site_key(site)
             site["_src"] = tag
             sp = parse_spider(cfg.get("spider"))
             if sp:
@@ -443,24 +492,35 @@ def build_latest(seed_cfg: dict, selected_sites: list, alive_channels: list, liv
         used_names.add(cn)
         s = dict(s)
         s["name"] = cn
+        t = s.get("type", 0)
+        ms = s.pop("_ms", None)
+        s.pop("_play", None)
         s.pop("_src", None)
         s.pop("_spider", None)
+        # 稳定 key：同一 API 永远同名，重新生成配置不会让收藏/播放进度失效
+        s["key"] = site_key(s)
         s.setdefault("timeout", 15)  # 显式超时，避免 FongMi 默认值过短误杀慢源
+        s.setdefault("searchable", 1)
+        # 采集站(is cms)天然支持分类筛选；type3 规则源没写 filterable 就置 0，避免点进去空白
+        if "filterable" not in s:
+            s["filterable"] = 1 if t in (0, 1) else 0
+        # quickSearch 只给实测够快的源：全部开启会让魔屏一次搜索并发几十个请求，转圈十几秒
+        if "quickSearch" not in s:
+            s["quickSearch"] = 1 if (ms is not None and ms <= 1800) else 0
         sites.append(s)
     # ---------- 固定精选：网盘/磁力爬虫源 ----------
-    # 【自托管】两个 jar 已镜像进本仓库 libs/，用本仓库 raw 直链，不再依赖第三方图床。
-    # 原因：饭太硬 jar 原本挂在美图秀秀图床(伪装.jpg)、pan jar 挂在别人的 GitHub fork，
-    # 图床清理/仓库删库/作者停更都会让电视端同步下载 jar 失败 → 站点全空。
-    # 自托管后只要本仓库在，jar 就在；md5 保留供 FongMi 做完整性校验。
-    # raw 直连实测国内约 2 秒；gh-proxy 要 51 秒会让魔屏加载时黑屏等待，禁用。
-    REPO_RAW = ("https://raw.githubusercontent.com/"
-                "WJS1987/tvbox-auto/main/libs/")
-    PAN_JAR = REPO_RAW + "pan_spider.jar"
+    # 【自托管 + 换成能下载的链路】jar 都在本仓库 libs/，不依赖任何第三方图床。
+    # 2026-11-27 上海家宽实测：raw.githubusercontent 直连 2.7MB 的 jar，142 秒后被重置失败；
+    # 同一文件走 gh-proxy 17 秒可下完；jsDelivr 对 .jar 直接 403，但对 .png 秒开。
+    # 所以把同一份包再存一份 .png 后缀（客户端只看字节和 md5，不看后缀），走 jsDelivr。
+    # 时间多出来的黑屏等待就是这么来的：魔屏要等 jar 下完才能进站点。
+    CDN = "https://cdn.jsdelivr.net/gh/WJS1987/tvbox-auto@main/libs/"
+    PAN_JAR = CDN + "pan_spider.png"
     # 饭太硬同款网盘爬虫包（与官方 spider 字节级一致：ftyguard_v7/v8.so +
     # ftyshinidie.guard 加密代码 + classes.dex 壳，含全套 csp_*Guard 网盘类）。
     # 私有加壳包、无源码，故只能整体镜像；按站点单独挂，不进全局 spider
     #（全局 jar 决定其他 type3 站点兼容性，换掉会连累它们）。
-    FTY_JAR = (REPO_RAW + "fty_spider.jar"
+    FTY_JAR = (CDN + "fty_spider.png"
                + ";md5;5302302a73a9e27cfaa65f3873b727ab")
     # 真实机制（2026-11-27 用户纠正 + 全网核实）：不是手动填 Cookie。
     # 点"我的云盘"站点 → 客户端弹二维码 → 手机网盘APP扫码登录 →
@@ -499,16 +559,35 @@ def build_latest(seed_cfg: dict, selected_sites: list, alive_channels: list, liv
          "jar": FTY_JAR, "changeable": 0, "searchable": 1, "quickSearch": 1,
          "ext": CD, "timeout": 20},
     ])
+    # 收尾统一：补默认值 + 按 key 去重
+    # （同一后台被写成不同 URL 时，前面按名字去重拦不住，这里按稳定 key 再兜一层，
+    #   否则配置里会出现两个 key 相同的站点，客户端会当成同一个源重复加载）
+    fixed, seen_keys = [], set()
+    for s in sites:
+        k = s.get("key") or site_key(s)
+        if k in seen_keys:
+            continue
+        seen_keys.add(k)
+        s["key"] = k
+        s.setdefault("searchable", 1)
+        s.setdefault("quickSearch", 0)
+        s.setdefault("filterable", 0)
+        s.setdefault("timeout", 15)
+        fixed.append(s)
+    sites = fixed
     lives = list(live_refs)
     if alive_channels:
         lives.append({"group": "精选直播", "channels": alive_channels})
+    # 全局 spider 也换成本仓库镜像：libs/spider.png 与原第三方图床包字节完全一致（md5 相同），
+    # 但图床一旦清理或开防盗链，所有 type3 站点会一起报废。
+    own_spider = CDN + "spider.png"
     out = {
-        "spider": spider_url or "",
+        "spider": own_spider,
         "sites": sites,
         "lives": lives,
         "parses": [{"name": "Json轮询", "type": 2, "url": "Sequence"}],
         "flags": ["youku", "qq", "iqiyi", "qiyi", "letv", "sohu", "tudou", "pptv", "mgtv", "wasu", "bilibili"],
-        "ads": seed_cfg.get("ads", []),
+        "ads": clean_ads(seed_cfg.get("ads", [])),
     }
     return out
 
@@ -841,7 +920,8 @@ def write_report(path, alive_sites, dead_sites, alive_ch, dead_ch, crawl_failed,
          f"- 爬取聚合配置：{crawl_stats}",
          f"- 点播源：采集去重 {len(alive_sites) + len(dead_sites)} → 存活 {len(alive_sites)} / 失效 {len(dead_sites)}"
          f" → **精选保留 {len(selected_sites)} 个**（可播性+片单量+速度综合排名）",
-         f"- 直播频道：去重 {len(alive_ch) + len(dead_ch)} → 存活 {len(alive_ch)}",
+         f"- 直播频道：去重 {len(alive_ch) + len(dead_ch)} → 存活 {len(alive_ch)}"
+         "（海外机房探测，国内 IPTV 连不上属正常，不代表失效；直播以设备实测为准）",
          f"- 配置站失效：{len(crawl_failed)} 个", "",
          "## 点播源（综合排名，✔=已确认可播）", "",
          "| 精选 | 可播 | 速度 | 延迟 | 片单数 | 名称 |", "|---|---|---|---|---|---|"]
@@ -864,7 +944,7 @@ def legacy_mode(args):
     sites = cfg.get("sites", [])
     seen, deduped = set(), []
     for s in sites:
-        key = (s.get("type", 0), (s.get("api") or "").strip().rstrip("/").lower())
+        key = (s.get("type", 0), norm_api(str(s.get("api") or "")))
         if key in seen:
             continue
         seen.add(key)
@@ -913,7 +993,7 @@ def auto_mode(args):
     # 兜底去重
     seen, deduped = set(), []
     for s in sites:
-        key = (s.get("type", 0), (s.get("api") or "").strip().rstrip("/").lower())
+        key = (s.get("type", 0), norm_api(str(s.get("api") or "")))
         if key in seen:
             continue
         seen.add(key)
@@ -1025,6 +1105,9 @@ def auto_mode(args):
         if cn in seen_cn:
             continue
         seen_cn.add(cn)
+        # 把实测延迟带下去，build_latest 用它决定 quickSearch（快的才参与全库并发搜索）
+        r["site"]["_ms"] = r["ms"]
+        r["site"]["_play"] = r["play"]
         selected_sites.append(r["site"])
         if len(selected_sites) >= cap:
             break
@@ -1064,6 +1147,8 @@ def auto_mode(args):
                 if cn in seen_cn or not cn:
                     continue
                 seen_cn.add(cn)
+                r["site"]["_ms"] = r["ms"]
+                r["site"]["_play"] = r["play"]
                 selected_sites.append(r["site"])
             print(f"[jar] 复活 type 3 源 {len(selected_sites)} 个总数中包含的 type3: "
                   f"{sum(1 for s in selected_sites if s.get('type', 0) == 3)}")
@@ -1141,7 +1226,7 @@ def main():
     ap.add_argument("--workers", type=int, default=30)
     ap.add_argument("--timeout", type=float, default=8.0)
     ap.add_argument("--limit", type=int, default=0, help="限制本次测试数量（调试用）")
-    ap.add_argument("--top", type=int, default=25, help="最终精选保留多少个点播源")
+    ap.add_argument("--top", type=int, default=40, help="最终精选保留多少个点播源")
     ap.add_argument("--top-lives", type=int, default=3, help="精选保留多少个直播源引用")
     ap.add_argument("--out", default="latest.json")
     ap.add_argument("--report", default="report.md")

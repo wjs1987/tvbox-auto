@@ -7,7 +7,7 @@
       "type": 1,
       "api": "https://tvbox-juxu-spegz3xv.edgeone.cool/api",
       "header": {
-        "Cookie": "eo_token=000f144905b2440861b367e41f935de3; eo_time=1795748445"
+        "Cookie": "eo_token=95105c5effaec4b5141bc248ee599e92; eo_time=1795748765"
       },
       "searchable": 1,
       "quickSearch": 1,
@@ -24,7 +24,7 @@
       "type": 1,
       "api": "https://tvbox-juxu-spegz3xv.edgeone.cool/api?mode=pansearch",
       "header": {
-        "Cookie": "eo_token=000f144905b2440861b367e41f935de3; eo_time=1795748445"
+        "Cookie": "eo_token=95105c5effaec4b5141bc248ee599e92; eo_time=1795748765"
       },
       "searchable": 1,
       "quickSearch": 0,
@@ -89,50 +89,6 @@
       "timeout": 15
     },
     {
-      "key": "src169",
-      "name": "火狐采集",
-      "type": 1,
-      "api": "https://hhzyapi.com/api.php/provide/vod/",
-      "searchable": 1,
-      "quickSearch": 0,
-      "filterable": 1,
-      "categories": [
-        "内地剧",
-        "动作片",
-        "科幻片",
-        "战争片",
-        "喜剧片",
-        "爱情片",
-        "恐怖片",
-        "犯罪片",
-        "剧情片",
-        "冒险片",
-        "记录片",
-        "韩剧",
-        "香港剧",
-        "台湾剧",
-        "欧美剧",
-        "日剧",
-        "马泰剧",
-        "体育赛事",
-        "综艺",
-        "动画片",
-        "中国动漫",
-        "日本动漫",
-        "欧美动漫"
-      ],
-      "timeout": 15
-    },
-    {
-      "key": "src171",
-      "name": "百度 采集",
-      "type": 1,
-      "api": "https://api.apibdzy.com/api.php/provide/vod/?ac=list",
-      "searchable": 1,
-      "filterable": 0,
-      "timeout": 15
-    },
-    {
       "key": "src243",
       "name": "豪华 资源",
       "type": 1,
@@ -165,6 +121,50 @@
         "日韩综艺",
         "港台综艺",
         "欧美综艺"
+      ],
+      "timeout": 15
+    },
+    {
+      "key": "src171",
+      "name": "百度 采集",
+      "type": 1,
+      "api": "https://api.apibdzy.com/api.php/provide/vod/?ac=list",
+      "searchable": 1,
+      "filterable": 0,
+      "timeout": 15
+    },
+    {
+      "key": "src169",
+      "name": "火狐采集",
+      "type": 1,
+      "api": "https://hhzyapi.com/api.php/provide/vod/",
+      "searchable": 1,
+      "quickSearch": 0,
+      "filterable": 1,
+      "categories": [
+        "内地剧",
+        "动作片",
+        "科幻片",
+        "战争片",
+        "喜剧片",
+        "爱情片",
+        "恐怖片",
+        "犯罪片",
+        "剧情片",
+        "冒险片",
+        "记录片",
+        "韩剧",
+        "香港剧",
+        "台湾剧",
+        "欧美剧",
+        "日剧",
+        "马泰剧",
+        "体育赛事",
+        "综艺",
+        "动画片",
+        "中国动漫",
+        "日本动漫",
+        "欧美动漫"
       ],
       "timeout": 15
     },
@@ -249,15 +249,14 @@
       "timeout": 15
     },
     {
-      "key": "src126",
-      "name": "原创 不卡",
+      "key": "src127",
+      "name": "Btt 秒播",
       "type": 3,
-      "api": "csp_YCyz",
-      "timeout": 15,
-      "playerType": 1,
+      "api": "csp_Bttwoo",
       "searchable": 1,
       "quickSearch": 1,
-      "changeable": 1
+      "changeable": 1,
+      "timeout": 15
     },
     {
       "key": "src183",
@@ -273,26 +272,6 @@
       "timeout": 25
     },
     {
-      "key": "src179",
-      "name": "AList",
-      "type": 3,
-      "api": "csp_AList",
-      "searchable": 1,
-      "changeable": 0,
-      "ext": "./libs/js/alist1.json",
-      "timeout": 15
-    },
-    {
-      "key": "src66",
-      "name": "漫短 小喜",
-      "type": 3,
-      "类型": "短剧",
-      "api": "csp_ManJuAiXiFanGuard",
-      "searchable": 1,
-      "changeable": 0,
-      "timeout": 15
-    },
-    {
       "key": "src157",
       "name": "皮皮 影视",
       "type": 3,
@@ -304,12 +283,12 @@
       "timeout": 15
     },
     {
-      "key": "src36",
-      "name": "虎斑 4K",
+      "key": "src66",
+      "name": "漫短 小喜",
       "type": 3,
-      "api": "csp_AiNewHuBanGuard",
+      "类型": "短剧",
+      "api": "csp_ManJuAiXiFanGuard",
       "searchable": 1,
-      "quickSearch": 1,
       "changeable": 0,
       "timeout": 15
     },
@@ -349,16 +328,37 @@
       "timeout": 15
     },
     {
-      "key": "src125",
-      "name": "厂长 不卡",
+      "key": "src96",
+      "name": "WWE 体育",
       "type": 3,
-      "api": "csp_NewCz",
+      "api": "csp_SportAiWweGuard",
+      "searchable": 1,
+      "changeable": 0,
+      "style": {
+        "type": "list"
+      },
+      "timeout": 15
+    },
+    {
+      "key": "src126",
+      "name": "原创 不卡",
+      "type": 3,
+      "api": "csp_YCyz",
       "timeout": 15,
-      "playerType": 2,
+      "playerType": 1,
       "searchable": 1,
       "quickSearch": 1,
-      "changeable": 1,
-      "ext": "https://www.czzy77.com/"
+      "changeable": 1
+    },
+    {
+      "key": "src35",
+      "name": "盘库 4K",
+      "type": 3,
+      "api": "csp_AiNewPianKuGuard",
+      "searchable": 1,
+      "quickSearch": 1,
+      "changeable": 0,
+      "timeout": 15
     },
     {
       "key": "src182",
@@ -377,24 +377,15 @@
       "timeout": 15
     },
     {
-      "key": "src95",
-      "name": "咖啡 体育",
+      "key": "src156",
+      "name": "哔嘀 影视",
       "type": 3,
-      "api": "csp_SportAiKaFeiGuard",
+      "api": "csp_Bdys",
+      "playerType": "1",
       "searchable": 1,
-      "changeable": 0,
-      "style": {
-        "type": "list"
-      },
-      "timeout": 15
-    },
-    {
-      "key": "src178",
-      "name": "本地存储",
-      "type": 3,
-      "api": "csp_Local",
-      "searchable": 0,
-      "changeable": 0,
+      "quickSearch": 1,
+      "filterable": 1,
+      "jar": "./libs/jar/P4.jar",
       "timeout": 15
     },
     {
@@ -405,6 +396,18 @@
       "api": "csp_ManJuAiQiMaoGuard",
       "searchable": 1,
       "changeable": 0,
+      "timeout": 15
+    },
+    {
+      "key": "src95",
+      "name": "咖啡 体育",
+      "type": 3,
+      "api": "csp_SportAiKaFeiGuard",
+      "searchable": 1,
+      "changeable": 0,
+      "style": {
+        "type": "list"
+      },
       "timeout": 15
     },
     {

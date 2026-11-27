@@ -1,0 +1,54 @@
+name: Edge Probe (家宽视角探测)
+
+on:
+  workflow_dispatch:   # 手动触发
+  schedule:
+    # 每天北京时间 03:30，在 Auto Update(03:00) 之后跑
+    - cron: '30 19 * * *'
+
+permissions:
+  contents: write
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - name: 探测 EdgeOne 节点出口 + 全部源国内可达性
+        env:
+          EDGEONE_TOKEN: ${{ secrets.EDGEONE_TOKEN }}
+        run: |
+          python edge_probe.py --in latest.json --out home_alive.json
+
+      - name: 输出诊断摘要
+        run: |
+          python - <<'PY'
+          import json
+          d = json.load(open('home_alive.json', encoding='utf-8'))
+          print(f"国内节点探测: 存活 {d['alive_count']}/{d['total']}, 失效 {d['dead_count']}")
+          print("失效源:")
+          for r in d['details']:
+              if not r.get('ok'):
+                  print(f"  - {r['api'][:70]:70} {r.get('note','')}")
+          PY
+
+      - name: 提交探测结果
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add home_alive.json
+          if git diff --cached --quiet; then
+            echo "无变化"
+          else
+            git commit -m "chore: 家宽视角探测结果 [skip ci]"
+            for i in 1 2 3; do
+              git pull --rebase origin main -q && git push origin main -q && exit 0
+              sleep 15
+            done
+            exit 1
+          fi

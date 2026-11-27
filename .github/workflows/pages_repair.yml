@@ -1,0 +1,62 @@
+name: Pages Repair
+on:
+  workflow_dispatch:
+    inputs:
+      dry:
+        description: "只探测不部署"
+        default: "false"
+jobs:
+  repair:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Inspect / create project / deploy
+        env:
+          EDGEONE_TOKEN: ${{ secrets.EDGEONE_TOKEN }}
+          DRY: ${{ github.event.inputs.dry }}
+        run: |
+          python3 - <<'PY'
+          import json, os, ssl, base64, io, zipfile, urllib.request, urllib.error
+          ctx = ssl.create_default_context(); ctx.check_hostname=False; ctx.verify_mode=ssl.CERT_NONE
+          PROJ_ID = "makers-lxb2wlvf61qz"
+          def call(action, extra=None, project=PROJ_ID):
+              body = {"Action": action, "Region": "ap-guangzhou"}
+              if project: body["ProjectId"] = project
+              if extra: body.update(extra)
+              req = urllib.request.Request("https://pages-api.cloud.tencent.com/v1",
+                  data=json.dumps(body).encode(),
+                  headers={"Content-Type":"application/json","Authorization":"Bearer "+os.environ["EDGEONE_TOKEN"]})
+              for attempt in range(3):
+                  try:
+                      with urllib.request.urlopen(req, timeout=40, context=ctx) as r:
+                          return json.loads(r.read().decode())
+                  except urllib.error.HTTPError as e:
+                      return {"http": e.code, "body": e.read().decode()[:300]}
+                  except Exception as e:
+                      if attempt == 2: return {"err": str(e)[:150]}
+          print("PROJECTS:", json.dumps(call("DescribePagesProjects", None, None), ensure_ascii=False)[:800])
+
+          # 打 zip（含 functions/index/catalog）
+          buf = io.BytesIO()
+          with zipfile.ZipFile(buf, zipfile.ZIP_DEFLATED) as z:
+              for root, _dirs, files in os.walk("super-source"):
+                  for f in files:
+                      p = os.path.join(root, f)
+                      z.write(p, os.path.relpath(p, "super-source"))
+          art = base64.b64encode(buf.getvalue()).decode()
+          print("zip bytes:", len(buf.getvalue()), "b64 chars:", len(art))
+
+          if os.environ.get("DRY") == "true":
+              print("dry run, skip deploy")
+              raise SystemExit(0)
+
+          for label, extra in [
+              ("archive", {"Env":"Production","Artifact":art,"ArtifactType":"archive"}),
+              ("zipfile", {"Env":"Production","ZipFile":art}),
+          ]:
+              d = call("CreatePagesDeployment", extra)
+              print(f"[{label}] -> {json.dumps(d, ensure_ascii=False)[:600]}")
+              if '"DeploymentId"' in json.dumps(d):
+                  print("SUCCESS variant:", label)
+                  break
+          PY

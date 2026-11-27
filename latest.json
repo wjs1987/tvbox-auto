@@ -41,17 +41,7 @@
         "电影/纪录片"
       ],
       "timeout": 15,
-      "quickSearch": 1
-    },
-    {
-      "key": "s161440fd",
-      "name": "(18+)番号资源",
-      "type": 1,
-      "api": "http://fhapi9.com/api.php/provide/vod/",
-      "searchable": 1,
-      "quickSearch": 0,
-      "filterable": 0,
-      "timeout": 15
+      "quickSearch": 0
     },
     {
       "key": "sdf75d79d",
@@ -78,42 +68,6 @@
       "changeable": 1,
       "playerType": 2,
       "timeout": 15
-    },
-    {
-      "key": "s49f59375",
-      "name": "红牛资源(切)",
-      "type": 1,
-      "api": "https://www.hongniuzy2.com/api.php/provide/vod/",
-      "searchable": 1,
-      "quickSearch": 1,
-      "timeout": 15,
-      "filterable": 1
-    },
-    {
-      "key": "s89b4bdb9",
-      "name": "影视 天涯",
-      "type": 1,
-      "api": "http://tyyszy.com/api.php/provide/vod",
-      "style": {
-        "type": "rect",
-        "ratio": 1.33
-      },
-      "searchable": 1,
-      "quickSearch": 1,
-      "filterable": 1,
-      "changeable": 1,
-      "playerType": 2,
-      "timeout": 15
-    },
-    {
-      "key": "s8cffeef3",
-      "name": "闪电资源(切)",
-      "type": 1,
-      "api": "http://sdzyapi.com/api.php/provide/vod/",
-      "searchable": 1,
-      "quickSearch": 1,
-      "timeout": 15,
-      "filterable": 1
     },
     {
       "key": "s88195273",
@@ -162,6 +116,64 @@
       "quickSearch": 1
     },
     {
+      "key": "sc42f05e0",
+      "name": "非凡 资源",
+      "type": 1,
+      "api": "http://ffzy1.tv/api.php/provide/vod/",
+      "playurl": "json:http://jx.84jia.com/m3u8ts.php?url=",
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 1,
+      "categories": [
+        "动作片",
+        "喜剧片",
+        "科幻片",
+        "恐怖片",
+        "爱情片",
+        "剧情片",
+        "战争片",
+        "记录片",
+        "国产剧",
+        "欧美剧",
+        "香港剧",
+        "韩国剧",
+        "台湾剧",
+        "日本剧",
+        "海外剧",
+        "泰国剧",
+        "国产动漫",
+        "日韩动漫",
+        "欧美动漫",
+        "港台动漫",
+        "海外动漫",
+        "大陆综艺",
+        "港台综艺",
+        "日韩综艺",
+        "欧美综艺"
+      ],
+      "timeout": 15
+    },
+    {
+      "key": "s49f59375",
+      "name": "红牛资源(切)",
+      "type": 1,
+      "api": "https://www.hongniuzy2.com/api.php/provide/vod/",
+      "searchable": 1,
+      "quickSearch": 1,
+      "timeout": 15,
+      "filterable": 1
+    },
+    {
+      "key": "s8cffeef3",
+      "name": "闪电资源(切)",
+      "type": 1,
+      "api": "http://sdzyapi.com/api.php/provide/vod/",
+      "searchable": 1,
+      "quickSearch": 1,
+      "timeout": 15,
+      "filterable": 1
+    },
+    {
       "key": "sd3f31183",
       "name": "百度 采集",
       "type": 1,
@@ -172,38 +184,19 @@
       "quickSearch": 1
     },
     {
-      "key": "s6643d465",
-      "name": "火狐采集",
+      "key": "s89b4bdb9",
+      "name": "影视 天涯",
       "type": 1,
-      "api": "https://hhzyapi.com/api.php/provide/vod/",
+      "api": "http://tyyszy.com/api.php/provide/vod",
+      "style": {
+        "type": "rect",
+        "ratio": 1.33
+      },
       "searchable": 1,
-      "quickSearch": 0,
+      "quickSearch": 1,
       "filterable": 1,
-      "categories": [
-        "内地剧",
-        "动作片",
-        "科幻片",
-        "战争片",
-        "喜剧片",
-        "爱情片",
-        "恐怖片",
-        "犯罪片",
-        "剧情片",
-        "冒险片",
-        "记录片",
-        "韩剧",
-        "香港剧",
-        "台湾剧",
-        "欧美剧",
-        "日剧",
-        "马泰剧",
-        "体育赛事",
-        "综艺",
-        "动画片",
-        "中国动漫",
-        "日本动漫",
-        "欧美动漫"
-      ],
+      "changeable": 1,
+      "playerType": 2,
       "timeout": 15
     },
     {
@@ -243,6 +236,68 @@
       "timeout": 15,
       "filterable": 1,
       "quickSearch": 0
+    },
+    {
+      "key": "s6643d465",
+      "name": "火狐采集",
+      "type": 1,
+      "api": "https://hhzyapi.com/api.php/provide/vod/",
+      "searchable": 1,
+      "quickSearch": 0,
+      "filterable": 1,
+      "categories": [
+        "内地剧",
+        "动作片",
+        "科幻片",
+        "战争片",
+        "喜剧片",
+        "爱情片",
+        "恐怖片",
+        "犯罪片",
+        "剧情片",
+        "冒险片",
+        "记录片",
+        "韩剧",
+        "香港剧",
+        "台湾剧",
+        "欧美剧",
+        "日剧",
+        "马泰剧",
+        "体育赛事",
+        "综艺",
+        "动画片",
+        "中国动漫",
+        "日本动漫",
+        "欧美动漫"
+      ],
+      "timeout": 15
+    },
+    {
+      "key": "s1b48dbda",
+      "name": "量子 资源",
+      "type": 1,
+      "api": "https://lzizy1.com/api.php/provide/vod/",
+      "playurl": "json:http://jx.84jia.com/m3u8ts.php?url=",
+      "searchable": 1,
+      "quickSearch": 0,
+      "filterable": 0,
+      "categories": [
+        "国产剧",
+        "国产动漫",
+        "泰国剧",
+        "台湾剧",
+        "香港剧",
+        "欧美剧",
+        "韩国剧",
+        "日本剧",
+        "动漫",
+        "体育",
+        "剧情片",
+        "动作片",
+        "爱情片",
+        "喜剧片"
+      ],
+      "timeout": 15
     },
     {
       "key": "s63feeb8d",
@@ -290,71 +345,6 @@
       "quickSearch": 0
     },
     {
-      "key": "s1b48dbda",
-      "name": "量子 资源",
-      "type": 1,
-      "api": "https://lzizy1.com/api.php/provide/vod/",
-      "playurl": "json:http://jx.84jia.com/m3u8ts.php?url=",
-      "searchable": 1,
-      "quickSearch": 0,
-      "filterable": 0,
-      "categories": [
-        "国产剧",
-        "国产动漫",
-        "泰国剧",
-        "台湾剧",
-        "香港剧",
-        "欧美剧",
-        "韩国剧",
-        "日本剧",
-        "动漫",
-        "体育",
-        "剧情片",
-        "动作片",
-        "爱情片",
-        "喜剧片"
-      ],
-      "timeout": 15
-    },
-    {
-      "key": "sc42f05e0",
-      "name": "非凡 资源",
-      "type": 1,
-      "api": "http://ffzy1.tv/api.php/provide/vod/",
-      "playurl": "json:http://jx.84jia.com/m3u8ts.php?url=",
-      "searchable": 1,
-      "quickSearch": 0,
-      "filterable": 1,
-      "categories": [
-        "动作片",
-        "喜剧片",
-        "科幻片",
-        "恐怖片",
-        "爱情片",
-        "剧情片",
-        "战争片",
-        "记录片",
-        "国产剧",
-        "欧美剧",
-        "香港剧",
-        "韩国剧",
-        "台湾剧",
-        "日本剧",
-        "海外剧",
-        "泰国剧",
-        "国产动漫",
-        "日韩动漫",
-        "欧美动漫",
-        "港台动漫",
-        "海外动漫",
-        "大陆综艺",
-        "港台综艺",
-        "日韩综艺",
-        "欧美综艺"
-      ],
-      "timeout": 15
-    },
-    {
       "key": "s6fe9afd8",
       "name": "影视 非凡[直连]",
       "type": 1,
@@ -392,16 +382,6 @@
       "quickSearch": 0
     },
     {
-      "key": "s2257cae2",
-      "name": "量子资源(切)",
-      "type": 1,
-      "api": "http://cj.lziapi.com/api.php/provide/vod/",
-      "searchable": 1,
-      "quickSearch": 0,
-      "timeout": 15,
-      "filterable": 1
-    },
-    {
       "key": "s3826d0bf",
       "name": "9号资源",
       "type": 0,
@@ -410,6 +390,16 @@
       "quickSearch": 0,
       "filterable": 0,
       "timeout": 15
+    },
+    {
+      "key": "s2257cae2",
+      "name": "量子资源(切)",
+      "type": 1,
+      "api": "http://cj.lziapi.com/api.php/provide/vod/",
+      "searchable": 1,
+      "quickSearch": 0,
+      "timeout": 15,
+      "filterable": 1
     },
     {
       "key": "s122ebed9",
@@ -447,16 +437,6 @@
       "timeout": 15,
       "filterable": 1,
       "quickSearch": 0
-    },
-    {
-      "key": "sec0c8ad8",
-      "name": "鲨鱼18+",
-      "type": 0,
-      "api": "https://shayuapi.com/api.php/Seacms/vod",
-      "searchable": 0,
-      "quickSearch": 0,
-      "filterable": 0,
-      "timeout": 15
     },
     {
       "key": "sac12a6e9",
@@ -519,44 +499,6 @@
       "quickSearch": 0
     },
     {
-      "key": "s6b597762",
-      "name": "弹幕 小窗",
-      "type": 3,
-      "jar": "https://gitee.com/zj521jj/little-tiger-spot/raw/master/jar/HubanTC.jar",
-      "api": "csp_Huban",
-      "timeout": 15,
-      "searchable": 1,
-      "filterable": 0,
-      "quickSearch": 0
-    },
-    {
-      "key": "seb303dd5",
-      "name": "企鹅 直播",
-      "type": 3,
-      "api": "csp_XPath",
-      "style": {
-        "type": "rect",
-        "ratio": 1.597
-      },
-      "searchable": 0,
-      "quickSearch": 0,
-      "changeable": 0,
-      "ext": "./libs/企鹅直播.json",
-      "timeout": 15,
-      "filterable": 0
-    },
-    {
-      "key": "s0479ef88",
-      "name": "共和 动漫",
-      "type": 3,
-      "api": "csp_AnimeAiGongHeGuoGuard",
-      "searchable": 1,
-      "changeable": 0,
-      "timeout": 15,
-      "filterable": 0,
-      "quickSearch": 0
-    },
-    {
       "key": "s7219da01",
       "name": "爱看 影视",
       "type": 3,
@@ -567,6 +509,17 @@
       "searchable": 1,
       "filterable": 0,
       "quickSearch": 0
+    },
+    {
+      "key": "sf85166a9",
+      "name": "剧透 4K",
+      "type": 3,
+      "api": "csp_AiNewJuTouGuard",
+      "searchable": 1,
+      "quickSearch": 0,
+      "changeable": 0,
+      "timeout": 15,
+      "filterable": 0
     },
     {
       "key": "sd4a8d2c2",
@@ -583,18 +536,6 @@
       "quickSearch": 0
     },
     {
-      "key": "s5ac6e97b",
-      "name": "央视 大全",
-      "type": 3,
-      "api": "csp_CCTV",
-      "searchable": 0,
-      "filterable": 0,
-      "jar": "./libs/jar/HCCX.jar",
-      "ext": "./libs/hccx/央视大全.json",
-      "timeout": 15,
-      "quickSearch": 0
-    },
-    {
       "key": "s6be292a8",
       "name": "短剧 小薇",
       "type": 3,
@@ -603,36 +544,6 @@
       "searchable": 1,
       "changeable": 0,
       "timeout": 15,
-      "filterable": 0,
-      "quickSearch": 0
-    },
-    {
-      "key": "sf85166a9",
-      "name": "剧透 4K",
-      "type": 3,
-      "api": "csp_AiNewJuTouGuard",
-      "searchable": 1,
-      "quickSearch": 0,
-      "changeable": 0,
-      "timeout": 15,
-      "filterable": 0
-    },
-    {
-      "key": "sf7bebf34",
-      "name": "哔哩 合集",
-      "type": 3,
-      "api": "csp_Bili",
-      "playerType": 2,
-      "ext": {
-        "json": "https://nos.netease.com/ysf/0075389dca9afadd4614e9713765ff17.txt",
-        "cookie": ""
-      },
-      "style": {
-        "type": "rect",
-        "ratio": 1.333
-      },
-      "timeout": 15,
-      "searchable": 1,
       "filterable": 0,
       "quickSearch": 0
     },
@@ -659,17 +570,6 @@
       "quickSearch": 0
     },
     {
-      "key": "sc9fef2fa",
-      "name": "迅雷吧",
-      "type": 3,
-      "api": "csp_Xunlei8",
-      "searchable": 1,
-      "quickSearch": 0,
-      "jar": "./libs/jar/xyq.jar",
-      "filterable": 1,
-      "timeout": 15
-    },
-    {
       "key": "s10d06d4c",
       "name": "短剧 星星",
       "type": 3,
@@ -691,6 +591,94 @@
       "changeable": 0,
       "timeout": 15,
       "filterable": 0
+    },
+    {
+      "key": "sf7bebf34",
+      "name": "哔哩 合集",
+      "type": 3,
+      "api": "csp_Bili",
+      "playerType": 2,
+      "ext": {
+        "json": "https://nos.netease.com/ysf/0075389dca9afadd4614e9713765ff17.txt",
+        "cookie": ""
+      },
+      "style": {
+        "type": "rect",
+        "ratio": 1.333
+      },
+      "timeout": 15,
+      "searchable": 1,
+      "filterable": 0,
+      "quickSearch": 0
+    },
+    {
+      "key": "s5715c539",
+      "name": "美剧 影视",
+      "type": 3,
+      "api": "csp_KmeiJu",
+      "playerType": 2,
+      "jar": "./libs/jar/Panda.jar",
+      "timeout": 15,
+      "searchable": 1,
+      "filterable": 0,
+      "quickSearch": 0
+    },
+    {
+      "key": "s79677c0d",
+      "name": "Alist DIY",
+      "type": 3,
+      "api": "csp_AListGuard",
+      "searchable": 1,
+      "changeable": 0,
+      "timeout": 15,
+      "filterable": 0,
+      "quickSearch": 0
+    },
+    {
+      "key": "s3c4d3053",
+      "name": "短剧 小猫",
+      "type": 3,
+      "类型": "短剧",
+      "api": "csp_DuanJuAiQiMiaoGuard",
+      "searchable": 1,
+      "changeable": 0,
+      "timeout": 15,
+      "filterable": 0,
+      "quickSearch": 0
+    },
+    {
+      "key": "se4da63f1",
+      "name": "蔬菜 APP",
+      "type": 3,
+      "api": "csp_AppGet",
+      "ext": "https://allinadmin.oss-cn-hangzhou.aliyuncs.com/bk/9.txt|88689667dce61725",
+      "timeout": 15,
+      "searchable": 1,
+      "filterable": 0,
+      "quickSearch": 0
+    },
+    {
+      "key": "s8606cba0",
+      "name": "快影 4K",
+      "type": 3,
+      "api": "csp_AiNewKuaiYingGuard",
+      "searchable": 1,
+      "quickSearch": 0,
+      "changeable": 0,
+      "timeout": 15,
+      "filterable": 0
+    },
+    {
+      "key": "s2e4375e3",
+      "name": "耐看 电影",
+      "type": 3,
+      "api": "csp_XBPQ",
+      "searchable": 1,
+      "quickSearch": 0,
+      "filterable": 1,
+      "jar": "./libs/jar/HCCX.jar",
+      "ext": "./libs/hccx/nkvlog.json",
+      "timeout": 15
     },
     {
       "key": "pan_search",

@@ -19,9 +19,5 @@ jobs:
               r=json.load(urllib.request.urlopen(req,timeout=30))
           except Exception as e:
               print("ERR",repr(e)[:300]); raise SystemExit(0)
-          print("Code",r.get("Code"),r.get("Message"))
-          d=r.get("Data") or {}
-          print("总数",d.get("TotalCount"))
-          for p in (d.get("Projects") or []):
-              print("-",p.get("ProjectId"),p.get("Name"),p.get("Domains") or p.get("Domain"))
+          print("RAW:", json.dumps(r, ensure_ascii=False)[:3000])
           PY

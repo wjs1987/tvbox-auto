@@ -532,9 +532,19 @@ def upsert_super_source(latest: dict, api_token: str) -> bool:
             # 官方规范字段：style 控制海报卡片样式（竖版海报3:4），timeout 延长汇总源响应时间
             "searchable": 1, "quickSearch": 1, "filterable": 1,
             "style": {"type": "rect", "ratio": 0.75}, "timeout": 20}
-    latest["sites"] = [s for s in latest.get("sites", []) if s.get("key") != "super"]
+    # 网盘直采搜索源：同样调 EdgeOne 国内节点（mode=pansearch），token 同步刷新
+    # 作为独立站点让魔屏并行搜索，不拖慢"全网汇总"主片单
+    pan_site = {
+        "key": "pansearch", "name": "📀网盘搜索", "type": 1,
+        "api": url + "?mode=pansearch",
+        "header": {"Cookie": f"eo_token={tok}; eo_time={ts}"},
+        "searchable": 1, "quickSearch": 0, "filterable": 0, "timeout": 20,
+    }
+    latest["sites"] = [s for s in latest.get("sites", [])
+                       if s.get("key") not in ("super", "pansearch")]
+    latest["sites"].insert(0, pan_site)
     latest["sites"].insert(0, site)
-    print(f"[超级源] 已置顶 {SUPER_SOURCE_NAME}（token 有效期约 3 小时）")
+    print(f"[超级源] 已置顶 {SUPER_SOURCE_NAME} + 📀网盘搜索（token 有效期约 3 小时）")
     return True
 
 

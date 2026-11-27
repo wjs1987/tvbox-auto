@@ -551,6 +551,81 @@ async function getCatalog(env, origin) {
   }
 }
 
+// ===== 国内网盘直采：盘搜站搜索 → 详情页提取真实网盘直链 =====
+// 在 EdgeOne 国内节点执行，绕开国外机房看不到国内资源的限制
+const PANSO_HOST = "https://panso.pro";
+const panMem = new Map(); // 盘搜结果内存缓存（同实例秒开）
+async function panSearch(wd, pg, want, env) {
+  want = Math.min(want || 8, 12);
+  // 盘搜结果缓存 6 小时（同一关键词重复搜索秒开，避免每次都爬详情）
+  const ck = "pan:" + wd + ":" + pg;
+  const mem = panMem.get(ck);
+  if (mem && Date.now() - mem.t < 6 * 3600 * 1000) return mem.v.slice(0, want);
+  if (env) {
+    const cached = await cacheGet(env, ck);
+    if (Array.isArray(cached) && cached.length) { panMem.set(ck, { t: Date.now(), v: cached }); return cached.slice(0, want); }
+  }
+  const searchUrl = `${PANSO_HOST}/search?exact=false&format=video&page=${pg}&q=${encodeURIComponent(wd)}`;
+  const ctl = new AbortController();
+  const timer = setTimeout(() => ctl.abort(), 8000);
+  let html;
+  try {
+    const r = await fetch(searchUrl, { headers: { "User-Agent": UA }, signal: ctl.signal, redirect: "follow" });
+    if (!r.ok) return [];
+    html = await r.text();
+  } catch { return []; }
+  finally { clearTimeout(timer); }
+
+  // 解析搜索结果：<article class="search-item"> ... 网盘类型 / 标题 / 详情链接
+  const cands = [];
+  for (const a of html.split('<article class="search-item">').slice(1)) {
+    const mHref = a.match(/class="search-item-title" href="([^"]+)"/);
+    const mTitle = a.match(/class="search-item-title"[^>]*title="([^"]*)"/);
+    const mLogo = a.match(/class="search-item-logo"[^>]*>([^<]+)</);
+    if (!mHref || !mTitle) continue;
+    const href = mHref[1];
+    if (!href.startsWith("/doc/")) continue;
+    cands.push({
+      href,
+      title: mTitle[1].replace(/&amp;/g, "&").replace(/&quot;/g, '"').trim(),
+      disk: mLogo ? mLogo[1].trim() : "网盘",
+    });
+    if (cands.length >= want) break;
+  }
+  if (!cands.length) return [];
+
+  // 并发抓详情页，提取 jump-link 里的真实网盘地址
+  const dctl = new AbortController();
+  const dtimer = setTimeout(() => dctl.abort(), 9000);
+  const parts = await Promise.allSettled(cands.map(async (c) => {
+    try {
+      const r = await fetch(PANSO_HOST + c.href, { headers: { "User-Agent": UA }, signal: dctl.signal });
+      const d = await r.text();
+      const m = d.match(/class="jump-link" href="(https?:\/\/[^"]+)"/);
+      if (!m) return null;
+      const link = m[1].replace(/&amp;/g, "&");
+      if (!/pan\.quark\.cn|pan\.baidu\.com|aliyundrive\.com|115cdn\.com|xl\.apk\.tw|caiyun\.189\.cn|pan\.uc\.cn|www\.123pan\.com|www\.pikpak\.com/i.test(link)) return null;
+      return { ...c, link };
+    } catch { return null; }
+  }));
+  clearTimeout(dtimer);
+  const out = parts.filter((p) => p.status === "fulfilled" && p.value).map((p) => p.value);
+  if (out.length) {
+    panMem.set(ck, { t: Date.now(), v: out });
+    if (env) cachePut(env, ck, out).catch(() => {}); // 不等待远程写入，避免拖慢响应
+  }
+  return out;
+}
+
+// 网盘结果的 id：pan:<网盘类型>|<片名>|<网盘链接>（均 URL 编码）
+function makePanId(p) {
+  return "pan:" + [p.disk, p.title, p.link].map((x) => encodeURIComponent(x)).join("|");
+}
+function parsePanId(id) {
+  const parts = id.slice(4).split("|").map((x) => { try { return decodeURIComponent(x); } catch { return x; } });
+  return { disk: parts[0] || "网盘", title: parts[1] || "网盘资源", link: parts[2] || "" };
+}
+
 async function handleList(q, env, cat, origin) {
   const wd = (q.get("wd") || "").trim();
   const t = q.get("t") || "";
@@ -607,7 +682,11 @@ async function handleList(q, env, cat, origin) {
     const all = [...found.values()];
     // 片名以关键词开头（如"庆余年 第一季"命中"庆余年"）置顶，其余保持源返回顺序
     all.sort((a, b) => (normName(b.vod_name).startsWith(normWd) ? 1 : 0) - (normName(a.vod_name).startsWith(normWd) ? 1 : 0));
-    const list = all.slice((pg - 1) * limit, pg * limit);
+    const list = all.slice((pg - 1) * limit, pg * limit).map((x) => {
+      if (!x.panLink) return x;
+      const { vod_id, vod_name, vod_remarks } = x;
+      return { vod_id, vod_name, vod_pic: "", vod_remarks, type_id: "c_all", type_name: "网盘" };
+    });
     return json({
       code: 1, msg: "数据列表", page: pg, limit,
       total: found.size, pagecount: Math.ceil(found.size / limit) || 1,
@@ -645,6 +724,19 @@ function parseQId(first) {
 
 async function handleDetail(ids, cat, env, origin) {
   const first = String(ids).split(",")[0];
+  // 网盘直采详情：id 里已含真实分享链接，直接吐出 m3u8/netless 播放地址
+  if (first.startsWith("pan:")) {
+    const p = parsePanId(first);
+    if (!p.link) return json({ code: 1, list: [] });
+    return json({ code: 1, list: [{
+      vod_id: first,
+      vod_name: p.title,
+      vod_pic: "",
+      vod_remarks: p.disk,
+      vod_play_from: "网盘",
+      vod_play_url: `打开${p.disk}$${p.link}`,
+    }] });
+  }
   let srcs; // [{oid, api, name}]，第一个为主线路
   if (first.startsWith("q:")) {
     const { srcApi, oid } = parseQId(first);
@@ -718,6 +810,22 @@ export async function onRequest({ request, env }) {
       if (token && q.get("key") !== token) return json({ error: "unauthorized" }, 401);
       const cat = await rebuild(env);
       return json({ ok: true, total: cat.items.length, upstreams: cat.upstreams });
+    }
+    if (mode === "pansearch") {
+      // 独立网盘搜索源：供魔屏作为单独站点并行调用，不拖慢主片单搜索
+      const wd = (q.get("wd") || "").trim();
+      const pg = Math.max(1, parseInt(q.get("pg") || "1", 10));
+      if (!wd) return json({ code: 1, msg: "数据列表", page: 1, limit: 40, total: 0, pagecount: 1, class: FIXED_CLASSES, list: [] });
+      const pans = await panSearch(wd, pg, 12, env);
+      const list = pans.map((p) => ({
+        vod_id: makePanId(p),
+        vod_name: p.title,
+        vod_pic: "",
+        vod_remarks: "📀" + p.disk,
+        type_id: "c_all",
+        type_name: "网盘",
+      }));
+      return json({ code: 1, msg: "数据列表", page: pg, limit: 40, total: list.length, pagecount: 1, class: FIXED_CLASSES, list });
     }
     if (mode === "probe") return await handleProbe(q, request);
     if (mode === "crawl") {

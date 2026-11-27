@@ -1,0 +1,52 @@
+name: Edge Probe Diag (诊断 Actions->EdgeOne 连通性)
+on:
+  workflow_dispatch: {}
+jobs:
+  diag:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Mint token + call EdgeOne diag
+        env:
+          EDGEONE_TOKEN: ${{ secrets.EDGEONE_TOKEN }}
+        run: |
+          python3 - <<'EOF'
+          import json, os, ssl, urllib.request, urllib.error
+
+          DOMAIN = "tvbox-juxu-spegz3xv.edgeone.cool"
+          PROJECT = "makers-lxb2wlvf61qz"
+          ctx = ssl.create_default_context()
+          ctx.check_hostname = False
+          ctx.verify_mode = ssl.CERT_NONE
+
+          body = json.dumps({"Action": "DescribePagesEncipherToken", "Region": "ap-guangzhou",
+                             "ProjectId": PROJECT, "Text": DOMAIN}).encode()
+          req = urllib.request.Request("https://pages-api.cloud.tencent.com/v1", data=body,
+                                       headers={"Content-Type": "application/json",
+                                                "Authorization": "Bearer " + os.environ["EDGEONE_TOKEN"]})
+          with urllib.request.urlopen(req, timeout=20, context=ctx) as r:
+              d = json.loads(r.read().decode())
+          resp = d.get("Data", {}).get("Response", d)
+          tok, ts = resp["Token"], resp["Timestamp"]
+          cookie = f"eo_token={tok}; eo_time={ts}"
+          print("[auth] token OK")
+
+          class NoRedirect(urllib.request.HTTPRedirectHandler):
+              def redirect_request(self, req, fp, code, msg, headers, newurl):
+                  print(f"[redirect] {code} -> {newurl}")
+                  for h, v in headers.items():
+                      if h.lower() in ("location", "set-cookie"):
+                          print(f"    {h}: {v[:160]}")
+                  return None
+
+          op = urllib.request.build_opener(urllib.request.HTTPSHandler(context=ctx), NoRedirect())
+          url = f"https://{DOMAIN}/api?mode=diag&_cb=diag1"
+          try:
+              r = op.open(urllib.request.Request(url, headers={"Cookie": cookie, "User-Agent": "okhttp/3.12.0"}), timeout=30)
+              print("[result] HTTP", r.status)
+              print(r.read().decode()[:600])
+          except urllib.error.HTTPError as e:
+              print("[httperr]", e.code, e.reason)
+          except Exception as e:
+              print("[error]", e)
+          EOF

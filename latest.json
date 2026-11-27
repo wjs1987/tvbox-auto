@@ -2,6 +2,23 @@
   "spider": "https://img2.gelonghui.com/library/3f9b9-de4a5d2c-7fea-4d70-8a85-79be6c379621.png",
   "sites": [
     {
+      "key": "super",
+      "name": "全网汇总",
+      "type": 1,
+      "api": "https://tvbox-juxu-spegz3xv.edgeone.cool/api",
+      "header": {
+        "Cookie": "eo_token=b00a8f4d449f9dbed220019c5781ce83; eo_time=1795741690"
+      },
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 1,
+      "style": {
+        "type": "rect",
+        "ratio": 0.75
+      },
+      "timeout": 20
+    },
+    {
       "key": "src161",
       "name": "淘片 采集",
       "type": 1,

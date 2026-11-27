@@ -7,7 +7,7 @@
       "type": 1,
       "api": "https://tvbox-juxu-spegz3xv.edgeone.cool/api",
       "header": {
-        "Cookie": "eo_token=8a9083ad5cfba37eb032a23a3e867472; eo_time=1795784256"
+        "Cookie": "eo_token=7dca715729baef4388611159e1418b56; eo_time=1795785694"
       },
       "searchable": 1,
       "quickSearch": 1,
@@ -24,7 +24,7 @@
       "type": 1,
       "api": "https://tvbox-juxu-spegz3xv.edgeone.cool/api?mode=pansearch",
       "header": {
-        "Cookie": "eo_token=8a9083ad5cfba37eb032a23a3e867472; eo_time=1795784256"
+        "Cookie": "eo_token=7dca715729baef4388611159e1418b56; eo_time=1795785694"
       },
       "searchable": 1,
       "quickSearch": 0,

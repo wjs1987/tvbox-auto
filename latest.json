@@ -394,14 +394,13 @@
       "quickSearch": 0
     },
     {
-      "key": "se39c3260",
-      "name": "新6V 磁力",
+      "key": "s35722bfb",
+      "name": "Emby 4K",
       "type": 3,
-      "api": "csp_SixV",
+      "api": "csp_EmbyGuard",
       "searchable": 1,
       "quickSearch": 0,
       "changeable": 0,
-      "ext": "https://www.xb6v.com/",
       "timeout": 15,
       "filterable": 0
     },
@@ -458,11 +457,12 @@
       "key": "s35722bfb",
       "name": "Emby 4K",
       "type": 3,
-      "api": "csp_EmbyGuard",
+      "api": "csp_Auete",
+      "timeout": 15,
       "searchable": 1,
       "quickSearch": 0,
-      "changeable": 0,
-      "timeout": 15,
+      "changeable": 1,
+      "ext": "https://auete.pro/",
       "filterable": 0
     },
     {
@@ -496,6 +496,13 @@
       "playerType": 2,
       "jar": "./libs/jar/Panda.jar",
       "timeout": 15,
+      "filterable": 0
+    },
+    {
+      "key": "se3dcf617",
+      "name": "Btt 秒播",
+      "type": 3,
+      "api": "csp_Bttwoo",
       "searchable": 1,
       "filterable": 0,
       "quickSearch": 0

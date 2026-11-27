@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
     inputs:
       dry:
-        description: "只探测不部署"
+        description: "true=只查看项目，不部署"
         default: "false"
 jobs:
   repair:
@@ -16,47 +16,78 @@ jobs:
           DRY: ${{ github.event.inputs.dry }}
         run: |
           python3 - <<'PY'
-          import json, os, ssl, base64, io, zipfile, urllib.request, urllib.error
+          import json, os, ssl, base64, io, zipfile, time, urllib.request, urllib.error
           ctx = ssl.create_default_context(); ctx.check_hostname=False; ctx.verify_mode=ssl.CERT_NONE
-          PROJ_ID = "makers-lxb2wlvf61qz"
-          def call(action, extra=None, project=PROJ_ID):
+          API = "https://pages-api.cloud.tencent.com/v1"
+
+          def call(action, extra=None, project=None, tries=6):
               body = {"Action": action, "Region": "ap-guangzhou"}
               if project: body["ProjectId"] = project
               if extra: body.update(extra)
-              req = urllib.request.Request("https://pages-api.cloud.tencent.com/v1",
-                  data=json.dumps(body).encode(),
-                  headers={"Content-Type":"application/json","Authorization":"Bearer "+os.environ["EDGEONE_TOKEN"]})
-              for attempt in range(3):
+              data = json.dumps(body, ensure_ascii=False).encode()
+              last = None
+              for i in range(tries):
+                  req = urllib.request.Request(API, data=data,
+                      headers={"Content-Type":"application/json",
+                               "Authorization":"Bearer "+os.environ["EDGEONE_TOKEN"]})
                   try:
-                      with urllib.request.urlopen(req, timeout=40, context=ctx) as r:
+                      with urllib.request.urlopen(req, timeout=60, context=ctx) as r:
                           return json.loads(r.read().decode())
                   except urllib.error.HTTPError as e:
-                      return {"http": e.code, "body": e.read().decode()[:300]}
+                      last = {"http": e.code, "body": e.read().decode()[:200]}
                   except Exception as e:
-                      if attempt == 2: return {"err": str(e)[:150]}
-          print("PROJECTS:", json.dumps(call("DescribePagesProjects", None, None), ensure_ascii=False)[:800])
+                      last = {"err": str(e)[:120]}
+                  time.sleep(3 + i * 4)
+              return last
 
-          # 打 zip（含 functions/index/catalog）
+          projects = call("DescribePagesProjects")
+          print("PROJECTS:", json.dumps(projects, ensure_ascii=False)[:900])
+
+          listing = (projects.get("Data", {}).get("Response", {}) or {}).get("Projects") or []
+          target = next((p for p in listing if p.get("Name") == "tvbox-juxu"), None)
+          if not target:
+              print("创建项目 tvbox-juxu ...")
+              print("CREATE:", json.dumps(call("CreatePagesProject", {
+                  "Name": "tvbox-juxu", "Source": "cli", "Area": "global",
+                  "Provider": "Upload", "Channel": "Custom"}),
+                  ensure_ascii=False)[:500])
+              time.sleep(5)
+              projects = call("DescribePagesProjects")
+              listing = (projects.get("Data", {}).get("Response", {}) or {}).get("Projects") or []
+              target = next((p for p in listing if p.get("Name") == "tvbox-juxu"), None)
+          print("TARGET:", json.dumps(target, ensure_ascii=False)[:600])
+          if not target:
+              raise SystemExit("项目不可用，停止")
+          pid = target["ProjectId"]
+
+          # 打 zip（含 functions/index/catalog 全部内容）
           buf = io.BytesIO()
-          with zipfile.ZipFile(buf, zipfile.ZIP_DEFLATED) as z:
+          with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as z:
               for root, _dirs, files in os.walk("super-source"):
+                  if ".git" in root: continue
                   for f in files:
                       p = os.path.join(root, f)
                       z.write(p, os.path.relpath(p, "super-source"))
           art = base64.b64encode(buf.getvalue()).decode()
-          print("zip bytes:", len(buf.getvalue()), "b64 chars:", len(art))
+          print("zip bytes:", len(buf.getvalue()), "b64:", len(art))
 
           if os.environ.get("DRY") == "true":
-              print("dry run, skip deploy")
               raise SystemExit(0)
 
-          for label, extra in [
-              ("archive", {"Env":"Production","Artifact":art,"ArtifactType":"archive"}),
-              ("zipfile", {"Env":"Production","ZipFile":art}),
-          ]:
-              d = call("CreatePagesDeployment", extra)
-              print(f"[{label}] -> {json.dumps(d, ensure_ascii=False)[:600]}")
-              if '"DeploymentId"' in json.dumps(d):
-                  print("SUCCESS variant:", label)
+          variants = [
+              ("artifact-archive", {"Env":"Production","Artifact":art,"ArtifactType":"archive"}),
+              ("artifact-zip",     {"Env":"Production","Artifact":art,"ArtifactType":"zip"}),
+              ("zipfile",          {"Env":"Production","ZipFile":art}),
+              ("files",            {"Env":"Production","Files":[{"Name":"index.html",
+                                    "Content":base64.b64encode(b"<h1>ok</h1>").decode()}]}),
+          ]
+          for label, extra in variants:
+              d = call("CreatePagesDeployment", extra, pid)
+              s = json.dumps(d, ensure_ascii=False)
+              print(f"[{label}] -> {s[:500]}")
+              if "DeploymentId" in s:
+                  print("SUCCESS:", label)
                   break
+          time.sleep(3)
+          print("AFTER:", json.dumps(call("DescribePagesDeployments", None, pid), ensure_ascii=False)[:800])
           PY

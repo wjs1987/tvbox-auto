@@ -7,7 +7,7 @@
       "type": 1,
       "api": "https://tvbox-juxu-spegz3xv.edgeone.cool/api",
       "header": {
-        "Cookie": "eo_token=aec3f43db2d3b2cd62ad9d5771275555; eo_time=1795745101"
+        "Cookie": "eo_token=54598ad65f847e2f9a17935175da7a05; eo_time=1795746476"
       },
       "searchable": 1,
       "quickSearch": 1,
@@ -213,14 +213,6 @@
       "timeout": 15
     },
     {
-      "key": "src194",
-      "name": "爱奇艺",
-      "type": 3,
-      "api": "https://szyyds.cn/js/6F02.js",
-      "ext": "https://szyyds.cn/js/3c16.js",
-      "timeout": 15
-    },
-    {
       "key": "src198",
       "name": "儿童 启蒙",
       "type": 3,
@@ -236,14 +228,21 @@
       "timeout": 15
     },
     {
-      "key": "src173",
-      "name": "迅雷吧",
+      "key": "src194",
+      "name": "爱奇艺",
       "type": 3,
-      "api": "csp_Xunlei8",
+      "api": "https://szyyds.cn/js/6F02.js",
+      "ext": "https://szyyds.cn/js/3c16.js",
+      "timeout": 15
+    },
+    {
+      "key": "src67",
+      "name": "漫短 小马",
+      "type": 3,
+      "类型": "短剧",
+      "api": "csp_ManJuAiHeMaGuard",
       "searchable": 1,
-      "quickSearch": 1,
-      "jar": "./libs/jar/xyq.jar",
-      "filterable": 1,
+      "changeable": 0,
       "timeout": 15
     },
     {
@@ -256,16 +255,6 @@
       "quickSearch": 1,
       "changeable": 1,
       "ext": "https://auete.pro/"
-    },
-    {
-      "key": "src36",
-      "name": "虎斑 4K",
-      "type": 3,
-      "api": "csp_AiNewHuBanGuard",
-      "searchable": 1,
-      "quickSearch": 1,
-      "changeable": 0,
-      "timeout": 15
     },
     {
       "key": "src7",
@@ -288,17 +277,6 @@
       }
     },
     {
-      "key": "src172",
-      "name": "美剧迷",
-      "type": 3,
-      "api": "csp_MeijuMi",
-      "searchable": 1,
-      "quickSearch": 1,
-      "jar": "./libs/jar/xyq.jar",
-      "filterable": 1,
-      "timeout": 15
-    },
-    {
       "key": "src66",
       "name": "漫短 小喜",
       "type": 3,
@@ -309,6 +287,16 @@
       "timeout": 15
     },
     {
+      "key": "src208",
+      "name": "比特 秒播",
+      "type": 3,
+      "api": "csp_BttwooGuard",
+      "timeout": 10,
+      "searchable": 1,
+      "quickSearch": 1,
+      "changeable": 1
+    },
+    {
       "key": "src158",
       "name": "六九 美剧",
       "type": 3,
@@ -317,6 +305,16 @@
       "quickSearch": 1,
       "filterable": 1,
       "ext": "https://www.69mj.com/xgapp.php/v2/",
+      "timeout": 15
+    },
+    {
+      "key": "src36",
+      "name": "虎斑 4K",
+      "type": 3,
+      "api": "csp_AiNewHuBanGuard",
+      "searchable": 1,
+      "quickSearch": 1,
+      "changeable": 0,
       "timeout": 15
     },
     {
@@ -345,16 +343,6 @@
         "version": "1.0.0.3",
         "decrypt": "0"
       },
-      "timeout": 15
-    },
-    {
-      "key": "src35",
-      "name": "盘库 4K",
-      "type": 3,
-      "api": "csp_AiNewPianKuGuard",
-      "searchable": 1,
-      "quickSearch": 1,
-      "changeable": 0,
       "timeout": 15
     },
     {
@@ -389,6 +377,17 @@
       "searchable": 1,
       "quickSearch": 1,
       "changeable": 1
+    },
+    {
+      "key": "src157",
+      "name": "皮皮 影视",
+      "type": 3,
+      "api": "csp_PipiXia",
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 1,
+      "jar": "./libs/jar/P4.jar",
+      "timeout": 15
     },
     {
       "key": "pan_search",

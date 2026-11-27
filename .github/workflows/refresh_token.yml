@@ -9,7 +9,9 @@ permissions:
   contents: write
 
 concurrency:
-  group: refresh-super
+  # 与 update.yml 用同一个组：两个工作流都要改写 latest.json，
+  # 必须排队串行，否则并发 git pull --rebase 会互相顶掉导致生成结果丢失。
+  group: tvbox-main
   cancel-in-progress: false
 
 jobs:
@@ -41,10 +43,11 @@ jobs:
           else
             git add latest.json
             git commit -m "chore: refresh super source token [skip ci]"
-            for i in 1 2 3; do
+            for i in 1 2 3 4 5; do
               git pull --rebase origin main -q && git push origin main -q && exit 0
-              sleep 15
+              echo "第 $i 次推送失败，等待后重试"
+              sleep 20
             done
-            echo "推送失败（重试 3 次）"
+            echo "推送失败（重试 5 次）"
             exit 1
           fi

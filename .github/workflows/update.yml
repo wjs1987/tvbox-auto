@@ -12,8 +12,10 @@ permissions:
   contents: write
 
 concurrency:
-  group: auto-update
-  cancel-in-progress: true   # 同时只跑一轮，防止两次运行撞车互相 rebase 冲突
+  # 与 refresh_token.yml 共用同一组，跨工作流排队串行，避免两个作业
+  # 同时改写 latest.json 时并发 rebase 互相顶掉（曾导致配置生成结果丢失）。
+  group: tvbox-main
+  cancel-in-progress: false  # 排队等待，不取消正在跑的作业
 
 jobs:
   update:
@@ -51,10 +53,11 @@ jobs:
             echo "配置无变化，跳过提交"
           else
             git commit -m "auto update $(date -u +%Y-%m-%d)"
-            for i in 1 2 3; do
+            for i in 1 2 3 4 5; do
               git pull --rebase origin main -q && git push origin main -q && exit 0
-              sleep 15
+              echo "第 $i 次推送失败，等待后重试"
+              sleep 20
             done
-            echo "推送失败（重试 3 次）"
+            echo "推送失败（重试 5 次）"
             exit 1
           fi

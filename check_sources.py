@@ -582,6 +582,53 @@ def is_home_dead(site: dict) -> bool:
     return any(api == str(d).strip().rstrip("/") for d in HOME_DEAD_APIS)
 
 
+def fetch_china_probe(api_token: str) -> dict:
+    """从 EdgeOne 读国内节点探测结果（Blob，由定时任务在国内节点写入）。
+
+    优先读线上 probe_results；失败则回退到仓库里的 china_alive.json。
+    返回 {api: {ok, ms, count, note, ts}}；拿不到任何数据时返回 {}。
+    """
+    try:
+        tok, ts = mint_super_token(api_token)
+        req = urllib.request.Request(
+            f"https://{SUPER_SOURCE_DOMAIN}/api?mode=probe_results&_t={int(time.time()*1000)}",
+            headers={"Cookie": f"eo_token={tok}; eo_time={ts}", "User-Agent": UA_BROWSER})
+        with urllib.request.urlopen(req, timeout=30, context=ssl._create_unverified_context()) as r:
+            d = json.loads(r.read().decode())
+        results = d.get("results") or {}
+        if results:
+            print(f"[国内探测] 读到 EdgeOne 结果 {len(results)} 条（节点标记: {d.get('meta', {}).get('mainland')}）")
+            return results
+    except Exception as e:
+        print(f"[国内探测] 线上读取失败({e})，尝试本地文件")
+    for f in ("china_alive.json", "home_alive.json"):
+        try:
+            data = json.loads(Path(f).read_text(encoding="utf-8"))
+            res = {}
+            for api in data.get("alive", []):
+                res[api] = {"ok": True, "ms": None, "count": 0, "note": "file"}
+            for api in data.get("dead", []):
+                res[api] = {"ok": False, "ms": None, "count": 0, "note": "file"}
+            if res:
+                print(f"[国内探测] 使用本地文件 {f}：{len(res)} 条")
+                return res
+        except Exception:
+            continue
+    return {}
+
+
+def write_china_candidates(alive_sites: list) -> int:
+    """把本轮美国侧存活的候选源写成 probe_candidates.json，供国内定时任务探测。"""
+    items = [{"api": r["site"].get("api", ""), "type": r["site"].get("type", 1),
+              "name": r["site"].get("name", ""), "ext": r["site"].get("ext", "")}
+             for r in alive_sites
+             if str(r["site"].get("api", "")).startswith("http")
+             and "edgeone.cool" not in str(r["site"].get("api", ""))]
+    Path("probe_candidates.json").write_text(
+        json.dumps({"items": items}, ensure_ascii=False, indent=1), encoding="utf-8")
+    return len(items)
+
+
 def norm_name_py(s: str) -> str:
     """对齐 JS normName: toLowerCase + 去除空白/标点/符号。"""
     import unicodedata
@@ -850,6 +897,24 @@ def auto_mode(args):
     alive_sites = [r for r in site_results if r["ok"]]
     dead_sites = [r for r in site_results if not r["ok"]]
 
+    # ===== 国内可达性：提交候选给国内节点探测，并读取历史结果用于筛选 =====
+    n_cand = write_china_candidates(alive_sites)
+    print(f"[国内探测] 已提交候选 {n_cand} 个（probe_candidates.json，国内定时任务每小时探 32 个）")
+    china_probe = {}
+    super_token_early = os.environ.get("EDGEONE_TOKEN", "")
+    if super_token_early:
+        china_probe = fetch_china_probe(super_token_early)
+        if china_probe:
+            Path("china_alive.json").write_text(json.dumps({
+                "updated": time.strftime("%Y-%m-%d %H:%M:%S"),
+                "alive": [k for k, v in china_probe.items() if v.get("ok")],
+                "dead": [k for k, v in china_probe.items() if not v.get("ok")],
+            }, ensure_ascii=False, indent=1), encoding="utf-8")
+            ok_n = sum(1 for v in china_probe.values() if v.get("ok"))
+            print(f"[国内探测] 当前国内存活 {ok_n}/{len(china_probe)}，已写入 china_alive.json")
+    else:
+        print("[国内探测] 无 EDGEONE_TOKEN，跳过读取（沿用 china_alive.json 文件）")
+
     print("[检测] 直播频道并发测试...")
     ch_results = []
     with ThreadPoolExecutor(max_workers=args.workers) as ex:
@@ -875,9 +940,20 @@ def auto_mode(args):
     alive_refs = [r["ref"] for r in ref_results[:args.top_lives] if r["ms"] <= 5000]
     print(f"[检测] 直播源引用存活 {len(ref_results)}/{len(ref_deduped)}，精选最快 {len(alive_refs)} 个")
 
-    # ===== 点播源分拣：可播性优先 → 片单量 → 速度，只留前 top 个 =====
+    # ===== 点播源分拣：国内可达优先 → 可播性 → 片单量 → 速度，只留前 top 个 =====
+    def china_rank(r):
+        """0=国内节点实测可开（最优先），1=未测/待测；实测打不开的直接剔除。"""
+        api = str(r["site"].get("api", ""))
+        st = china_probe.get(api) or china_probe.get(api.rstrip("/")) or {}
+        return 0 if st.get("ok") else 1
+
+    def china_dead(r):
+        api = str(r["site"].get("api", ""))
+        st = china_probe.get(api) or china_probe.get(api.rstrip("/")) or {}
+        return st.get("ok") is False
+
     good = [r for r in alive_sites if r["play"] is not False]  # play False 已在检测时标记失效
-    good.sort(key=lambda r: (r["play"] is not True, -min(r["count"], 50), -(r.get("cdn_speed") or 0), r["ms"] or 99999))
+    good.sort(key=lambda r: (china_rank(r), r["play"] is not True, -min(r["count"], 50), -(r.get("cdn_speed") or 0), r["ms"] or 99999))
     selected_sites = []
     seen_cn = set()
     # 有 jar 候选时给 type 3 高级源预留 3 个名额，避免普通源占满后高级源无位可进
@@ -888,6 +964,8 @@ def auto_mode(args):
             continue  # type 3 后面按 jar 配对单独处理
         if is_home_dead(r["site"]):
             continue  # 家庭网络实测打不开的源，剔除（否则点进去一直转圈）
+        if china_dead(r):
+            continue  # 国内节点探测打不开的源，剔除（避免美国机房误判"存活"）
         cn = clean_name(r["site"].get("name", ""))
         if cn in seen_cn:
             continue

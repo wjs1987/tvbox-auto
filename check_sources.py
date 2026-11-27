@@ -448,18 +448,20 @@ def build_latest(seed_cfg: dict, selected_sites: list, alive_channels: list, liv
         s.setdefault("timeout", 15)  # 显式超时，避免 FongMi 默认值过短误杀慢源
         sites.append(s)
     # ---------- 固定精选：网盘/磁力爬虫源 ----------
-    # OK影视(FongMi)原生迅雷引擎可直接播磁力/ed2k；云盘搜索聚合夸克/UC/阿里等公开分享
-    # jar 来自 regtostudy/TVBox_warehouse（PizazzGY 原仓库已失效，此 fork 保持同步）
-    # 用 raw 直连：实测 gh-proxy 转 jar 2.7MB 要 51 秒，raw 直连仅 2 秒；
-    # 魔屏加载配置时下载 jar 是同步等待，这 50 秒会直接变成黑屏等待。
-    PAN_JAR = ("https://raw.githubusercontent.com/"
-               "regtostudy/TVBox_warehouse/main/spider.jar")
-    # 饭太硬同款网盘爬虫包（实测与饭太硬官方 spider 字节级一致：
-    # assets/ftyguard_v7.so + v8.so + ftyshinidie.guard，含全套 csp_*Guard 网盘类）。
-    # 伪装成 .jpg，按站点单独挂 jar，不进全局 spider（全局 jar 决定其他 type3
-    # 站点兼容性，换掉会连累它们）。
-    FTY_JAR = ("https://xiuxiu-pro-new.meitudata.com/posters/"
-               "8ad28c3ad40145e2f9331fe3f8abddb2.jpg;md5;5302302a73a9e27cfaa65f3873b727ab")
+    # 【自托管】两个 jar 已镜像进本仓库 libs/，用本仓库 raw 直链，不再依赖第三方图床。
+    # 原因：饭太硬 jar 原本挂在美图秀秀图床(伪装.jpg)、pan jar 挂在别人的 GitHub fork，
+    # 图床清理/仓库删库/作者停更都会让电视端同步下载 jar 失败 → 站点全空。
+    # 自托管后只要本仓库在，jar 就在；md5 保留供 FongMi 做完整性校验。
+    # raw 直连实测国内约 2 秒；gh-proxy 要 51 秒会让魔屏加载时黑屏等待，禁用。
+    REPO_RAW = ("https://raw.githubusercontent.com/"
+                "WJS1987/tvbox-auto/main/libs/")
+    PAN_JAR = REPO_RAW + "pan_spider.jar"
+    # 饭太硬同款网盘爬虫包（与官方 spider 字节级一致：ftyguard_v7/v8.so +
+    # ftyshinidie.guard 加密代码 + classes.dex 壳，含全套 csp_*Guard 网盘类）。
+    # 私有加壳包、无源码，故只能整体镜像；按站点单独挂，不进全局 spider
+    #（全局 jar 决定其他 type3 站点兼容性，换掉会连累它们）。
+    FTY_JAR = (REPO_RAW + "fty_spider.jar"
+               + ";md5;5302302a73a9e27cfaa65f3873b727ab")
     # 真实机制（2026-11-27 用户纠正 + 全网核实）：不是手动填 Cookie。
     # 点"我的云盘"站点 → 客户端弹二维码 → 手机网盘APP扫码登录 →
     # token 由客户端自动写进本地 tvfan/Cloud-drive.txt；

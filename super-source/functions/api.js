@@ -672,14 +672,17 @@ function parsePanId(id) {
 // 轮询任务 → file/download 取直链 → 删除临时文件（转存只是取直链的跳板）。
 // 需要用户自己的网盘 Cookie，通过 mode=panck&set=quark=<cookie> 配置一次即可。
 const PAN_GW = {
-  "夸克网盘": { ck: "quark", base: "https://drive-pc.quark.cn", ref: "https://pan.quark.cn/" },
-  "UC网盘": { ck: "uc", base: "https://pc-api.uc.cn", ref: "https://pc.uc.cn/" },
+  "夸克网盘": { ck: "quark", base: "https://drive-pc.quark.cn", playBase: "https://drive.quark.cn", ref: "https://pan.quark.cn/" },
+  "UC网盘": { ck: "uc", base: "https://pc-api.uc.cn", playBase: "https://pc-api.uc.cn", ref: "https://pc.uc.cn/" },
 };
 const PAN_VIDEO_RE = /\.(mp4|mkv|avi|rmvb|ts|flv|wmv|mov|m2ts)$/i;
+// 清晰度优先级：从高到低取第一个 accessable 的档位（免费账号通常只有 low）
+const PAN_RES_ORDER = ["4k", "2k", "super", "high", "normal", "low"];
 const panResMem = new Map();
+const panSleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-async function panApi(cfg, cookie, path, { method = "GET", body, params } = {}) {
-  const u = new URL(cfg.base + path);
+async function panApi(cfg, cookie, path, { method = "GET", body, params, base } = {}) {
+  const u = new URL((base || cfg.base) + path);
   u.searchParams.set("pr", "ucpro");
   u.searchParams.set("fr", "pc");
   for (const [k, v] of Object.entries(params || {})) u.searchParams.set(k, String(v));
@@ -721,8 +724,8 @@ async function panCollectVideos(cfg, cookie, pwdId, stoken, pdirFid, depth, out,
   }
 }
 
-// 主流程：分享链接 → 直链剧集列表。无 Cookie 返回 null；失败返回 {error}
-async function panResolveDirect(p, env) {
+// 主流程：分享链接 → 转码流剧集列表（HLS m3u8，经边缘代理带 Cookie 转发）。无 Cookie 返回 null；失败返回 {error}
+async function panResolveDirect(p, env, origin) {
   const cfg = PAN_GW[p.disk];
   if (!cfg) return null;
   const cks = (await cacheGet(env, "pan:cookies")) || {};
@@ -740,11 +743,12 @@ async function panResolveDirect(p, env) {
   try {
     const tk = await panApi(cfg, cookie, "/1/clouddrive/share/sharepage/token", { method: "POST", body: { pwd_id: m[1], passcode: "" } });
     if (tk?.code !== 0 || !tk?.data?.stoken) return { error: tk?.message || "取分享token失败" };
+    await panSleep(500); // 网盘接口限频，紧跟着的列表请求太快会 400
     const stoken = tk.data.stoken;
     const vids = [];
     await panCollectVideos(cfg, cookie, m[1], stoken, "0", 0, vids, { n: 100, folder: 6 });
     if (!vids.length) return { error: "分享里没有视频文件" };
-    // 转存到自己的临时目录（取直链必须走自己账号的文件）
+    // 转存到自己的临时目录（转码播放接口只认自己账号的文件）
     const mk = await panApi(cfg, cookie, "/1/clouddrive/file", { method: "POST", body: { pdir_fid: "0", file_name: "", dir_path: "/TVBox直链缓存", dir_init_lock: false } });
     const tmpFid = mk?.data?.fid;
     if (!tmpFid) return { error: mk?.message || "创建临时目录失败" };
@@ -755,7 +759,7 @@ async function panResolveDirect(p, env) {
     if (save?.code !== 0 || !save?.data?.task_id) return { error: save?.message || "转存失败" };
     let done = false;
     for (let i = 0; i < 10; i++) {
-      await new Promise((r) => setTimeout(r, 500));
+      await panSleep(500);
       const tq = await panApi(cfg, cookie, "/1/clouddrive/task", { params: { task_id: save.data.task_id, retry_index: i, uc_param_str: "" } });
       if (tq?.data?.status === 2) { done = true; break; }
     }
@@ -764,22 +768,39 @@ async function panResolveDirect(p, env) {
     const files = [];
     async function walk(fid, d) {
       if (d > 2 || files.length >= 100) return;
-      const d2 = await panApi(cfg, cookie, "/1/clouddrive/file/sort", { params: { pdir_fid: fid, _page: 1, _size: 100, _fetch_total: 1, _sort: "file_name:asc" } });
-      for (const it of d2?.data?.list || []) {
-        if (it.dir) await walk(it.fid, d + 1);
-        else if (PAN_VIDEO_RE.test(it.file_name || "")) files.push({ fid: it.fid, name: it.file_name });
+      for (let page = 1; page <= 3 && files.length < 100; page++) {
+        const d2 = await panApi(cfg, cookie, "/1/clouddrive/file/sort", { params: { pdir_fid: fid, _page: page, _size: 100, _fetch_total: 1, _sort: "file_name:asc" } });
+        const list = d2?.data?.list || [];
+        for (const it of list) {
+          if (it.dir) await walk(it.fid, d + 1);
+          else if (PAN_VIDEO_RE.test(it.file_name || "")) files.push({ fid: it.fid, name: it.file_name });
+        }
+        if (list.length < 100) break;
       }
     }
     await walk(tmpFid, 0);
     if (!files.length) return { error: "转存后未找到视频文件" };
-    const dl = await panApi(cfg, cookie, "/1/clouddrive/file/download", { method: "POST", params: { uc_param_str: "" }, body: { fids: files.map((f) => f.fid) } });
-    if (dl?.code !== 0 || !Array.isArray(dl?.data)) return { error: dl?.message || "取直链失败" };
-    const urlByFid = new Map(dl.data.map((x) => [x.fid, x.download_url]));
-    // 清理临时目录（转存文件已无用，不占网盘空间）
+    // 逐集调转码播放接口（file/v2/play），小并发避免限频
+    const eps = [];
+    const BATCH = 4;
+    for (let i = 0; i < files.length; i += BATCH) {
+      const batch = files.slice(i, i + BATCH).filter((f) => f.fid);
+      const parts = await Promise.allSettled(batch.map(async (f) => {
+        const pl = await panApi(cfg, cookie, "/1/clouddrive/file/v2/play", { base: cfg.playBase, method: "POST", body: { fid: f.fid, resolutions: "normal,low,high,super,2k,4k", supports: "fmp4" } });
+        const vlist = ((pl?.data || {}).video_list || []).filter((v) => v.accessable && v.video_info?.url);
+        if (!vlist.length) return null;
+        vlist.sort((a, b) => PAN_RES_ORDER.indexOf(a.resolution) - PAN_RES_ORDER.indexOf(b.resolution));
+        return { name: f.name.replace(PAN_VIDEO_RE, ""), url: vlist[0].video_info.url };
+      }));
+      for (const pt of parts) if (pt.status === "fulfilled" && pt.value) eps.push(pt.value);
+      if (i + BATCH < files.length) await panSleep(300);
+    }
+    // 清理临时目录（转码流由夸克 CDN 提供，转存文件已无用）
     panApi(cfg, cookie, "/1/clouddrive/file/delete", { method: "POST", params: { uc_param_str: "" }, body: { action_type: 2, filelist: [tmpFid], exclude_fids: [] } }).catch(() => {});
-    const eps = files.map((f) => ({ name: f.name.replace(PAN_VIDEO_RE, ""), url: urlByFid.get(f.fid) })).filter((x) => x.url);
-    if (!eps.length) return { error: "未拿到直链" };
-    const v = { t: new Date().toISOString(), disk: p.disk, episodes: eps };
+    if (!eps.length) return { error: "无可播放的转码流(免费号可能无权限)" };
+    // 播放地址换成边缘代理（CDN 流需要 Cookie，播放器带不了）
+    const proxy = `${origin}/api?mode=panstream&u=`;
+    const v = { t: new Date().toISOString(), disk: p.disk, episodes: eps.map((e) => ({ name: e.name, url: proxy + encodeURIComponent(e.url) })) };
     panResMem.set(key, { t: Date.now(), v });
     if (env) cachePut(env, key, v).catch(() => {});
     return v;
@@ -914,12 +935,13 @@ async function handleDetail(ids, cat, env, origin) {
   if (first.startsWith("pan:")) {
     const p = parsePanId(first);
     if (!p.link) return json({ code: 1, list: [] });
-    const lines = [`打开${p.disk}$${p.link}`];
+    const lines = [p.link];
     let remark = p.disk;
-    const res = await panResolveDirect(p, env);
+    const res = await panResolveDirect(p, env, origin);
     if (res && !res.error && Array.isArray(res.episodes) && res.episodes.length) {
+      // maccms 格式：vod_play_url 每组是 "集名$地址#集名$地址"，线路名只放 vod_play_from
       const eps = res.episodes.map((e, i) => `${e.name || "第" + (i + 1) + "集"}$${e.url}`).join("#");
-      lines.unshift(`${res.disk}·直链$${eps}`);
+      lines.unshift(eps);
       remark += "·可播";
     } else if (res?.error) {
       remark += "·" + String(res.error).slice(0, 16);
@@ -1040,6 +1062,41 @@ export async function onRequest({ request, env }) {
       return json({ code: 1, msg: "数据列表", page: pg, limit: 40, total: list.length, pagecount: 1, class: FIXED_CLASSES, list });
     }
     if (mode === "panck") return await handlePanCookies(q, env);
+    if (mode === "panstream") {
+      // 边缘代理流：网盘 CDN 的 HLS 地址需要 Cookie，播放器带不了，
+      // 由边缘函数带 Cookie 转发，并把 m3u8 里的分片地址改写成同样走本代理
+      const u = q.get("u") || "";
+      let tgt;
+      try { tgt = new URL(u); } catch { return json({ error: "bad u" }, 400); }
+      const h = tgt.hostname.toLowerCase();
+      if (!/(^|\.)quark\.cn$/.test(h) && !/(^|\.)uc\.cn$/.test(h)) return json({ error: "host not allowed" }, 403);
+      const cks = (await cacheGet(env, "pan:cookies")) || {};
+      const cookie = h.endsWith("quark.cn") ? cks.quark : cks.uc;
+      const headers = { "user-agent": UA, referer: "https://pan.quark.cn/", accept: "*/*" };
+      if (cookie) headers.cookie = cookie;
+      const rng = request.headers.get("range");
+      if (rng) headers.range = rng;
+      const r = await fetch(tgt.toString(), { headers });
+      const ct = r.headers.get("content-type") || "";
+      if (/mpegurl|m3u8/i.test(ct)) {
+        // HLS 播放列表：改写每行分片地址与标签内嵌 URI，全部经由本代理
+        const rewrite = (raw) => `${url.origin}/api?mode=panstream&u=${encodeURIComponent(new URL(raw, tgt).toString())}`;
+        const out = (await r.text()).split("\n").map((line) => {
+          if (!line.trim()) return line;
+          if (line.trim().startsWith("#")) return line.replace(/URI="([^"]+)"/g, (m0, u1) => `URI="${rewrite(u1)}"`);
+          return rewrite(line.trim());
+        }).join("\n");
+        return new Response(out, { status: 200, headers: { "content-type": "application/vnd.apple.mpegurl", "cache-control": "no-store" } });
+      }
+      // 二进制分片：流式透传 Range 语义
+      const outH = new Headers();
+      for (const k of ["content-type", "content-length", "content-range", "accept-ranges"]) {
+        const v = r.headers.get(k);
+        if (v) outH.set(k, v);
+      }
+      if (!outH.has("accept-ranges")) outH.set("accept-ranges", "bytes");
+      return new Response(r.body, { status: r.status, headers: outH });
+    }
     if (mode === "probe") return await handleProbe(q, request);
     if (mode === "crawl") {
       // 国内节点直采探针：只允许白名单站点，防内网探测；返回正文供验证/抓取

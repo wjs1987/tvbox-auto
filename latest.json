@@ -7,7 +7,7 @@
       "type": 1,
       "api": "https://tvbox-juxu-spegz3xv.edgeone.cool/api",
       "header": {
-        "Cookie": "eo_token=54598ad65f847e2f9a17935175da7a05; eo_time=1795746476"
+        "Cookie": "eo_token=c93e94d79bc9e7bd3fb61306941a03db; eo_time=1795747583"
       },
       "searchable": 1,
       "quickSearch": 1,
@@ -16,6 +16,19 @@
         "type": "rect",
         "ratio": 0.75
       },
+      "timeout": 20
+    },
+    {
+      "key": "pansearch",
+      "name": "📀网盘搜索",
+      "type": 1,
+      "api": "https://tvbox-juxu-spegz3xv.edgeone.cool/api?mode=pansearch",
+      "header": {
+        "Cookie": "eo_token=c93e94d79bc9e7bd3fb61306941a03db; eo_time=1795747583"
+      },
+      "searchable": 1,
+      "quickSearch": 0,
+      "filterable": 0,
       "timeout": 20
     },
     {

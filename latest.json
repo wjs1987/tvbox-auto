@@ -44,22 +44,6 @@
       "quickSearch": 1
     },
     {
-      "key": "s30486df3",
-      "name": "影视 建安",
-      "type": 1,
-      "api": "http://154.219.117.232:9981/jacloudapi.php/provide/vod",
-      "style": {
-        "type": "rect",
-        "ratio": 1.33
-      },
-      "searchable": 1,
-      "quickSearch": 1,
-      "filterable": 1,
-      "changeable": 1,
-      "playerType": 2,
-      "timeout": 15
-    },
-    {
       "key": "sd3f31183",
       "name": "百度 采集",
       "type": 1,
@@ -68,33 +52,6 @@
       "filterable": 0,
       "timeout": 15,
       "quickSearch": 1
-    },
-    {
-      "key": "s1b48dbda",
-      "name": "量子 资源",
-      "type": 1,
-      "api": "https://lzizy1.com/api.php/provide/vod/",
-      "playurl": "json:http://jx.84jia.com/m3u8ts.php?url=",
-      "searchable": 1,
-      "quickSearch": 1,
-      "filterable": 0,
-      "categories": [
-        "国产剧",
-        "国产动漫",
-        "泰国剧",
-        "台湾剧",
-        "香港剧",
-        "欧美剧",
-        "韩国剧",
-        "日本剧",
-        "动漫",
-        "体育",
-        "剧情片",
-        "动作片",
-        "爱情片",
-        "喜剧片"
-      ],
-      "timeout": 15
     },
     {
       "key": "s6643d465",
@@ -129,6 +86,49 @@
         "日本动漫",
         "欧美动漫"
       ],
+      "timeout": 15
+    },
+    {
+      "key": "s1b48dbda",
+      "name": "量子 资源",
+      "type": 1,
+      "api": "https://lzizy1.com/api.php/provide/vod/",
+      "playurl": "json:http://jx.84jia.com/m3u8ts.php?url=",
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 0,
+      "categories": [
+        "国产剧",
+        "国产动漫",
+        "泰国剧",
+        "台湾剧",
+        "香港剧",
+        "欧美剧",
+        "韩国剧",
+        "日本剧",
+        "动漫",
+        "体育",
+        "剧情片",
+        "动作片",
+        "爱情片",
+        "喜剧片"
+      ],
+      "timeout": 15
+    },
+    {
+      "key": "s30486df3",
+      "name": "影视 建安",
+      "type": 1,
+      "api": "http://154.219.117.232:9981/jacloudapi.php/provide/vod",
+      "style": {
+        "type": "rect",
+        "ratio": 1.33
+      },
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 1,
+      "changeable": 1,
+      "playerType": 2,
       "timeout": 15
     },
     {
@@ -192,6 +192,17 @@
       "quickSearch": 1
     },
     {
+      "key": "sade56b58",
+      "name": "立播 4K",
+      "type": 3,
+      "api": "csp_AiNewLibvioGuard",
+      "searchable": 1,
+      "quickSearch": 1,
+      "changeable": 0,
+      "timeout": 15,
+      "filterable": 0
+    },
+    {
       "key": "s6b597762",
       "name": "弹幕 小窗",
       "type": 3,
@@ -201,6 +212,28 @@
       "searchable": 1,
       "filterable": 0,
       "quickSearch": 1
+    },
+    {
+      "key": "sce80e8d9",
+      "name": "美剧迷",
+      "type": 3,
+      "api": "csp_MeijuMi",
+      "searchable": 1,
+      "quickSearch": 0,
+      "jar": "./libs/jar/xyq.jar",
+      "filterable": 1,
+      "timeout": 15
+    },
+    {
+      "key": "s0479ef88",
+      "name": "共和 动漫",
+      "type": 3,
+      "api": "csp_AnimeAiGongHeGuoGuard",
+      "searchable": 1,
+      "changeable": 0,
+      "timeout": 15,
+      "filterable": 0,
+      "quickSearch": 0
     },
     {
       "key": "s474b3c07",
@@ -221,18 +254,42 @@
       "timeout": 15,
       "searchable": 1,
       "filterable": 0,
-      "quickSearch": 1
+      "quickSearch": 0
     },
     {
-      "key": "s3b10251e",
-      "name": "素白 影视",
+      "key": "sda68c287",
+      "name": "还行",
+      "jar": "https://xiuxiu-pro.meitudata.com/posters/5199d8f8bcbe3c6d6938ded33cb90596.png",
       "type": 3,
-      "api": "csp_SuBaiBai",
+      "api": "csp_AppYs",
+      "searchable": 1,
+      "quickSearch": 0,
+      "ext": "http://m51.gotto.top/api.php/v1.vod",
+      "timeout": 15,
+      "filterable": 0
+    },
+    {
+      "key": "s7219da01",
+      "name": "爱看 影视",
+      "type": 3,
+      "api": "csp_Ikan",
+      "playerType": 2,
       "jar": "./libs/jar/Panda.jar",
       "timeout": 15,
       "searchable": 1,
       "filterable": 0,
       "quickSearch": 0
+    },
+    {
+      "key": "sf85166a9",
+      "name": "剧透 4K",
+      "type": 3,
+      "api": "csp_AiNewJuTouGuard",
+      "searchable": 1,
+      "quickSearch": 0,
+      "changeable": 0,
+      "timeout": 15,
+      "filterable": 0
     },
     {
       "key": "sd4a8d2c2",
@@ -249,10 +306,33 @@
       "quickSearch": 0
     },
     {
-      "key": "sf85166a9",
-      "name": "剧透 4K",
+      "key": "s6be292a8",
+      "name": "短剧 小薇",
       "type": 3,
-      "api": "csp_AiNewJuTouGuard",
+      "类型": "短剧",
+      "api": "csp_DuanJuAiWeiGuanGuard",
+      "searchable": 1,
+      "changeable": 0,
+      "timeout": 15,
+      "filterable": 0,
+      "quickSearch": 0
+    },
+    {
+      "key": "s3b10251e",
+      "name": "素白 影视",
+      "type": 3,
+      "api": "csp_SuBaiBai",
+      "jar": "./libs/jar/Panda.jar",
+      "timeout": 15,
+      "searchable": 1,
+      "filterable": 0,
+      "quickSearch": 0
+    },
+    {
+      "key": "s66ae56be",
+      "name": "蜡笔 4K",
+      "type": 3,
+      "api": "csp_AiNewLaBiGuard",
       "searchable": 1,
       "quickSearch": 0,
       "changeable": 0,
@@ -260,11 +340,22 @@
       "filterable": 0
     },
     {
-      "key": "s6be292a8",
-      "name": "短剧 小薇",
+      "key": "sf037d6a1",
+      "name": "WebDav DIY",
+      "type": 3,
+      "api": "csp_WebDAVGuard",
+      "searchable": 1,
+      "changeable": 0,
+      "timeout": 15,
+      "filterable": 0,
+      "quickSearch": 0
+    },
+    {
+      "key": "s10d06d4c",
+      "name": "短剧 星星",
       "type": 3,
       "类型": "短剧",
-      "api": "csp_DuanJuAiWeiGuanGuard",
+      "api": "csp_DuanJuAiXingYaGuard",
       "searchable": 1,
       "changeable": 0,
       "timeout": 15,
@@ -283,25 +374,6 @@
       "quickSearch": 0
     },
     {
-      "key": "sf7bebf34",
-      "name": "哔哩 合集",
-      "type": 3,
-      "api": "csp_Bili",
-      "playerType": 2,
-      "ext": {
-        "json": "https://nos.netease.com/ysf/0075389dca9afadd4614e9713765ff17.txt",
-        "cookie": ""
-      },
-      "style": {
-        "type": "rect",
-        "ratio": 1.333
-      },
-      "timeout": 15,
-      "searchable": 1,
-      "filterable": 0,
-      "quickSearch": 0
-    },
-    {
       "key": "s5715c539",
       "name": "美剧 影视",
       "type": 3,
@@ -314,21 +386,10 @@
       "quickSearch": 0
     },
     {
-      "key": "sf037d6a1",
-      "name": "WebDav DIY",
+      "key": "s8606cba0",
+      "name": "快影 4K",
       "type": 3,
-      "api": "csp_WebDAVGuard",
-      "searchable": 1,
-      "changeable": 0,
-      "timeout": 15,
-      "filterable": 0,
-      "quickSearch": 0
-    },
-    {
-      "key": "s66ae56be",
-      "name": "蜡笔 4K",
-      "type": 3,
-      "api": "csp_AiNewLaBiGuard",
+      "api": "csp_AiNewKuaiYingGuard",
       "searchable": 1,
       "quickSearch": 0,
       "changeable": 0,
@@ -336,11 +397,33 @@
       "filterable": 0
     },
     {
-      "key": "s10d06d4c",
-      "name": "短剧 星星",
+      "key": "sc0a4695f",
+      "name": "金牌 影视",
+      "type": 3,
+      "api": "csp_Jpys",
+      "ext": "https://y2s52n7.com",
+      "timeout": 15,
+      "searchable": 1,
+      "filterable": 0,
+      "quickSearch": 0
+    },
+    {
+      "key": "s79677c0d",
+      "name": "Alist DIY",
+      "type": 3,
+      "api": "csp_AListGuard",
+      "searchable": 1,
+      "changeable": 0,
+      "timeout": 15,
+      "filterable": 0,
+      "quickSearch": 0
+    },
+    {
+      "key": "s3c4d3053",
+      "name": "短剧 小猫",
       "type": 3,
       "类型": "短剧",
-      "api": "csp_DuanJuAiXingYaGuard",
+      "api": "csp_DuanJuAiQiMiaoGuard",
       "searchable": 1,
       "changeable": 0,
       "timeout": 15,
@@ -360,44 +443,10 @@
       "timeout": 15
     },
     {
-      "key": "s79677c0d",
-      "name": "Alist DIY",
+      "key": "s1759bef7",
+      "name": "多多 4K",
       "type": 3,
-      "api": "csp_AListGuard",
-      "searchable": 1,
-      "changeable": 0,
-      "timeout": 15,
-      "filterable": 0,
-      "quickSearch": 0
-    },
-    {
-      "key": "s8606cba0",
-      "name": "快影 4K",
-      "type": 3,
-      "api": "csp_AiNewKuaiYingGuard",
-      "searchable": 1,
-      "quickSearch": 0,
-      "changeable": 0,
-      "timeout": 15,
-      "filterable": 0
-    },
-    {
-      "key": "s3c4d3053",
-      "name": "短剧 小猫",
-      "type": 3,
-      "类型": "短剧",
-      "api": "csp_DuanJuAiQiMiaoGuard",
-      "searchable": 1,
-      "changeable": 0,
-      "timeout": 15,
-      "filterable": 0,
-      "quickSearch": 0
-    },
-    {
-      "key": "s35722bfb",
-      "name": "Emby 4K",
-      "type": 3,
-      "api": "csp_EmbyGuard",
+      "api": "csp_AiNewDuoDuoGuard",
       "searchable": 1,
       "quickSearch": 0,
       "changeable": 0,
@@ -419,17 +468,6 @@
       "filterable": 0
     },
     {
-      "key": "s1759bef7",
-      "name": "多多 4K",
-      "type": 3,
-      "api": "csp_AiNewDuoDuoGuard",
-      "searchable": 1,
-      "quickSearch": 0,
-      "changeable": 0,
-      "timeout": 15,
-      "filterable": 0
-    },
-    {
       "key": "sd82db833",
       "name": "短剧 好看",
       "type": 3,
@@ -442,27 +480,15 @@
       "quickSearch": 0
     },
     {
-      "key": "sab9dd9b1",
-      "name": "Aue 无广",
+      "key": "se39c3260",
+      "name": "新6V 磁力",
       "type": 3,
-      "api": "csp_Auete",
-      "timeout": 15,
+      "api": "csp_SixV",
       "searchable": 1,
       "quickSearch": 0,
-      "changeable": 1,
-      "ext": "https://auete.pro/",
-      "filterable": 0
-    },
-    {
-      "key": "s35722bfb",
-      "name": "Emby 4K",
-      "type": 3,
-      "api": "csp_Auete",
+      "changeable": 0,
+      "ext": "https://www.xb6v.com/",
       "timeout": 15,
-      "searchable": 1,
-      "quickSearch": 0,
-      "changeable": 1,
-      "ext": "https://auete.pro/",
       "filterable": 0
     },
     {
@@ -470,6 +496,17 @@
       "name": "木偶 4K",
       "type": 3,
       "api": "csp_AiNewMuOuGuard",
+      "searchable": 1,
+      "quickSearch": 0,
+      "changeable": 0,
+      "timeout": 15,
+      "filterable": 0
+    },
+    {
+      "key": "s35722bfb",
+      "name": "Emby 4K",
+      "type": 3,
+      "api": "csp_EmbyGuard",
       "searchable": 1,
       "quickSearch": 0,
       "changeable": 0,
@@ -489,70 +526,16 @@
       "quickSearch": 0
     },
     {
-      "key": "s7219da01",
-      "name": "爱看 影视",
+      "key": "sab9dd9b1",
+      "name": "Aue 无广",
       "type": 3,
-      "api": "csp_Ikan",
-      "playerType": 2,
-      "jar": "./libs/jar/Panda.jar",
+      "api": "csp_Auete",
       "timeout": 15,
-      "filterable": 0
-    },
-    {
-      "key": "se3dcf617",
-      "name": "Btt 秒播",
-      "type": 3,
-      "api": "csp_Bttwoo",
-      "searchable": 1,
-      "filterable": 0,
-      "quickSearch": 0
-    },
-    {
-      "key": "se3dcf617",
-      "name": "Btt 秒播",
-      "type": 3,
-      "api": "csp_Bttwoo",
       "searchable": 1,
       "quickSearch": 0,
       "changeable": 1,
-      "timeout": 15,
+      "ext": "https://auete.pro/",
       "filterable": 0
-    },
-    {
-      "key": "s29075e65",
-      "name": "115 分享‍",
-      "type": 3,
-      "api": "csp_FakeAi115ShareGuard",
-      "searchable": 1,
-      "changeable": 0,
-      "timeout": 50,
-      "style": {
-        "type": "list"
-      },
-      "filterable": 0,
-      "quickSearch": 0
-    },
-    {
-      "key": "s5394d7ad",
-      "name": "六九 美剧",
-      "type": 3,
-      "api": "csp_AppYsV2",
-      "searchable": 1,
-      "quickSearch": 0,
-      "filterable": 1,
-      "ext": "https://www.69mj.com/xgapp.php/v2/",
-      "timeout": 15
-    },
-    {
-      "key": "s694d189b",
-      "name": "配置 中心",
-      "type": 3,
-      "api": "csp_Config",
-      "playerType": 2,
-      "timeout": 15,
-      "searchable": 1,
-      "filterable": 0,
-      "quickSearch": 0
     },
     {
       "key": "pan_search",

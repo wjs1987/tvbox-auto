@@ -658,19 +658,13 @@ def upsert_super_source(latest: dict, api_token: str) -> bool:
             # 官方规范字段：style 控制海报卡片样式（竖版海报3:4），timeout 延长汇总源响应时间
             "searchable": 1, "quickSearch": 1, "filterable": 1,
             "style": {"type": "rect", "ratio": 0.75}, "timeout": 20}
-    # 网盘直采搜索源：同样调 EdgeOne 国内节点（mode=pansearch），token 同步刷新
-    # 作为独立站点让魔屏并行搜索，不拖慢"全网汇总"主片单
-    pan_site = {
-        "key": "pansearch", "name": "📀网盘搜索", "type": 1,
-        "api": url + "?mode=pansearch",
-        "header": {"Cookie": f"eo_token={tok}; eo_time={ts}"},
-        "searchable": 1, "quickSearch": 0, "filterable": 0, "timeout": 20,
-    }
+    # 2026-11 移除 "📀网盘搜索"（EdgeOne mode=pansearch）：与本地 csp_PanSearch
+    # 「云盘搜索」功能重复，却多带一条 token 依赖，属于纯负担，已下线；
+    # 旧配置里残留的 pansearch 站点一并清掉。
     latest["sites"] = [s for s in latest.get("sites", [])
                        if s.get("key") not in ("super", "pansearch")]
-    latest["sites"].insert(0, pan_site)
     latest["sites"].insert(0, site)
-    print(f"[超级源] 已置顶 {SUPER_SOURCE_NAME} + 📀网盘搜索（token 有效期约 3 小时）")
+    print(f"[超级源] 已置顶 {SUPER_SOURCE_NAME}（token 有效期约 3 小时）")
     return True
 
 
@@ -814,6 +808,59 @@ def classify_py(name: str, cat: str, remarks: str) -> str:
     return "c_all"
 
 
+def fill_pics(items: list, timeout: float = 8, batch: int = 20,
+              workers: int = 6, per_src_limit: int = 8000) -> int:
+    """补齐海报：多数采集站的 ac=list 列表不带封面（实测最大上游 4205 部全空），
+    只能再调一次 ac=detail&ids=a,b,c 批量取。这一步放在流水线里做一次、
+    结果固化进 catalog，客户端打开就立刻有图，不额外增加请求。
+    返回补到的条数。
+    """
+    groups = {}  # 规范化 api -> [(oid, item)]
+    for it in items:
+        if it.get("pic"):
+            continue
+        srcs = it.get("srcs") or []
+        if not srcs:
+            continue
+        base = norm_api(srcs[0].get("api") or "")
+        if not base.startswith("http"):
+            continue
+        groups.setdefault(base, []).append((str(srcs[0]["oid"]), it))
+    if not groups:
+        return 0
+
+    def load(group):
+        base, pairs = group
+        done = 0
+        ids = [p[0] for p in pairs[:per_src_limit]]
+        index = {p[0]: p[1] for p in pairs}
+        for i in range(0, len(ids), batch):
+            chunk = ids[i:i + batch]
+            u = f"{base}?ac=detail&ids={','.join(chunk)}"
+            d = None
+            for delay in (0, 0.5, 1.5):
+                if delay:
+                    time.sleep(delay)
+                try:
+                    d = json.loads(fetch(u, timeout=timeout, ua=UA_OKHTTP))
+                    break
+                except Exception:
+                    d = None
+            for v in (d or {}).get("list", []) or []:
+                oid = str(v.get("vod_id"))
+                pic = str(v.get("vod_pic") or "").strip()
+                it = index.get(oid)
+                if it is not None and pic and not it.get("pic"):
+                    it["pic"] = pic
+                    done += 1
+        return done
+
+    with ThreadPoolExecutor(max_workers=workers) as ex:
+        filled = sum(ex.map(load, list(groups.items())))
+    print(f"[目录] 补海报：{filled} 部（{len(groups)} 个上游按 ac=detail 批量回填）")
+    return filled
+
+
 def build_super_catalog(selected_sites: list, timeout: float = 8,
                         latest_pages: int = 20, cat_pages: int = 12,
                         max_cats: int = 20, max_items: int = 30000,
@@ -910,6 +957,7 @@ def build_super_catalog(selected_sites: list, timeout: float = 8,
                 }
 
     items = list(seen.values())[:max_items]
+    fill_pics(items, timeout=timeout)
     catalog = {
         "updated": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         "upstreams": [s.get("name") or "" for s in upstreams],

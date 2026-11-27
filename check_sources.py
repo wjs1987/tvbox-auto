@@ -648,6 +648,17 @@ def upsert_super_source(latest: dict, api_token: str) -> bool:
     except Exception as e:
         print(f"[超级源] token 签发失败，本轮跳过: {e}")
         return False
+    # 健康检查（熔断）：宁可这次不给这个站点，也不要把一个必然 401/404 的站点塞进配置，
+    # 否则用户在首页点一下就卡住转圈，比没有这个源更糟。
+    try:
+        probe = fetch(f"https://{SUPER_SOURCE_DOMAIN}/api?mode=status", timeout=10,
+                      headers={"Cookie": f"eo_token={tok}; eo_time={ts}"})
+        if not probe or '"total"' not in probe:
+            print("[超级源] 健康检查未通过（站点不可用），本轮跳过")
+            return False
+    except Exception as e:
+        print(f"[超级源] 健康检查异常，本轮跳过: {e}")
+        return False
     # 实测：URL 带 eo_token 会触发 EdgeOne 的 302 换 cookie 流程（FongMi 无 CookieJar 会卡死）；
     # 只有 Cookie 请求头 + 干净 URL 才直连 200。token 只放 header，不放 URL。
     url = f"https://{SUPER_SOURCE_DOMAIN}/api"

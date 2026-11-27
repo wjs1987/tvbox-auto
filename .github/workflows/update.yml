@@ -65,18 +65,6 @@ jobs:
             exit 1
           fi
 
-      - name: Deploy super source to EdgeOne Pages
-        if: always()
-        # 超级源项目是"直接上传"型（Provider=Upload，没接 Git），push 代码不会自动上线：
-        # 之前线上目录一直停在旧时间点，正是"汇总海报不出来/片单不更新"的根因。
-        # 这里用官方 CLI 把 super-source 目录（函数 + catalog.json）直接部署成新版本。
-        # 即使提交失败也照部署（部署读工作区文件，不依赖远端）。
-        env:
-          EDGEONE_TOKEN: ${{ secrets.EDGEONE_TOKEN }}
-        run: |
-          cd super-source
-          npx -y edgeone@latest pages deploy . -n makers-lxb2wlvf61qz -t "$EDGEONE_TOKEN" 2>&1 | tail -20
-
       - name: Purge jsDelivr cache
         if: always()
         # jsDelivr 对 @main 分支有静态缓存（实测能落后 9~10 小时），而超级源 token 只有 3 小时

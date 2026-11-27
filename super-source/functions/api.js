@@ -720,6 +720,32 @@ export async function onRequest({ request, env }) {
       return json({ ok: true, total: cat.items.length, upstreams: cat.upstreams });
     }
     if (mode === "probe") return await handleProbe(q, request);
+    if (mode === "crawl") {
+      // 国内节点直采探针：只允许白名单站点，防内网探测；返回正文供验证/抓取
+      const target = q.get("url") || "";
+      let u;
+      try { u = new URL(target); } catch { return json({ error: "bad url" }, 400); }
+      if (!/^https?:$/.test(u.protocol)) return json({ error: "bad scheme" }, 400);
+      const h = u.hostname.toLowerCase();
+      const ALLOW = ["panso.pro", "www.baidu.com", "cn.bing.com", "www.sogou.com", "weixin.sogou.com", "www.xiongdipan.com", "wpzy.cc", "www.sharenice.net", "m.sharenice.net"];
+      if (!ALLOW.some(x => h === x || h.endsWith("." + x))) return json({ error: "host not allowed: " + h }, 403);
+      const ctl = new AbortController();
+      const timer = setTimeout(() => ctl.abort(), 12000);
+      const t0 = Date.now();
+      try {
+        const r = await fetch(u.toString(), {
+          headers: { "User-Agent": UA, "Accept": "text/html,application/json,*/*" },
+          signal: ctl.signal,
+          redirect: "follow",
+        });
+        const body = (await r.text()).slice(0, 60000);
+        const hdrs = {};
+        for (const [k, v] of r.headers.entries()) if (/^(eo|x-eo|x-region|content-type)/i.test(k)) hdrs[k] = v.slice(0, 120);
+        return json({ ok: r.ok, status: r.status, ms: Date.now() - t0, host: h, mainland: request.headers.get("eo-is-mainland") || null, headers: hdrs, length: body.length, body });
+      } catch (e) {
+        return json({ ok: false, ms: Date.now() - t0, host: h, error: String(e && e.message || e) });
+      } finally { clearTimeout(timer); }
+    }
     if (mode === "cronprobe") return await handleCronProbe(request, env);
     if (mode === "probe_results") return await handleProbeResults(env);
     if (mode === "diag") {

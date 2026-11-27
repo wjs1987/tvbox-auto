@@ -514,6 +514,7 @@ def build_latest(seed_cfg: dict, selected_sites: list, alive_channels: list, liv
     # 同一文件走 gh-proxy 17 秒可下完；jsDelivr 对 .jar 直接 403，但对 .png 秒开。
     # 所以把同一份包再存一份 .png 后缀（客户端只看字节和 md5，不看后缀），走 jsDelivr。
     # 时间多出来的黑屏等待就是这么来的：魔屏要等 jar 下完才能进站点。
+    RAW = "https://gh-proxy.com/https://raw.githubusercontent.com/WJS1987/tvbox-auto/main/"
     CDN = "https://cdn.jsdelivr.net/gh/WJS1987/tvbox-auto@main/libs/"
     PAN_JAR = CDN + "pan_spider.png"
     # 饭太硬同款网盘爬虫包（与官方 spider 字节级一致：ftyguard_v7/v8.so +
@@ -1265,6 +1266,22 @@ def auto_mode(args):
             if gen.get("lives"):
                 latest["lives"] = gen["lives"]
                 print(f"[直播] 采用 {live_name}：{len(gen['lives'])} 个直播源")
+                # 配置瘦身：内联的几千个频道会让 latest.json 从 ~90KB 涨到 ~200KB，
+                # 魔屏这类盒子解析 200KB JSON + 拉取本身就要多花好几秒。
+                # 这里把内联频道组替换成对 live.txt 的 url 引用（打开"直播"页时才去拉），
+                # 主配置只剩站点列表，冷启动明显更快。
+                slim = []
+                for lv in latest["lives"]:
+                    if lv.get("url"):
+                        slim.append(lv)
+                    elif any(k in lv for k in ("groups", "channel", "channels")):
+                        slim.append({"name": lv.get("name") or "自建直播",
+                                     "url": RAW + "live.txt",
+                                     "ua": lv.get("ua") or "okHttp/Mod-1.5.0.0",
+                                     "timeout": 10})
+                    else:
+                        slim.append(lv)
+                latest["lives"] = slim
                 break
         except Exception as e:
             print(f"[直播] {live_name} 读取失败，沿用种子直播源: {e}")

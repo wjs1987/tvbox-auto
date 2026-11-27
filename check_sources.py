@@ -485,6 +485,7 @@ def test_channel(ch: dict, timeout: float) -> dict:
 def build_latest(seed_cfg: dict, selected_sites: list, alive_channels: list, live_refs: list, spider_url: str) -> dict:
     sites = []
     used_names = set()
+    pool_keys = set()
     for s in selected_sites:
         cn = clean_name(s.get("name", ""))
         if cn in used_names:  # 清理后同名 → 只留排名靠前的
@@ -493,20 +494,19 @@ def build_latest(seed_cfg: dict, selected_sites: list, alive_channels: list, liv
         s = dict(s)
         s["name"] = cn
         t = s.get("type", 0)
-        ms = s.pop("_ms", None)
         s.pop("_play", None)
         s.pop("_src", None)
         s.pop("_spider", None)
         # 稳定 key：同一 API 永远同名，重新生成配置不会让收藏/播放进度失效
         s["key"] = site_key(s)
+        pool_keys.add(s["key"])
         s.setdefault("timeout", 15)  # 显式超时，避免 FongMi 默认值过短误杀慢源
         s.setdefault("searchable", 1)
         # 采集站(is cms)天然支持分类筛选；type3 规则源没写 filterable 就置 0，避免点进去空白
         if "filterable" not in s:
             s["filterable"] = 1 if t in (0, 1) else 0
-        # quickSearch 只给实测够快的源：全部开启会让魔屏一次搜索并发几十个请求，转圈十几秒
-        if "quickSearch" not in s:
-            s["quickSearch"] = 1 if (ms is not None and ms <= 1800) else 0
+        # 先全部关掉，最后按实测延迟只给最快的十几个开 quickSearch（见下方收尾）
+        s["quickSearch"] = 0
         sites.append(s)
     # ---------- 固定精选：网盘/磁力爬虫源 ----------
     # 【自托管 + 换成能下载的链路】jar 都在本仓库 libs/，不依赖任何第三方图床。
@@ -575,6 +575,16 @@ def build_latest(seed_cfg: dict, selected_sites: list, alive_channels: list, liv
         s.setdefault("timeout", 15)
         fixed.append(s)
     sites = fixed
+    # quickSearch 名额有限：一次全库搜索时，客户端会并发请求所有开着 quickSearch 的站点。
+    # 50 个源全开的实测体验是转圈十几秒（魔屏是 1GB 内存的低功耗盒子），
+    # 这里只给实测最快的 12 个开，其余源仍然可以单独点进去搜索、也仍在片单里。
+    QS_LIMIT = 12
+    ranked = sorted((s for s in sites if s["key"] in pool_keys),
+                    key=lambda x: (x.get("_ms") is None, x.get("_ms") or 99999))
+    for s in ranked[:QS_LIMIT]:
+        s["quickSearch"] = 1
+    for s in sites:
+        s.pop("_ms", None)
     lives = list(live_refs)
     if alive_channels:
         lives.append({"group": "精选直播", "channels": alive_channels})

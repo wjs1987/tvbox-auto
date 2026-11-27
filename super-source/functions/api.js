@@ -683,8 +683,8 @@ function parsePanId(id) {
 // 轮询任务 → file/download 取直链 → 删除临时文件（转存只是取直链的跳板）。
 // 需要用户自己的网盘 Cookie，通过 mode=panck&set=quark=<cookie> 配置一次即可。
 const PAN_GW = {
-  "夸克网盘": { ck: "quark", base: "https://drive-pc.quark.cn", playBase: "https://drive.quark.cn", ref: "https://pan.quark.cn/" },
-  "UC网盘": { ck: "uc", base: "https://pc-api.uc.cn", playBase: "https://pc-api.uc.cn", ref: "https://pc.uc.cn/" },
+  "夸克网盘": { ck: "quark", base: "https://drive-pc.quark.cn", playBase: "https://drive.quark.cn", ref: "https://pan.quark.cn/", pr: "ucpro", fr: "pc" },
+  "UC网盘": { ck: "uc", base: "https://pc-api.uc.cn", playBase: "https://pc-api.uc.cn", ref: "https://drive.uc.cn/", pr: "UCBrowser", fr: "pc" },
 };
 const PAN_VIDEO_RE = /\.(mp4|mkv|avi|rmvb|ts|flv|wmv|mov|m2ts)$/i;
 // 清晰度优先级：从高到低取第一个 accessable 的档位（免费账号通常只有 low）
@@ -694,8 +694,8 @@ const panSleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 async function panApi(cfg, cookie, path, { method = "GET", body, params, base } = {}) {
   const u = new URL((base || cfg.base) + path);
-  u.searchParams.set("pr", "ucpro");
-  u.searchParams.set("fr", "pc");
+  u.searchParams.set("pr", cfg.pr || "ucpro");
+  u.searchParams.set("fr", cfg.fr || "pc");
   for (const [k, v] of Object.entries(params || {})) u.searchParams.set(k, String(v));
   const r = await fetch(u.toString(), {
     method,
@@ -763,18 +763,22 @@ async function panResolveDirect(p, env, origin) {
     const mk = await panApi(cfg, cookie, "/1/clouddrive/file", { method: "POST", body: { pdir_fid: "0", file_name: "", dir_path: "/TVBox直链缓存", dir_init_lock: false } });
     const tmpFid = mk?.data?.fid;
     if (!tmpFid) return { error: mk?.message || "创建临时目录失败" };
+    // 失败路径统一清理临时目录（不占网盘空间；容量不足时残留会让后续转存更易失败）
+    const cleanup = () => panApi(cfg, cookie, "/1/clouddrive/file/delete", { method: "POST", params: { uc_param_str: "" }, body: { action_type: 2, filelist: [tmpFid], exclude_fids: [] } }).catch(() => {});
+    const fail = (msg) => { cleanup(); return { error: msg }; };
     const save = await panApi(cfg, cookie, "/1/clouddrive/share/sharepage/save", { method: "POST", params: { uc_param_str: "", app: "clouddrive" }, body: {
       fid_list: vids.map((v) => v.fid), fid_token_list: vids.map((v) => v.token),
       to_pdir_fid: tmpFid, pwd_id: m[1], stoken, pdir_fid: "0", scene: "link",
     } });
-    if (save?.code !== 0 || !save?.data?.task_id) return { error: save?.message || "转存失败" };
+    if (save?.code !== 0 || !save?.data?.task_id) return fail(save?.message || "转存失败");
     let done = false;
     for (let i = 0; i < 10; i++) {
       await panSleep(500);
       const tq = await panApi(cfg, cookie, "/1/clouddrive/task", { params: { task_id: save.data.task_id, retry_index: i, uc_param_str: "" } });
       if (tq?.data?.status === 2) { done = true; break; }
+      if (tq?.code === 32003 || /capacity|空间不足/i.test(tq?.message || "")) return fail("网盘空间不足(免费号容量有限,4K大包转存不下,试试小体积分享或升级会员)");
     }
-    if (!done) return { error: "转存超时" };
+    if (!done) return fail("转存超时");
     // 在临时目录下找转存后的真实文件（分享根可能直接是文件，也可能套一层文件夹）
     const files = [];
     async function walk(fid, d) {
@@ -790,7 +794,7 @@ async function panResolveDirect(p, env, origin) {
       }
     }
     await walk(tmpFid, 0);
-    if (!files.length) return { error: "转存后未找到视频文件" };
+    if (!files.length) return fail("转存后未找到视频文件");
     // 逐集调转码播放接口（file/v2/play），小并发避免限频
     const eps = [];
     const BATCH = 4;
@@ -808,7 +812,7 @@ async function panResolveDirect(p, env, origin) {
     }
     // 清理临时目录（转码流由夸克 CDN 提供，转存文件已无用）
     panApi(cfg, cookie, "/1/clouddrive/file/delete", { method: "POST", params: { uc_param_str: "" }, body: { action_type: 2, filelist: [tmpFid], exclude_fids: [] } }).catch(() => {});
-    if (!eps.length) return { error: "无可播放的转码流(免费号可能无权限)" };
+    if (!eps.length) return fail("无可播放的转码流(免费号可能无权限)");
     // 播放地址换成边缘代理（CDN 流需要 Cookie，播放器带不了）
     const proxy = `${origin}/api.js?mode=panstream&u=`;
     const v = { t: new Date().toISOString(), disk: p.disk, episodes: eps.map((e) => ({ name: e.name, url: proxy + encodeURIComponent(e.url) })) };
@@ -1083,7 +1087,7 @@ export async function onRequest({ request, env }) {
       if (!/(^|\.)quark\.cn$/.test(h) && !/(^|\.)uc\.cn$/.test(h)) return json({ error: "host not allowed" }, 403);
       const cks = (await cacheGet(env, "pan:cookies")) || {};
       const cookie = h.endsWith("quark.cn") ? cks.quark : cks.uc;
-      const headers = { "user-agent": UA, referer: "https://pan.quark.cn/", accept: "*/*" };
+      const headers = { "user-agent": UA, referer: h.endsWith("quark.cn") ? "https://pan.quark.cn/" : "https://drive.uc.cn/", accept: "*/*" };
       if (cookie) headers.cookie = cookie;
       const rng = request.headers.get("range");
       if (rng) headers.range = rng;

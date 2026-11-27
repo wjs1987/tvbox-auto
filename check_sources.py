@@ -576,10 +576,15 @@ def build_latest(seed_cfg: dict, selected_sites: list, alive_channels: list, liv
         fixed.append(s)
     sites = fixed
     # quickSearch 名额有限：一次全库搜索时，客户端会并发请求所有开着 quickSearch 的站点。
-    # 50 个源全开的实测体验是转圈十几秒（魔屏是 1GB 内存的低功耗盒子），
-    # 这里只给实测最快的 12 个开，其余源仍然可以单独点进去搜索、也仍在片单里。
-    QS_LIMIT = 12
-    ranked = sorted((s for s in sites if s["key"] in pool_keys),
+    # 实测魔屏（1GB 内存盒子）并发 20 个搜索请求会长时间空白，
+    # 因此只让"纯 CMS 采集站"里最快的 6 个参与全库搜索：
+    # 网盘/磁力/直播/需要 jar 的站点一律不抢名额（它们仍可单独点进去搜）。
+    QS_LIMIT = 6
+    for s in sites:
+        if s.get("jar") or s.get("ext") or s.get("type") != 1:
+            s["quickSearch"] = 0
+    ranked = sorted((s for s in sites
+                     if s.get("type") == 1 and not s.get("jar") and not s.get("ext")),
                     key=lambda x: (x.get("_ms") is None, x.get("_ms") or 99999))
     for s in ranked[:QS_LIMIT]:
         s["quickSearch"] = 1

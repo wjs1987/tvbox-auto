@@ -948,6 +948,20 @@ def auto_mode(args):
     super_token = os.environ.get("EDGEONE_TOKEN", "")
     if super_token:
         upsert_super_source(latest, super_token)
+    else:
+        # 保险丝：本地没设 EDGEONE_TOKEN 时，把旧 latest.json 里的超级源条目原样搬过来，
+        # 避免本地生成覆盖后「全网汇总」再次丢失（token 到期会由流水线续签）
+        old_path = Path("latest.json")
+        if old_path.exists():
+            try:
+                old = json.loads(old_path.read_text(encoding="utf-8"))
+                old_super = [s for s in old.get("sites", []) if s.get("key") == "super"]
+                if old_super:
+                    latest["sites"] = [s for s in latest.get("sites", []) if s.get("key") != "super"]
+                    latest["sites"].insert(0, old_super[0])
+                    print("[超级源] 本地无 EDGEONE_TOKEN，沿用旧 latest.json 中的超级源条目")
+            except Exception:
+                pass
 
     # 自建直播：本地实测过的 live.json 优先；没有则用流水线抓取的 live_raw.json（未测速）
     for live_name in ("live.json", "live_raw.json"):

@@ -11,3 +11,7 @@ super_catalog.json
 live_all.json
 live_test.log
 live_raw.json
+live_stats.json
+device_report.md
+remote_latest.json
+super-source/.env

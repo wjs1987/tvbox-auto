@@ -325,7 +325,13 @@ function needProxy(pic) {
 }
 
 // 把坏域名海报 URL 转成经本函数代理的地址（origin 用请求进来的域名，自动适配绑定域名）
+// 2026-11 实测：预览域名强制 eo_token 鉴权，而 OK影视 的图片加载器不会带站点自定义
+// 请求头（Cookie），所有 ac=img 代理图一律 401 → 全站海报变成"首字占位"。
+// 因此默认直接返回原始海报 URL；只有部署到正式域名（免 token）时才建议打开代理。
+const USE_IMG_PROXY = false;
+
 function imgProxy(pic, origin) {
+  if (!USE_IMG_PROXY) return pic;
   if (!pic || !needProxy(pic)) return pic;
   return `${origin}/api.js?ac=img&u=${encodeURIComponent(pic)}`;
 }

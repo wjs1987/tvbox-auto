@@ -626,6 +626,7 @@ SUPER_SOURCE_PROJECT = os.environ.get("SUPER_SOURCE_PROJECT", "makers-lxb2wlvf61
 SUPER_SOURCE_NAME = "全网汇总"
 
 
+# [已弃用] 仅保留备查：全网汇总（超级源）已于 2026-11-28 归档
 def mint_super_token(api_token: str):
     """调用 EdgeOne API 为超级源域名签发新的预览访问 token（有效期约 3 小时）。"""
     body = json.dumps({
@@ -647,6 +648,7 @@ def mint_super_token(api_token: str):
     return tok, ts
 
 
+# [已弃用] 仅保留备查，不再被任何流程调用
 def upsert_super_source(latest: dict, api_token: str) -> bool:
     """在 latest.json 的 sites 列表置顶插入"全网汇总"超级源（带新鲜 token）。"""
     try:
@@ -878,6 +880,7 @@ def fill_pics(items: list, timeout: float = 8, batch: int = 20,
     return filled
 
 
+# [已弃用] 仅保留备查，不再生成 super_catalog.json
 def build_super_catalog(selected_sites: list, timeout: float = 8,
                         latest_pages: int = 20, cat_pages: int = 12,
                         max_cats: int = 20, max_items: int = 30000,
@@ -1110,20 +1113,10 @@ def auto_mode(args):
     # ===== 国内可达性：提交候选给国内节点探测，并读取历史结果用于筛选 =====
     n_cand = write_china_candidates(alive_sites)
     print(f"[国内探测] 已提交候选 {n_cand} 个（probe_candidates.json，国内定时任务每小时探 32 个）")
+    # 国内探测结果改为只读本地 china_alive.json（原来靠 EdgeOne 超级源域名中转，
+    # 该域名已随项目误删而 404，2026-11-28 起彻底弃用这条链路）。
     china_probe = {}
-    super_token_early = os.environ.get("EDGEONE_TOKEN", "")
-    if super_token_early:
-        china_probe = fetch_china_probe(super_token_early)
-        if china_probe:
-            Path("china_alive.json").write_text(json.dumps({
-                "updated": time.strftime("%Y-%m-%d %H:%M:%S"),
-                "alive": [k for k, v in china_probe.items() if v.get("ok")],
-                "dead": [k for k, v in china_probe.items() if not v.get("ok")],
-            }, ensure_ascii=False, indent=1), encoding="utf-8")
-            ok_n = sum(1 for v in china_probe.values() if v.get("ok"))
-            print(f"[国内探测] 当前国内存活 {ok_n}/{len(china_probe)}，已写入 china_alive.json")
-    else:
-        print("[国内探测] 无 EDGEONE_TOKEN，跳过读取（沿用 china_alive.json 文件）")
+    print("[国内探测] 读取本地 china_alive.json（EdgeOne 中转已停用）")
 
     print("[检测] 直播频道并发测试...")
     ch_results = []
@@ -1238,23 +1231,8 @@ def auto_mode(args):
         except Exception:
             pass
     latest = build_latest(seed_cfg, selected_sites, alive_ch, alive_refs, spider_url)
-    super_token = os.environ.get("EDGEONE_TOKEN", "")
-    if super_token:
-        upsert_super_source(latest, super_token)
-    else:
-        # 保险丝：本地没设 EDGEONE_TOKEN 时，把旧 latest.json 里的超级源条目原样搬过来，
-        # 避免本地生成覆盖后「全网汇总」再次丢失（token 到期会由流水线续签）
-        old_path = Path("latest.json")
-        if old_path.exists():
-            try:
-                old = json.loads(old_path.read_text(encoding="utf-8"))
-                old_super = [s for s in old.get("sites", []) if s.get("key") == "super"]
-                if old_super:
-                    latest["sites"] = [s for s in latest.get("sites", []) if s.get("key") != "super"]
-                    latest["sites"].insert(0, old_super[0])
-                    print("[超级源] 本地无 EDGEONE_TOKEN，沿用旧 latest.json 中的超级源条目")
-            except Exception:
-                pass
+    # 全网汇总（超级源）已于 2026-11-28 正式归档：EdgeOne 项目被误删且新项目部署始终失败，
+    # 该功能彻底下线，配置里不再注入任何 super 条目。代码与目录保留在 archive/super-source/ 备查。
 
     # 自建直播：本地实测过的 live.json 优先；没有则用流水线抓取的 live_raw.json（未测速）
     for live_name in ("live.json", "live_raw.json"):
@@ -1291,16 +1269,6 @@ def auto_mode(args):
     if slim:
         latest["lives"] = slim
 
-    # 生成超级源静态目录（边缘函数直接秒级加载，不再实时聚合）
-    try:
-        catalog = build_super_catalog(selected_sites, timeout=args.timeout)
-        catalog_path = Path(args.out).with_name("super_catalog.json")
-        catalog_path.write_text(json.dumps(catalog, ensure_ascii=False, separators=(",", ":")),
-                                encoding="utf-8")
-        print(f"[输出] {catalog_path.name}（{catalog_path.stat().st_size // 1024}KB）")
-    except Exception as e:
-        print(f"[目录] 生成失败（边缘函数会回退到实时聚合）: {e}")
-
     Path(args.out).write_text(json.dumps(latest, ensure_ascii=False, indent=2), encoding="utf-8")
     write_report(args.report, alive_sites, dead_sites, alive_ch, dead_ch, failed, crawl_stats, selected_sites)
 
@@ -1327,26 +1295,12 @@ def main():
     ap.add_argument("--out", default="latest.json")
     ap.add_argument("--report", default="report.md")
     ap.add_argument("--check", action="store_true", help="旧模式参数：联网检测")
-    ap.add_argument("--refresh-super", action="store_true",
-                    help="只刷新超级源 token 并更新 latest.json（轻量，每小时跑）")
     args = ap.parse_args()
 
     if args.legacy:
         legacy_mode(args)
     elif args.auto:
         auto_mode(args)
-    elif args.refresh_super:
-        token = os.environ.get("EDGEONE_TOKEN", "")
-        if not token:
-            print("[超级源] 缺少 EDGEONE_TOKEN 环境变量")
-            return 1
-        p = Path(args.out)
-        latest = json.loads(p.read_text(encoding="utf-8")) if p.exists() else {"sites": [], "lives": []}
-        if upsert_super_source(latest, token):
-            p.write_text(json.dumps(latest, ensure_ascii=False, indent=2), encoding="utf-8")
-            print(f"[输出] {args.out}")
-            return 0
-        return 1
     else:
         ap.print_help()
 

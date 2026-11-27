@@ -37,12 +37,8 @@ jobs:
           python build_live.py --out live_raw.json
 
       - name: Crawl + Test + Build latest.json
-        env:
-          EDGEONE_TOKEN: ${{ secrets.EDGEONE_TOKEN }}
         run: |
           python check_sources.py --auto --workers 30 --timeout 8 --top 40
-          # 目录同时复制到边缘函数部署目录（下次部署时同源秒级加载）
-          cp -f super_catalog.json super-source/catalog.json 2>/dev/null || true
 
       - name: Commit and Push
         run: |

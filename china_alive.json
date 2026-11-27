@@ -1,0 +1,1253 @@
+{
+  "updated": "2026-11-27T01:43:10Z",
+  "from": "edgeone-cn-node",
+  "total": 155,
+  "alive_count": 1,
+  "dead_count": 154,
+  "alive": [
+    "https://hhzyapi.com/api.php/provide/vod/?ac=list"
+  ],
+  "dead": [
+    "http://wmcj8.com/inc/sapi.php?ac=videolist",
+    "http://www.ggmmzy.com:9999/inc/xml",
+    "https://www.mgav1.cc/api.php/provide/vod/at/xml/",
+    "https://www.msnii.com/api/xml.php",
+    "https://www.xrbsp.com/api/xml.php",
+    "https://www.gdlsp.com/api/xml.php",
+    "https://www.kxgav.com/api/xml.php",
+    "https://www.afasu.com/api/xml.php",
+    "https://www.pgxdy.com/api/xml.php",
+    "https://caiji.naichaapi.com/inc/api.php",
+    "https://yinlong.tv/api.php/provide/vod/at/xml/",
+    "https://caiji.caomeiapi.com/inc/api.php",
+    "http://f2dcj6.com/sapi/?ac=videolist",
+    "https://www.4000zy.com/inc/api.php",
+    "http://51smt4.xyz/api.php/provide/vod/",
+    "http://bttcj.com/inc/sapi.php",
+    "https://shayuapi.com/api.php/Seacms/vod",
+    "https://caiji.523zyw.com/inc/api.php",
+    "https://bttcj.com/inc/sapi.php",
+    "https://apittzy.com/api.php/provide/vod/at/xml",
+    "https://api.xiuseapi.com/api.php/provide/vod/at/xml",
+    "http://llzxcj.com/inc/sck.php?ac=videolist",
+    "http://zmcj88.com/sapi?ac=videolist",
+    "http://mygzycj.com/api.php?ac=list",
+    "http://secj8.com/inc/sapi.php?ac=videolist",
+    "https://dadiapi.com/api.php/",
+    "https://lbapi9.com/api.php/provide/vod/at/xml",
+    "http://cjmygzy.com/inc/sapi.php?ac=videolist",
+    "http://fhapi9.com/api.php/provide/vod/",
+    "https://api.maozyapi.com/inc/api.php",
+    "http://www.010aizy.com/API/maxs.php",
+    "http://api.suboapi.com/api.php/provide/vod/",
+    "https://caiji.523zyw.com/inc/apijson_vod.php",
+    "https://siwazyw.cc/api.php/provide/vod/",
+    "https://mgzyz1.com/api.php/provide/vod/",
+    "https://www.leyuzyapi.com/inc/apijson_vod.php",
+    "http://51smt4.xyz/api.php/provide/vod/",
+    "https://api.xiuseapi.com/api.php/provide/vod/",
+    "https://apittzy.com/api.php/provide/vod/",
+    "https://api.maozyapi.com/inc/apijson_vod.php",
+    "https://caiji.caomeiapi.com/inc/apijson_vod.php",
+    "http://www.aikanzyz9.com/inc/apijson_vod.php",
+    "https://caiji.huakuiapi.com/inc/apijson_vod.php",
+    "https://api.putaozy.net/inc/apijson_vod.php",
+    "https://sewozyapi.com/api.php/provide/vod/",
+    "https://api.yinwoapi.com/api.php/provide/vod/",
+    "https://www.4000zy.com/inc/apijson_vod.php",
+    "http://sdszyapi.com/home/cjapi/asbb/mc10/vod/xml",
+    "https://xjjzyapi.com/home/cjapi/askl/mc10/vod/xml",
+    "https://52zyapi.com/home/cjapi/asda/mc10/vod/xml",
+    "http://www.caiji21.com/home/cjapi/klkl/mc10/vod/xml",
+    "https://www.caiji22.com/home/cjapi/klp0/mc10/vod/xml",
+    "https://www.caiji23.com/home/cjapi/kls6/mc10/vod/xml",
+    "http://www.caiji24.com/home/cjapi/p0d2/mc10/vod/xml",
+    "http://www.caiji25.com/home/cjapi/p0as/mc10/vod/xml",
+    "http://caiji26.com/home/cjapi/p0g8/mc10/vod/xml",
+    "https://jgczyapi.com/home/cjapi/kld2/mc10/vod/xml",
+    "https://xx55zyapi.com/home/cjapi/ascf/mc10/vod/xml",
+    "https://www.dmmapi.com/home/cjapi/asd2c7/mc10/vod/xml",
+    "https://www.caiji10.com/home/cjapi/cfs6/mc10/vod/xml",
+    "https://www.caiji09.com/home/cjapi/cfp0/mc10/vod/xml",
+    "https://www.caiji08.com/home/cjapi/cfkl/mc10/vod/xml",
+    "https://www.caiji07.com/home/cjapi/cfcf/mc10/vod/xml",
+    "https://www.caiji06.com/home/cjapi/cfbb/mc10/vod/xml",
+    "https://www.caiji05.com/home/cjapi/cfda/mc10/vod/xml",
+    "https://www.caiji04.com/home/cjapi/cfc7/mc10/vod/xml",
+    "https://www.caiji03.com/home/cjapi/cfg8/mc10/vod/xml",
+    "https://www.caiji02.com/home/cjapi/cfas/mc10/vod/xml",
+    "https://www.caiji01.com/home/cjapi/cfd2/mc10/vod/xml",
+    "http://www.987caiji.com/api/max.php",
+    "http://99zy.pw/api.php/provide/vod/",
+    "http://www.010aizy.com/API/macs.php",
+    "https://javcaptain.com/api.php/provide/vod/",
+    "https://www.888dav.com/api.php/provide/vod/",
+    "https://madouse.la/api.php/provide/vod/",
+    "https://91md.me/api.php/provide/vod/",
+    "https://aicaozy.com/api.php/provide/vod/",
+    "http://langchaozy6.com/api.php/provide/vod/",
+    "https://api.suboapi.com/api.php/provide/vod/",
+    "https://kudouzy.com/api.php/provide/vod/",
+    "https://api.kdapi.info/api.php/provide/vod/",
+    "https://api.kudian70.com/api.php/provide/vod/",
+    "https://api.ykapi.net/api.php/provide/vod/",
+    "https://wanying4.com/api.php/provide/vod/",
+    "https://yinlong.tv/api.php/provide/vod/",
+    "https://caiji.naichaapi.com/inc/apijson_vod.php",
+    "https://cj.apiabzy.com/api.php/provide/vod/",
+    "https://www.msnii.com/api/xml.php",
+    "https://www.xrbsp.com/api/xml.php",
+    "https://www.gdlsp.com/api/xml.php",
+    "https://www.kxgav.com/api/xml.php",
+    "https://www.afasu.com/api/xml.php",
+    "https://www.pgxdy.com/api/json.php",
+    "https://dadiapi.com/api.php",
+    "http://www.feifei67.com/api.php/provide/vod/",
+    "https://api.apilyzy.com/api.php/provide/vod/",
+    "https://apihjzy.com/api.php/provide/vod/",
+    "https://apilj.com/api.php/provide/vod/at/json/",
+    "https://lbapi9.com/api.php/provide/vod/",
+    "http://bttcj.com/inc/sapi.php",
+    "http://wmcj8.com/inc/sapi.php",
+    "http://mygzycj.com/api.php?ac=videolist",
+    "http://m.7777688.com/inc/apijson.php",
+    "http://secj8.com/inc/sapi.php?ac=videolist",
+    "http://99zywcj.com/inc/sapi.php?ac=videolist",
+    "http://jcspcj8.com/api?ac=videolist",
+    "http://cjmygzy.com/inc/sapi.php?ac=videolist",
+    "http://f2dcj6.com/sapi?ac=videolist",
+    "http://zmcj88.com/sapi?ac=videolist",
+    "http://llzxcj.com/inc/sck.php?ac=videolist",
+    "http://www.jializyzapi.com/api.php/provide/vod/",
+    "http://fhapi9.com/api.php/provide/vod/",
+    "https://shayuapi.com/api.php/provide/vod/",
+    "http://www.ggmmzy.com:9999/inc/xml",
+    "https://kkzy.me/api.php/provide/vod/",
+    "https://jgczyapi.com/home/cjapi/kld2/mc/vod/xml",
+    "https://91md.me/api.php/provide/vod/from/mdm3u8/",
+    "https://api.ykapi.net/api.php/provide/vod/from/ykm3u8/",
+    "https://api.suboapi.com/api.php/provide/vod/",
+    "https://www.msnii.com/api/xml.php",
+    "https://www.xrbsp.com/api/xml.php",
+    "https://api.apilyzy.com/api.php/provide/vod/?ac=list",
+    "https://lbapi9.com/api.php/provide/vod/",
+    "https://api.putaozy.net/inc/apijson_vod.php",
+    "https://caiji.naichaapi.com/inc/apijson_vod.php",
+    "https://xx55zyapi.com/home/cjapi/ascf/mc/vod/xml",
+    "https://xjjzyapi.com/home/cjapi/askl/mc/vod/xml/m3u8",
+    "https://sdszyapi.com/home/cjapi/asbb/sea/vod/xml",
+    "https://sewozyapi.com/api.php/provide/vod/",
+    "http://www.jializyzapi.com/api.php/provide/vod/",
+    "https://www.afasu.com/api/xml.php",
+    "https://www.gdlsp.com/api/xml.php",
+    "http://caiji26.com/home/cjapi/p0g8/mc/vod/xml",
+    "http://www.caiji25.com/home/cjapi/p0as/mc/vod/xml",
+    "https://www.caiji05.com/home/cjapi/cfda/mc/vod/xml",
+    "https://api.kudian70.com/api.php/provide/vod/",
+    "http://wmcj8.com/inc/sapi.php",
+    "https://apihjzy.com/api.php/provide/vod/",
+    "https://caiji.523zyw.com/inc/seacmsapi.php",
+    "https://apittzy.com/api.php/provide/vod/?ac=list",
+    "http://zmcj88.com/sapi?ac=videolist",
+    "https://www.leyuzyapi.com/inc/zyapimac.php",
+    "https://api.kdapi.info/api.php/provide/vod/",
+    "https://www.dmmapi.com/home/cjapi/asd2c7/mc/vod/xml",
+    "https://www.kxgav.com/api/xml.php",
+    "http://fhapi9.com/api.php/provide/vod/at/xml/",
+    "http://mygzycj.com/sapi.php?ac=videolist",
+    "http://4000zy.com/inc/api.php",
+    "http://www.ggmmzy.com:9999/inc/xml",
+    "http://m.7777688.com/inc/apijson.php",
+    "http://langchaozy6.com/api.php/provide/vod/",
+    "https://www.huyaapi.com/api.php/provide/vod/from/hym3u8/",
+    "https://jszyapi.com/api.php/provide/vod/",
+    "https://cj.lziapi.com/api.php/provide/vod/"
+  ],
+  "details": [
+    {
+      "api": "http://wmcj8.com/inc/sapi.php?ac=videolist",
+      "ok": false,
+      "ms": 1002,
+      "count": 0,
+      "note": "非 XML/JSON"
+    },
+    {
+      "api": "http://www.ggmmzy.com:9999/inc/xml",
+      "ok": false,
+      "ms": 503,
+      "count": 0,
+      "note": "HTTP 502"
+    },
+    {
+      "api": "https://www.mgav1.cc/api.php/provide/vod/at/xml/",
+      "ok": false,
+      "ms": 3109,
+      "count": 0,
+      "note": "HTTP 504"
+    },
+    {
+      "api": "https://www.msnii.com/api/xml.php",
+      "ok": false,
+      "ms": null,
+      "count": 0,
+      "note": "host 不允许探测"
+    },
+    {
+      "api": "https://www.xrbsp.com/api/xml.php",
+      "ok": false,
+      "ms": null,
+      "count": 0,
+      "note": "host 不允许探测"
+    },
+    {
+      "api": "https://www.gdlsp.com/api/xml.php",
+      "ok": false,
+      "ms": null,
+      "count": 0,
+      "note": "host 不允许探测"
+    },
+    {
+      "api": "https://www.kxgav.com/api/xml.php",
+      "ok": false,
+      "ms": null,
+      "count": 0,
+      "note": "host 不允许探测"
+    },
+    {
+      "api": "https://www.afasu.com/api/xml.php",
+      "ok": false,
+      "ms": null,
+      "count": 0,
+      "note": "host 不允许探测"
+    },
+    {
+      "api": "https://www.pgxdy.com/api/xml.php",
+      "ok": false,
+      "ms": null,
+      "count": 0,
+      "note": "host 不允许探测"
+    },
+    {
+      "api": "https://caiji.naichaapi.com/inc/api.php",
+      "ok": false,
+      "ms": 381,
+      "count": 0,
+      "note": "HTTP 504"
+    },
+    {
+      "api": "https://yinlong.tv/api.php/provide/vod/at/xml/",
+      "ok": false,
+      "ms": 81,
+      "count": 0,
+      "note": "HTTP 504"
+    },
+    {
+      "api": "https://caiji.caomeiapi.com/inc/api.php",
+      "ok": false,
+      "ms": 407,
+      "count": 0,
+      "note": "HTTP 504"
+    },
+    {
+      "api": "http://f2dcj6.com/sapi/?ac=videolist",
+      "ok": false,
+      "ms": 439,
+      "count": 0,
+      "note": "HTTP 404"
+    },
+    {
+      "api": "https://www.4000zy.com/inc/api.php",
+      "ok": false,
+      "ms": 1431,
+      "count": 0,
+      "note": "HTTP 502"
+    },
+    {
+      "api": "http://51smt4.xyz/api.php/provide/vod/",
+      "ok": false,
+      "ms": 317,
+      "count": 0,
+      "note": "HTTP 504"
+    },
+    {
+      "api": "http://bttcj.com/inc/sapi.php",
+      "ok": false,
+      "ms": 877,
+      "count": 0,
+      "note": "HTTP 404"
+    },
+    {
+      "api": "https://shayuapi.com/api.php/Seacms/vod",
+      "ok": false,
+      "ms": 3223,
+      "count": 0,
+      "note": "HTTP 504"
+    },
+    {
+      "api": "https://caiji.523zyw.com/inc/api.php",
+      "ok": false,
+      "ms": 482,
+      "count": 0,
+      "note": "HTTP 502"
+    },
+    {
+      "api": "https://bttcj.com/inc/sapi.php",
+      "ok": false,
+      "ms": 849,
+      "count": 0,
+      "note": "HTTP 404"
+    },
+    {
+      "api": "https://apittzy.com/api.php/provide/vod/at/xml",
+      "ok": false,
+      "ms": 3328,
+      "count": 0,
+      "note": "HTTP 504"
+    },
+    {
+      "api": "https://api.xiuseapi.com/api.php/provide/vod/at/xml",
+      "ok": false,
+      "ms": 524,
+      "count": 0,
+      "note": "HTTP 504"
+    },
+    {
+      "api": "http://llzxcj.com/inc/sck.php?ac=videolist",
+      "ok": false,
+      "ms": 227,
+      "count": 0,
+      "note": "HTTP 504"
+    },
+    {
+      "api": "http://zmcj88.com/sapi?ac=videolist",
+      "ok": false,
+      "ms": 2160,
+      "count": 0,
+      "note": "HTTP 401"
+    },
+    {
+      "api": "http://mygzycj.com/api.php?ac=list",
+      "ok": false,
+      "ms": 478,
+      "count": 0,
+      "note": "HTTP 502"
+    },
+    {
+      "api": "http://secj8.com/inc/sapi.php?ac=videolist",
+      "ok": false,
+      "ms": 1038,
+      "count": 0,
+      "note": "非 XML/JSON"
+    },
+    {
+      "api": "https://dadiapi.com/api.php/",
+      "ok": false,
+      "ms": 3246,
+      "count": 0,
+      "note": "HTTP 504"
+    },
+    {
+      "api": "https://lbapi9.com/api.php/provide/vod/at/xml",
+      "ok": false,
+      "ms": 565,
+      "count": 0,
+      "note": "HTTP 502"
+    },
+    {
+      "api": "http://cjmygzy.com/inc/sapi.php?ac=videolist",
+      "ok": false,
+      "ms": 283,
+      "count": 0,
+      "note": "HTTP 504"
+    },
+    {
+      "api": "http://fhapi9.com/api.php/provide/vod/",
+      "ok": false,
+      "ms": 1547,
+      "count": 0,
+      "note": "HTTP 502"
+    },
+    {
+      "api": "https://api.maozyapi.com/inc/api.php",
+      "ok": false,
+      "ms": 673,
+      "count": 0,
+      "note": "HTTP 502"
+    },
+    {
+      "api": "http://www.010aizy.com/API/maxs.php",
+      "ok": false,
+      "ms": 705,
+      "count": 0,
+      "note": "HTTP 502"
+    },
+    {
+      "api": "http://api.suboapi.com/api.php/provide/vod/",
+      "ok": false,
+      "ms": 1813,
+      "count": 0,
+      "note": "HTTP 403"
+    },
+    {
+      "api": "https://caiji.523zyw.com/inc/apijson_vod.php",
+      "ok": false,
+      "ms": 403,
+      "count": 0,
+      "note": "HTTP 502"
+    },
+    {
+      "api": "https://siwazyw.cc/api.php/provide/vod/",
+      "ok": false,
+      "ms": 702,
+      "count": 0,
+      "note": "HTTP 502"
+    },
+    {
+      "api": "https://mgzyz1.com/api.php/provide/vod/",
+      "ok": false,
+      "ms": 3033,
+      "count": 0,
+      "note": "HTTP 504"
+    },
+    {
+      "api": "https://www.leyuzyapi.com/inc/apijson_vod.php",
+      "ok": false,
+      "ms": 1994,
+      "count": 0,
+      "note": "HTTP 403"
+    },
+    {
+      "api": "http://51smt4.xyz/api.php/provide/vod/",
+      "ok": false,
+      "ms": 183,
+      "count": 0,
+      "note": "HTTP 504"
+    },
+    {
+      "api": "https://api.xiuseapi.com/api.php/provide/vod/",
+      "ok": false,
+      "ms": 398,
+      "count": 0,
+      "note": "HTTP 504"
+    },
+    {
+      "api": "https://apittzy.com/api.php/provide/vod/",
+      "ok": false,
+      "ms": 531,
+      "count": 0,
+      "note": "HTTP 502"
+    },
+    {
+      "api": "https://api.maozyapi.com/inc/apijson_vod.php",
+      "ok": false,
+      "ms": 422,
+      "count": 0,
+      "note": "HTTP 502"
+    },
+    {
+      "api": "https://caiji.caomeiapi.com/inc/apijson_vod.php",
+      "ok": false,
+      "ms": 25,
+      "count": 0,
+      "note": "HTTP 504"
+    },
+    {
+      "api": "http://www.aikanzyz9.com/inc/apijson_vod.php",
+      "ok": false,
+      "ms": 505,
+      "count": 0,
+      "note": "HTTP 504"
+    },
+    {
+      "api": "https://caiji.huakuiapi.com/inc/apijson_vod.php",
+      "ok": false,
+      "ms": 510,
+      "count": 0,
+      "note": "HTTP 504"
+    },
+    {
+      "api": "https://api.putaozy.net/inc/apijson_vod.php",
+      "ok": false,
+      "ms": 372,
+      "count": 0,
+      "note": "HTTP 504"
+    },
+    {
+      "api": "https://sewozyapi.com/api.php/provide/vod/",
+      "ok": false,
+      "ms": 283,
+      "count": 0,
+      "note": "HTTP 504"
+    },
+    {
+      "api": "https://api.yinwoapi.com/api.php/provide/vod/",
+      "ok": false,
+      "ms": 450,
+      "count": 0,
+      "note": "HTTP 504"
+    },
+    {
+      "api": "https://www.4000zy.com/inc/apijson_vod.php",
+      "ok": false,
+      "ms": 209,
+      "count": 0,
+      "note": "HTTP 502"
+    },
+    {
+      "api": "http://sdszyapi.com/home/cjapi/asbb/mc10/vod/xml",
+      "ok": false,
+      "ms": 3469,
+      "count": 0,
+      "note": "HTTP 504"
+    },
+    {
+      "api": "https://xjjzyapi.com/home/cjapi/askl/mc10/vod/xml",
+      "ok": false,
+      "ms": 3454,
+      "count": 0,
+      "note": "HTTP 504"
+    },
+    {
+      "api": "https://52zyapi.com/home/cjapi/asda/mc10/vod/xml",
+      "ok": false,
+      "ms": 3419,
+      "count": 0,
+      "note": "HTTP 504"
+    },
+    {
+      "api": "http://www.caiji21.com/home/cjapi/klkl/mc10/vod/xml",
+      "ok": false,
+      "ms": 3490,
+      "count": 0,
+      "note": "HTTP 504"
+    },
+    {
+      "api": "https://www.caiji22.com/home/cjapi/klp0/mc10/vod/xml",
+      "ok": false,
+      "ms": 3409,
+      "count": 0,
+      "note": "HTTP 504"
+    },
+    {
+      "api": "https://www.caiji23.com/home/cjapi/kls6/mc10/vod/xml",
+      "ok": false,
+      "ms": 3424,
+      "count": 0,
+      "note": "HTTP 504"
+    },
+    {
+      "api": "http://www.caiji24.com/home/cjapi/p0d2/mc10/vod/xml",
+      "ok": false,
+      "ms": 3469,
+      "count": 0,
+      "note": "HTTP 504"
+    },
+    {
+      "api": "http://www.caiji25.com/home/cjapi/p0as/mc10/vod/xml",
+      "ok": false,
+      "ms": 3415,
+      "count": 0,
+      "note": "HTTP 504"
+    },
+    {
+      "api": "http://caiji26.com/home/cjapi/p0g8/mc10/vod/xml",
+      "ok": false,
+      "ms": 3722,
+      "count": 0,
+      "note": "HTTP 504"
+    },
+    {
+      "api": "https://jgczyapi.com/home/cjapi/kld2/mc10/vod/xml",
+      "ok": false,
+      "ms": 3468,
+      "count": 0,
+      "note": "HTTP 504"
+    },
+    {
+      "api": "https://xx55zyapi.com/home/cjapi/ascf/mc10/vod/xml",
+      "ok": false,
+      "ms": 3512,
+      "count": 0,
+      "note": "HTTP 504"
+    },
+    {
+      "api": "https://www.dmmapi.com/home/cjapi/asd2c7/mc10/vod/xml",
+      "ok": false,
+      "ms": 506,
+      "count": 0,
+      "note": "HTTP 504"
+    },
+    {
+      "api": "https://www.caiji10.com/home/cjapi/cfs6/mc10/vod/xml",
+      "ok": false,
+      "ms": 420,
+      "count": 0,
+      "note": "HTTP 504"
+    },
+    {
+      "api": "https://www.caiji09.com/home/cjapi/cfp0/mc10/vod/xml",
+      "ok": false,
+      "ms": 3098,
+      "count": 0,
+      "note": "HTTP 504"
+    },
+    {
+      "api": "https://www.caiji08.com/home/cjapi/cfkl/mc10/vod/xml",
+      "ok": false,
+      "ms": 481,
+      "count": 0,
+      "note": "HTTP 504"
+    },
+    {
+      "api": "https://www.caiji07.com/home/cjapi/cfcf/mc10/vod/xml",
+      "ok": false,
+      "ms": 476,
+      "count": 0,
+      "note": "HTTP 504"
+    },
+    {
+      "api": "https://www.caiji06.com/home/cjapi/cfbb/mc10/vod/xml",
+      "ok": false,
+      "ms": 3092,
+      "count": 0,
+      "note": "HTTP 504"
+    },
+    {
+      "api": "https://www.caiji05.com/home/cjapi/cfda/mc10/vod/xml",
+      "ok": false,
+      "ms": 507,
+      "count": 0,
+      "note": "HTTP 504"
+    },
+    {
+      "api": "https://www.caiji04.com/home/cjapi/cfc7/mc10/vod/xml",
+      "ok": false,
+      "ms": 424,
+      "count": 0,
+      "note": "HTTP 504"
+    },
+    {
+      "api": "https://www.caiji03.com/home/cjapi/cfg8/mc10/vod/xml",
+      "ok": false,
+      "ms": 454,
+      "count": 0,
+      "note": "HTTP 504"
+    },
+    {
+      "api": "https://www.caiji02.com/home/cjapi/cfas/mc10/vod/xml",
+      "ok": false,
+      "ms": 475,
+      "count": 0,
+      "note": "HTTP 504"
+    },
+    {
+      "api": "https://www.caiji01.com/home/cjapi/cfd2/mc10/vod/xml",
+      "ok": false,
+      "ms": 486,
+      "count": 0,
+      "note": "HTTP 504"
+    },
+    {
+      "api": "http://www.987caiji.com/api/max.php",
+      "ok": false,
+      "ms": null,
+      "count": 0,
+      "note": "host 不允许探测"
+    },
+    {
+      "api": "http://99zy.pw/api.php/provide/vod/",
+      "ok": false,
+      "ms": 80,
+      "count": 0,
+      "note": "HTTP 504"
+    },
+    {
+      "api": "http://www.010aizy.com/API/macs.php",
+      "ok": false,
+      "ms": 91,
+      "count": 0,
+      "note": "HTTP 502"
+    },
+    {
+      "api": "https://javcaptain.com/api.php/provide/vod/",
+      "ok": false,
+      "ms": 924,
+      "count": 0,
+      "note": "HTTP 502"
+    },
+    {
+      "api": "https://www.888dav.com/api.php/provide/vod/",
+      "ok": false,
+      "ms": 3104,
+      "count": 0,
+      "note": "HTTP 504"
+    },
+    {
+      "api": "https://madouse.la/api.php/provide/vod/",
+      "ok": false,
+      "ms": 3069,
+      "count": 0,
+      "note": "HTTP 504"
+    },
+    {
+      "api": "https://91md.me/api.php/provide/vod/",
+      "ok": false,
+      "ms": 573,
+      "count": 0,
+      "note": "HTTP 502"
+    },
+    {
+      "api": "https://aicaozy.com/api.php/provide/vod/",
+      "ok": false,
+      "ms": 283,
+      "count": 0,
+      "note": "HTTP 504"
+    },
+    {
+      "api": "http://langchaozy6.com/api.php/provide/vod/",
+      "ok": false,
+      "ms": 234,
+      "count": 0,
+      "note": "HTTP 504"
+    },
+    {
+      "api": "https://api.suboapi.com/api.php/provide/vod/",
+      "ok": false,
+      "ms": 1371,
+      "count": 0,
+      "note": "HTTP 403"
+    },
+    {
+      "api": "https://kudouzy.com/api.php/provide/vod/",
+      "ok": false,
+      "ms": 278,
+      "count": 0,
+      "note": "HTTP 504"
+    },
+    {
+      "api": "https://api.kdapi.info/api.php/provide/vod/",
+      "ok": false,
+      "ms": 176,
+      "count": 0,
+      "note": "HTTP 504"
+    },
+    {
+      "api": "https://api.kudian70.com/api.php/provide/vod/",
+      "ok": false,
+      "ms": 515,
+      "count": 0,
+      "note": "HTTP 504"
+    },
+    {
+      "api": "https://api.ykapi.net/api.php/provide/vod/",
+      "ok": false,
+      "ms": 450,
+      "count": 0,
+      "note": "HTTP 504"
+    },
+    {
+      "api": "https://wanying4.com/api.php/provide/vod/",
+      "ok": false,
+      "ms": 276,
+      "count": 0,
+      "note": "HTTP 504"
+    },
+    {
+      "api": "https://yinlong.tv/api.php/provide/vod/",
+      "ok": false,
+      "ms": 25,
+      "count": 0,
+      "note": "HTTP 504"
+    },
+    {
+      "api": "https://caiji.naichaapi.com/inc/apijson_vod.php",
+      "ok": false,
+      "ms": 25,
+      "count": 0,
+      "note": "HTTP 504"
+    },
+    {
+      "api": "https://cj.apiabzy.com/api.php/provide/vod/",
+      "ok": false,
+      "ms": 935,
+      "count": 0,
+      "note": "HTTP 504"
+    },
+    {
+      "api": "https://www.msnii.com/api/xml.php",
+      "ok": false,
+      "ms": null,
+      "count": 0,
+      "note": "host 不允许探测"
+    },
+    {
+      "api": "https://www.xrbsp.com/api/xml.php",
+      "ok": false,
+      "ms": null,
+      "count": 0,
+      "note": "host 不允许探测"
+    },
+    {
+      "api": "https://www.gdlsp.com/api/xml.php",
+      "ok": false,
+      "ms": null,
+      "count": 0,
+      "note": "host 不允许探测"
+    },
+    {
+      "api": "https://www.kxgav.com/api/xml.php",
+      "ok": false,
+      "ms": null,
+      "count": 0,
+      "note": "host 不允许探测"
+    },
+    {
+      "api": "https://www.afasu.com/api/xml.php",
+      "ok": false,
+      "ms": null,
+      "count": 0,
+      "note": "host 不允许探测"
+    },
+    {
+      "api": "https://www.pgxdy.com/api/json.php",
+      "ok": false,
+      "ms": null,
+      "count": 0,
+      "note": "host 不允许探测"
+    },
+    {
+      "api": "https://dadiapi.com/api.php",
+      "ok": false,
+      "ms": 3026,
+      "count": 0,
+      "note": "HTTP 504"
+    },
+    {
+      "api": "http://www.feifei67.com/api.php/provide/vod/",
+      "ok": false,
+      "ms": 773,
+      "count": 0,
+      "note": "HTTP 502"
+    },
+    {
+      "api": "https://api.apilyzy.com/api.php/provide/vod/",
+      "ok": false,
+      "ms": 555,
+      "count": 0,
+      "note": "HTTP 504"
+    },
+    {
+      "api": "https://apihjzy.com/api.php/provide/vod/",
+      "ok": false,
+      "ms": 2204,
+      "count": 0,
+      "note": "HTTP 403"
+    },
+    {
+      "api": "https://apilj.com/api.php/provide/vod/at/json/",
+      "ok": false,
+      "ms": 3076,
+      "count": 0,
+      "note": "HTTP 504"
+    },
+    {
+      "api": "https://lbapi9.com/api.php/provide/vod/",
+      "ok": false,
+      "ms": 295,
+      "count": 0,
+      "note": "HTTP 502"
+    },
+    {
+      "api": "http://bttcj.com/inc/sapi.php",
+      "ok": false,
+      "ms": 458,
+      "count": 0,
+      "note": "HTTP 404"
+    },
+    {
+      "api": "http://wmcj8.com/inc/sapi.php",
+      "ok": false,
+      "ms": 600,
+      "count": 0,
+      "note": "非 XML/JSON"
+    },
+    {
+      "api": "http://mygzycj.com/api.php?ac=videolist",
+      "ok": false,
+      "ms": 255,
+      "count": 0,
+      "note": "HTTP 502"
+    },
+    {
+      "api": "http://m.7777688.com/inc/apijson.php",
+      "ok": false,
+      "ms": 1659,
+      "count": 0,
+      "note": "HTTP 403"
+    },
+    {
+      "api": "http://secj8.com/inc/sapi.php?ac=videolist",
+      "ok": false,
+      "ms": 236,
+      "count": 0,
+      "note": "非 XML/JSON"
+    },
+    {
+      "api": "http://99zywcj.com/inc/sapi.php?ac=videolist",
+      "ok": false,
+      "ms": 232,
+      "count": 0,
+      "note": "HTTP 504"
+    },
+    {
+      "api": "http://jcspcj8.com/api?ac=videolist",
+      "ok": false,
+      "ms": 639,
+      "count": 0,
+      "note": "HTTP 502"
+    },
+    {
+      "api": "http://cjmygzy.com/inc/sapi.php?ac=videolist",
+      "ok": false,
+      "ms": 26,
+      "count": 0,
+      "note": "HTTP 504"
+    },
+    {
+      "api": "http://f2dcj6.com/sapi?ac=videolist",
+      "ok": false,
+      "ms": 98,
+      "count": 0,
+      "note": "HTTP 404"
+    },
+    {
+      "api": "http://zmcj88.com/sapi?ac=videolist",
+      "ok": false,
+      "ms": 641,
+      "count": 0,
+      "note": "非 XML/JSON"
+    },
+    {
+      "api": "http://llzxcj.com/inc/sck.php?ac=videolist",
+      "ok": false,
+      "ms": 26,
+      "count": 0,
+      "note": "HTTP 504"
+    },
+    {
+      "api": "http://www.jializyzapi.com/api.php/provide/vod/",
+      "ok": false,
+      "ms": 3089,
+      "count": 0,
+      "note": "HTTP 504"
+    },
+    {
+      "api": "http://fhapi9.com/api.php/provide/vod/",
+      "ok": false,
+      "ms": 98,
+      "count": 0,
+      "note": "HTTP 502"
+    },
+    {
+      "api": "https://shayuapi.com/api.php/provide/vod/",
+      "ok": false,
+      "ms": 1108,
+      "count": 0,
+      "note": "HTTP 502"
+    },
+    {
+      "api": "http://www.ggmmzy.com:9999/inc/xml",
+      "ok": false,
+      "ms": 217,
+      "count": 0,
+      "note": "HTTP 502"
+    },
+    {
+      "api": "https://kkzy.me/api.php/provide/vod/",
+      "ok": false,
+      "ms": 445,
+      "count": 0,
+      "note": "HTTP 502"
+    },
+    {
+      "api": "https://jgczyapi.com/home/cjapi/kld2/mc/vod/xml",
+      "ok": false,
+      "ms": 3026,
+      "count": 0,
+      "note": "HTTP 504"
+    },
+    {
+      "api": "https://91md.me/api.php/provide/vod/from/mdm3u8/",
+      "ok": false,
+      "ms": 278,
+      "count": 0,
+      "note": "HTTP 502"
+    },
+    {
+      "api": "https://api.ykapi.net/api.php/provide/vod/from/ykm3u8/",
+      "ok": false,
+      "ms": 26,
+      "count": 0,
+      "note": "HTTP 504"
+    },
+    {
+      "api": "https://api.suboapi.com/api.php/provide/vod/",
+      "ok": false,
+      "ms": 1402,
+      "count": 0,
+      "note": "HTTP 403"
+    },
+    {
+      "api": "https://www.msnii.com/api/xml.php",
+      "ok": false,
+      "ms": null,
+      "count": 0,
+      "note": "host 不允许探测"
+    },
+    {
+      "api": "https://www.xrbsp.com/api/xml.php",
+      "ok": false,
+      "ms": null,
+      "count": 0,
+      "note": "host 不允许探测"
+    },
+    {
+      "api": "https://api.apilyzy.com/api.php/provide/vod/?ac=list",
+      "ok": false,
+      "ms": 25,
+      "count": 0,
+      "note": "HTTP 504"
+    },
+    {
+      "api": "https://lbapi9.com/api.php/provide/vod/",
+      "ok": false,
+      "ms": 244,
+      "count": 0,
+      "note": "HTTP 502"
+    },
+    {
+      "api": "https://api.putaozy.net/inc/apijson_vod.php",
+      "ok": false,
+      "ms": 26,
+      "count": 0,
+      "note": "HTTP 504"
+    },
+    {
+      "api": "https://caiji.naichaapi.com/inc/apijson_vod.php",
+      "ok": false,
+      "ms": 26,
+      "count": 0,
+      "note": "HTTP 504"
+    },
+    {
+      "api": "https://xx55zyapi.com/home/cjapi/ascf/mc/vod/xml",
+      "ok": false,
+      "ms": 3027,
+      "count": 0,
+      "note": "HTTP 504"
+    },
+    {
+      "api": "https://xjjzyapi.com/home/cjapi/askl/mc/vod/xml/m3u8",
+      "ok": false,
+      "ms": 3027,
+      "count": 0,
+      "note": "HTTP 504"
+    },
+    {
+      "api": "https://sdszyapi.com/home/cjapi/asbb/sea/vod/xml",
+      "ok": false,
+      "ms": 3027,
+      "count": 0,
+      "note": "HTTP 504"
+    },
+    {
+      "api": "https://sewozyapi.com/api.php/provide/vod/",
+      "ok": false,
+      "ms": 25,
+      "count": 0,
+      "note": "HTTP 504"
+    },
+    {
+      "api": "http://www.jializyzapi.com/api.php/provide/vod/",
+      "ok": false,
+      "ms": 3026,
+      "count": 0,
+      "note": "HTTP 504"
+    },
+    {
+      "api": "https://www.afasu.com/api/xml.php",
+      "ok": false,
+      "ms": null,
+      "count": 0,
+      "note": "host 不允许探测"
+    },
+    {
+      "api": "https://www.gdlsp.com/api/xml.php",
+      "ok": false,
+      "ms": null,
+      "count": 0,
+      "note": "host 不允许探测"
+    },
+    {
+      "api": "http://caiji26.com/home/cjapi/p0g8/mc/vod/xml",
+      "ok": false,
+      "ms": 3026,
+      "count": 0,
+      "note": "HTTP 504"
+    },
+    {
+      "api": "http://www.caiji25.com/home/cjapi/p0as/mc/vod/xml",
+      "ok": false,
+      "ms": 3026,
+      "count": 0,
+      "note": "HTTP 504"
+    },
+    {
+      "api": "https://www.caiji05.com/home/cjapi/cfda/mc/vod/xml",
+      "ok": false,
+      "ms": 474,
+      "count": 0,
+      "note": "HTTP 504"
+    },
+    {
+      "api": "https://api.kudian70.com/api.php/provide/vod/",
+      "ok": false,
+      "ms": 25,
+      "count": 0,
+      "note": "HTTP 504"
+    },
+    {
+      "api": "http://wmcj8.com/inc/sapi.php",
+      "ok": false,
+      "ms": 541,
+      "count": 0,
+      "note": "非 XML/JSON"
+    },
+    {
+      "api": "https://apihjzy.com/api.php/provide/vod/",
+      "ok": false,
+      "ms": 1499,
+      "count": 0,
+      "note": "HTTP 403"
+    },
+    {
+      "api": "https://caiji.523zyw.com/inc/seacmsapi.php",
+      "ok": false,
+      "ms": 196,
+      "count": 0,
+      "note": "HTTP 502"
+    },
+    {
+      "api": "https://apittzy.com/api.php/provide/vod/?ac=list",
+      "ok": false,
+      "ms": 3025,
+      "count": 0,
+      "note": "HTTP 504"
+    },
+    {
+      "api": "http://zmcj88.com/sapi?ac=videolist",
+      "ok": false,
+      "ms": 619,
+      "count": 0,
+      "note": "非 XML/JSON"
+    },
+    {
+      "api": "https://www.leyuzyapi.com/inc/zyapimac.php",
+      "ok": false,
+      "ms": 1940,
+      "count": 0,
+      "note": "HTTP 403"
+    },
+    {
+      "api": "https://api.kdapi.info/api.php/provide/vod/",
+      "ok": false,
+      "ms": 25,
+      "count": 0,
+      "note": "HTTP 504"
+    },
+    {
+      "api": "https://www.dmmapi.com/home/cjapi/asd2c7/mc/vod/xml",
+      "ok": false,
+      "ms": 26,
+      "count": 0,
+      "note": "HTTP 504"
+    },
+    {
+      "api": "https://www.kxgav.com/api/xml.php",
+      "ok": false,
+      "ms": null,
+      "count": 0,
+      "note": "host 不允许探测"
+    },
+    {
+      "api": "http://fhapi9.com/api.php/provide/vod/at/xml/",
+      "ok": false,
+      "ms": 97,
+      "count": 0,
+      "note": "HTTP 502"
+    },
+    {
+      "api": "http://mygzycj.com/sapi.php?ac=videolist",
+      "ok": false,
+      "ms": 240,
+      "count": 0,
+      "note": "HTTP 502"
+    },
+    {
+      "api": "http://4000zy.com/inc/api.php",
+      "ok": false,
+      "ms": 1450,
+      "count": 0,
+      "note": "非 XML/JSON"
+    },
+    {
+      "api": "http://www.ggmmzy.com:9999/inc/xml",
+      "ok": false,
+      "ms": 229,
+      "count": 0,
+      "note": "HTTP 502"
+    },
+    {
+      "api": "http://m.7777688.com/inc/apijson.php",
+      "ok": false,
+      "ms": 1097,
+      "count": 0,
+      "note": "HTTP 403"
+    },
+    {
+      "api": "http://langchaozy6.com/api.php/provide/vod/",
+      "ok": false,
+      "ms": 24,
+      "count": 0,
+      "note": "HTTP 504"
+    },
+    {
+      "api": "https://www.huyaapi.com/api.php/provide/vod/from/hym3u8/",
+      "ok": false,
+      "ms": 813,
+      "count": 0,
+      "note": "HTTP 403"
+    },
+    {
+      "api": "https://hhzyapi.com/api.php/provide/vod/?ac=list",
+      "ok": true,
+      "ms": 365,
+      "count": 20,
+      "note": "JSON"
+    },
+    {
+      "api": "https://jszyapi.com/api.php/provide/vod/",
+      "ok": false,
+      "ms": 772,
+      "count": 0,
+      "note": "HTTP 403"
+    },
+    {
+      "api": "https://cj.lziapi.com/api.php/provide/vod/",
+      "ok": false,
+      "ms": 3021,
+      "count": 0,
+      "note": "HTTP 504"
+    }
+  ]
+}

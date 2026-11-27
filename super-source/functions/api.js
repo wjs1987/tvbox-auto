@@ -210,6 +210,72 @@ async function handleProbe(q, request) {
   return json({ ok: true, from: "edgeone", results });
 }
 
+// ------------------------------------------------------------
+// 国内可达性探测（EdgeOne 定时任务触发，在国内节点执行）
+// 数据流：流水线(Actions)提交 probe_candidates.json 到仓库 → 定时任务在国内节点
+// 每小时轮询探测一批(32个) → 结果存 Blob → 流水线次日经 mode=probe_results 读取
+// （Actions 只读不探——函数跟着调用方跑，从美国调用探测无意义）
+// ------------------------------------------------------------
+const PROBE_CANDIDATE_URLS = [
+  "https://raw.githubusercontent.com/WJS1987/tvbox-auto/main/probe_candidates.json",
+  "https://ghproxy.net/https://raw.githubusercontent.com/WJS1987/tvbox-auto/main/probe_candidates.json",
+];
+const PROBE_BATCH = 32;        // 每次定时触发探测的数量（8×4 波，控制在执行时限内）
+const PROBE_FRESH_MS = 20 * 3600 * 1000;  // 20小时内测过的跳过，保证全池约 8 小时轮完一圈
+
+async function fetchCandidates() {
+  for (const u of PROBE_CANDIDATE_URLS) {
+    try {
+      const ctl = new AbortController();
+      const timer = setTimeout(() => ctl.abort(), 8000);
+      const r = await fetch(u + (u.includes("?") ? "&" : "?") + "_t=" + Date.now(),
+                            { headers: { "User-Agent": UA }, signal: ctl.signal, redirect: "follow" });
+      clearTimeout(timer);
+      if (!r.ok) continue;
+      const d = await r.json();
+      const raw = Array.isArray(d) ? d : (d.items || d.sites || []);
+      const items = raw.filter((x) => x && String(x.api || "").startsWith("http")
+                                 && !String(x.api).includes("edgeone.cool"));
+      if (items.length) return items;
+    } catch { /* 换下一个镜像 */ }
+  }
+  return null;
+}
+
+async function handleCronProbe(request, env) {
+  const mainland = request.headers.get("eo-is-mainland") || "?";
+  const items = await fetchCandidates();
+  if (!items || !items.length) return json({ ok: false, note: "probe_candidates.json 不可得" }, 503);
+  const cursor = Number((await cacheGet(env, "probe_cursor")) || 0) % items.length;
+  const results = (await cacheGet(env, "probe_results")) || {};
+  const now = Date.now();
+  // 从游标处取一批"最久没测过"的源
+  const slice = [];
+  for (let i = 0; i < items.length && slice.length < PROBE_BATCH; i++) {
+    const it = items[(cursor + i) % items.length];
+    const prev = results[it.api];
+    if (prev && now - Date.parse(prev.ts || 0) < PROBE_FRESH_MS) continue;
+    slice.push(it);
+  }
+  const probed = [];
+  for (let i = 0; i < slice.length; i += 8) {
+    const part = await Promise.all(slice.slice(i, i + 8).map(probeOne));
+    probed.push(...part);
+  }
+  const ts = new Date(now).toISOString();
+  for (const r of probed) results[r.api] = { ok: r.ok, ms: r.ms, count: r.count, note: r.note, ts };
+  const okCount = probed.filter((r) => r.ok).length;
+  await cachePut(env, "probe_results", results);
+  await cachePut(env, "probe_cursor", (cursor + PROBE_BATCH) % items.length);
+  await cachePut(env, "probe_meta", { ts, mainland, probed: probed.length, ok: okCount, pool: items.length });
+  return json({ ok: true, mainland, probed: probed.length, chinaAlive: okCount, pool: items.length });
+}
+
+async function handleProbeResults(env) {
+  const [results, meta] = await Promise.all([cacheGet(env, "probe_results"), cacheGet(env, "probe_meta")]);
+  return json({ ok: true, meta, results: results || {} });
+}
+
 function normName(s) {
   return String(s || "").toLowerCase().replace(/[\s\p{P}\p{S}]+/gu, "");
 }
@@ -637,7 +703,14 @@ async function handleDetail(ids, cat, env, origin) {
 export async function onRequest({ request, env }) {
   const url = new URL(request.url);
   const q = url.searchParams;
-  const mode = q.get("mode") || "";
+  let mode = q.get("mode") || "";
+  // EdgeOne 定时任务只带 path+payload（无法保证 query），允许从 POST JSON body 里取 mode
+  if (!mode && request.method === "POST") {
+    try {
+      const b = await request.clone().json();
+      if (b && typeof b.mode === "string") mode = b.mode;
+    } catch { /* 无 body 或非 JSON */ }
+  }
 
   try {
     if (mode === "refresh") {
@@ -647,6 +720,8 @@ export async function onRequest({ request, env }) {
       return json({ ok: true, total: cat.items.length, upstreams: cat.upstreams });
     }
     if (mode === "probe") return await handleProbe(q, request);
+    if (mode === "cronprobe") return await handleCronProbe(request, env);
+    if (mode === "probe_results") return await handleProbeResults(env);
     if (mode === "diag") {
       // 直接回显请求头与 EdgeOne 注入的 GEO 信息，判断节点位置（不依赖外部回显服务）
       const hdrs = {};

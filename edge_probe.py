@@ -65,8 +65,17 @@ def probe_batch(url, items, cookie, timeout=25):
 
 
 def load_sites(path):
-    with open(path, encoding="utf-8") as f:
-        d = json.load(f)
+    try:
+        with open(path, encoding="utf-8-sig") as f:
+            d = json.load(f)
+    except json.JSONDecodeError:
+        # 容错：tv.json 里可能存在注释与尾逗号
+        import re
+        txt = open(path, encoding="utf-8-sig").read()
+        txt = re.sub(r"^\s*//.*$", "", txt, flags=re.M)
+        txt = re.sub(r"^\s*#.*$", "", txt, flags=re.M)
+        txt = re.sub(r",\s*([\]}])", r"\1", txt)
+        d = json.loads(txt)
     sites = d.get("sites", []) if isinstance(d, dict) else d
     return [s for s in sites if str(s.get("api", "")).startswith("http")]
 

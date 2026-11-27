@@ -1,0 +1,77 @@
+{
+  "updated": "2026-11-27T01:43:54Z",
+  "from": "edgeone-cn-node",
+  "total": 8,
+  "alive_count": 7,
+  "dead_count": 1,
+  "alive": [
+    "https://taopianapi.com/cjapi/mc/vod/json.html",
+    "http://154.219.117.232:9981/jacloudapi.php/provide/vod",
+    "https://hhzyapi.com/api.php/provide/vod/",
+    "https://api.apibdzy.com/api.php/provide/vod/",
+    "https://lzizy1.com/api.php/provide/vod/",
+    "http://ffzy.tv/api.php/provide/vod/",
+    "https://hhzyapi.com/api.php/provide/vod/?ac=list"
+  ],
+  "dead": [
+    "https://cj.lziapi.com/api.php/provide/vod/"
+  ],
+  "details": [
+    {
+      "api": "https://taopianapi.com/cjapi/mc/vod/json.html",
+      "ok": true,
+      "ms": 1485,
+      "count": 30,
+      "note": "JSON"
+    },
+    {
+      "api": "http://154.219.117.232:9981/jacloudapi.php/provide/vod",
+      "ok": true,
+      "ms": 109,
+      "count": 20,
+      "note": "JSON"
+    },
+    {
+      "api": "https://hhzyapi.com/api.php/provide/vod/",
+      "ok": true,
+      "ms": 1152,
+      "count": 20,
+      "note": "JSON"
+    },
+    {
+      "api": "https://api.apibdzy.com/api.php/provide/vod/",
+      "ok": true,
+      "ms": 1161,
+      "count": 20,
+      "note": "JSON"
+    },
+    {
+      "api": "https://lzizy1.com/api.php/provide/vod/",
+      "ok": true,
+      "ms": 1068,
+      "count": 20,
+      "note": "JSON"
+    },
+    {
+      "api": "http://ffzy.tv/api.php/provide/vod/",
+      "ok": true,
+      "ms": 714,
+      "count": 20,
+      "note": "JSON"
+    },
+    {
+      "api": "https://cj.lziapi.com/api.php/provide/vod/",
+      "ok": false,
+      "ms": 77,
+      "count": 0,
+      "note": "HTTP 502"
+    },
+    {
+      "api": "https://hhzyapi.com/api.php/provide/vod/?ac=list",
+      "ok": true,
+      "ms": 486,
+      "count": 20,
+      "note": "JSON"
+    }
+  ]
+}

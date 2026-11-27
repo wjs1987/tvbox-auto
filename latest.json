@@ -7,7 +7,7 @@
       "type": 1,
       "api": "https://tvbox-juxu-spegz3xv.edgeone.cool/api",
       "header": {
-        "Cookie": "eo_token=95105c5effaec4b5141bc248ee599e92; eo_time=1795748765"
+        "Cookie": "eo_token=3f4b6eda0928f342a89fbe5529ec4606; eo_time=1795750949"
       },
       "searchable": 1,
       "quickSearch": 1,
@@ -24,7 +24,7 @@
       "type": 1,
       "api": "https://tvbox-juxu-spegz3xv.edgeone.cool/api?mode=pansearch",
       "header": {
-        "Cookie": "eo_token=95105c5effaec4b5141bc248ee599e92; eo_time=1795748765"
+        "Cookie": "eo_token=3f4b6eda0928f342a89fbe5529ec4606; eo_time=1795750949"
       },
       "searchable": 1,
       "quickSearch": 0,
@@ -125,15 +125,6 @@
       "timeout": 15
     },
     {
-      "key": "src171",
-      "name": "百度 采集",
-      "type": 1,
-      "api": "https://api.apibdzy.com/api.php/provide/vod/?ac=list",
-      "searchable": 1,
-      "filterable": 0,
-      "timeout": 15
-    },
-    {
       "key": "src169",
       "name": "火狐采集",
       "type": 1,
@@ -166,6 +157,15 @@
         "日本动漫",
         "欧美动漫"
       ],
+      "timeout": 15
+    },
+    {
+      "key": "src171",
+      "name": "百度 采集",
+      "type": 1,
+      "api": "https://api.apibdzy.com/api.php/provide/vod/?ac=list",
+      "searchable": 1,
+      "filterable": 0,
       "timeout": 15
     },
     {
@@ -259,27 +259,15 @@
       "timeout": 15
     },
     {
-      "key": "src183",
-      "name": "手机 推送",
+      "key": "src96",
+      "name": "WWE 体育",
       "type": 3,
-      "api": "csp_AweSomeGuard",
-      "searchable": 0,
-      "filterable": 0,
-      "changeable": 0,
-      "ext": {
-        "sp": "Push"
-      },
-      "timeout": 25
-    },
-    {
-      "key": "src157",
-      "name": "皮皮 影视",
-      "type": 3,
-      "api": "csp_PipiXia",
+      "api": "csp_SportAiWweGuard",
       "searchable": 1,
-      "quickSearch": 1,
-      "filterable": 1,
-      "jar": "./libs/jar/P4.jar",
+      "changeable": 0,
+      "style": {
+        "type": "list"
+      },
       "timeout": 15
     },
     {
@@ -290,6 +278,37 @@
       "api": "csp_ManJuAiXiFanGuard",
       "searchable": 1,
       "changeable": 0,
+      "timeout": 15
+    },
+    {
+      "key": "src208",
+      "name": "比特 秒播",
+      "type": 3,
+      "api": "csp_BttwooGuard",
+      "timeout": 10,
+      "searchable": 1,
+      "quickSearch": 1,
+      "changeable": 1
+    },
+    {
+      "key": "src36",
+      "name": "虎斑 4K",
+      "type": 3,
+      "api": "csp_AiNewHuBanGuard",
+      "searchable": 1,
+      "quickSearch": 1,
+      "changeable": 0,
+      "timeout": 15
+    },
+    {
+      "key": "src174",
+      "name": "央视 大全",
+      "type": 3,
+      "api": "csp_CCTV",
+      "searchable": 0,
+      "filterable": 0,
+      "jar": "./libs/jar/HCCX.jar",
+      "ext": "./libs/hccx/央视大全.json",
       "timeout": 15
     },
     {
@@ -319,24 +338,14 @@
       "timeout": 15
     },
     {
-      "key": "src15",
-      "name": "荐片 影视",
-      "api": "csp_Jianpian",
+      "key": "src157",
+      "name": "皮皮 影视",
       "type": 3,
-      "playerType": "2",
-      "ext": "https://api.ztcgi.com",
-      "timeout": 15
-    },
-    {
-      "key": "src96",
-      "name": "WWE 体育",
-      "type": 3,
-      "api": "csp_SportAiWweGuard",
+      "api": "csp_PipiXia",
       "searchable": 1,
-      "changeable": 0,
-      "style": {
-        "type": "list"
-      },
+      "quickSearch": 1,
+      "filterable": 1,
+      "jar": "./libs/jar/P4.jar",
       "timeout": 15
     },
     {
@@ -344,6 +353,27 @@
       "name": "原创 不卡",
       "type": 3,
       "api": "csp_YCyz",
+      "timeout": 15,
+      "playerType": 1,
+      "searchable": 1,
+      "quickSearch": 1,
+      "changeable": 1
+    },
+    {
+      "key": "src65",
+      "name": "漫剧 小猫",
+      "type": 3,
+      "类型": "短剧",
+      "api": "csp_ManJuAiQiMaoGuard",
+      "searchable": 1,
+      "changeable": 0,
+      "timeout": 15
+    },
+    {
+      "key": "src207",
+      "name": "原创 秒播",
+      "type": 3,
+      "api": "csp_YCyzGuard",
       "timeout": 15,
       "playerType": 1,
       "searchable": 1,
@@ -361,53 +391,14 @@
       "timeout": 15
     },
     {
-      "key": "src182",
-      "name": "我的云盘 我配置",
+      "key": "src173",
+      "name": "迅雷吧",
       "type": 3,
-      "api": "csp_MyDriveGuard",
-      "changeable": 0,
-      "indexs": 0,
-      "searchable": 1,
-      "style": {
-        "type": "oval"
-      },
-      "ext": {
-        "Cloud-drive": "tvfan/Cloud-drive.txt"
-      },
-      "timeout": 15
-    },
-    {
-      "key": "src156",
-      "name": "哔嘀 影视",
-      "type": 3,
-      "api": "csp_Bdys",
-      "playerType": "1",
+      "api": "csp_Xunlei8",
       "searchable": 1,
       "quickSearch": 1,
+      "jar": "./libs/jar/xyq.jar",
       "filterable": 1,
-      "jar": "./libs/jar/P4.jar",
-      "timeout": 15
-    },
-    {
-      "key": "src65",
-      "name": "漫剧 小猫",
-      "type": 3,
-      "类型": "短剧",
-      "api": "csp_ManJuAiQiMaoGuard",
-      "searchable": 1,
-      "changeable": 0,
-      "timeout": 15
-    },
-    {
-      "key": "src95",
-      "name": "咖啡 体育",
-      "type": 3,
-      "api": "csp_SportAiKaFeiGuard",
-      "searchable": 1,
-      "changeable": 0,
-      "style": {
-        "type": "list"
-      },
       "timeout": 15
     },
     {
@@ -443,6 +434,23 @@
       "quickSearch": 1,
       "filterable": 1,
       "timeout": 15
+    },
+    {
+      "key": "mydrive",
+      "name": "我的云盘 要配置账号",
+      "type": 3,
+      "api": "csp_MyDriveGuard",
+      "jar": "https://xiuxiu-pro-new.meitudata.com/posters/8ad28c3ad40145e2f9331fe3f8abddb2.jpg;md5;5302302a73a9e27cfaa65f3873b727ab",
+      "changeable": 0,
+      "indexs": 0,
+      "searchable": 1,
+      "style": {
+        "type": "oval"
+      },
+      "ext": {
+        "Cloud-drive": "tvfan/Cloud-drive.txt"
+      },
+      "timeout": 20
     }
   ],
   "lives": [

@@ -562,28 +562,6 @@ MAIN_CAT_PY = re.compile(r"电影|剧集|电视剧|综艺|动漫|动画|片|连�
 # 家庭网络实测稳定失效的源（GitHub 海外机房测出来是活的，但国内连不上，点进去一直转圈）。
 # 2026-11-27 家里网络两轮探测均为 0 成功。按完整 API 地址匹配，避免误杀同域名的正常源。
 # 源若日后恢复，从本列表删除对应行即可重新入选。
-# 家宽视角探测（edge_probe.py 生成）动态失效名单：EdgeOne 国内节点实测不可达的源。
-# 由 --home-alive 参数加载；为空时行为与原来完全一致（只有静态 HOME_DEAD_APIS 生效）。
-HOME_PROBE_DEAD = set()
-
-
-def load_home_probe_dead(path):
-    """加载 edge_probe.py 生成的国内探测结果，把失效 API 并入动态名单。
-    只把明确判定 dead 的加入；alive 名单不强制放行（避免误杀好源）。"""
-    global HOME_PROBE_DEAD
-    if not path:
-        return 0
-    try:
-        with open(path, encoding="utf-8") as f:
-            d = json.load(f)
-        for api in d.get("dead", []):
-            HOME_PROBE_DEAD.add(str(api).strip().rstrip("/"))
-        return len(HOME_PROBE_DEAD)
-    except Exception as e:
-        print(f"[家宽探测] 加载失败: {e}")
-        return 0
-
-
 HOME_DEAD_APIS = [
     "https://ikunzyapi.com/api.php/provide/vod",
     "https://apilj.com/api.php/provide/vod/at/json/",
@@ -601,8 +579,6 @@ HOME_DEAD_APIS = [
 def is_home_dead(site: dict) -> bool:
     """站点 API 是否在家庭网络实测失效名单里（去尾部斜杠后精确匹配）。"""
     api = str(site.get("api") or "").strip().rstrip("/")
-    if api in HOME_PROBE_DEAD:
-        return True
     return any(api == str(d).strip().rstrip("/") for d in HOME_DEAD_APIS)
 
 
@@ -1025,13 +1001,7 @@ def main():
     ap.add_argument("--check", action="store_true", help="旧模式参数：联网检测")
     ap.add_argument("--refresh-super", action="store_true",
                     help="只刷新超级源 token 并更新 latest.json（轻量，每小时跑）")
-    ap.add_argument("--home-alive", default="",
-                    help="edge_probe.py 生成的国内存活名单，国内节点实测失效的源会被剔除")
     args = ap.parse_args()
-
-    if args.home_alive:
-        n = load_home_probe_dead(args.home_alive)
-        print(f"[家宽探测] 已加载 {n} 个国内失效源，将从精选中剔除")
 
     if args.legacy:
         legacy_mode(args)

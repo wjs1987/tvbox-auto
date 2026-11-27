@@ -124,92 +124,6 @@ async function jfetch(url, ms = 8000, maxBytes = 1_500_000) {
   }
 }
 
-// ------------------------------------------------------------
-// 家宽视角探测（mode=probe）
-// 从 EdgeOne 边缘节点发起请求，返回每个源 API 的国内可达性/延迟/片数。
-// 边缘函数限制：单次运行最多 64 次 fetch、并发上限 8、读超时默认 15s。
-// 因此调用方每批最多传 8 个源，本函数并发探测；分批多次调用即可覆盖全量。
-// 仅允许探测 http(s) 且带白名单路径的采集 API，防止被当作开放 SSRF 代理。
-// ------------------------------------------------------------
-const PROBE_ALLOW_HOST = /(^|\.)(api\.php|cjapi|jscapi)$|api\.|[a-z0-9-]*api[a-z0-9-]*\./i;
-function probeAllowed(u) {
-  try {
-    const x = new URL(u);
-    if (!/^https?:$/.test(x.protocol)) return false;
-    const h = x.hostname.toLowerCase();
-    const path = x.pathname.toLowerCase();
-    // 放行：主机名含 api/zy/cj，或路径是采集接口(api.php/cjapi/vod)；禁止私有地址
-    if (/^(127\.|10\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.|localhost$)/.test(h)) return false;
-    if (h.includes("api") || h.includes("zy") || h.includes("cj")) return true;
-    return /api\.php|cjapi|provide\/vod|apijson/.test(path);
-  } catch { return false; }
-}
-
-async function probeOne(item) {
-  const api = String(item.api || "").trim();
-  const type = Number(item.type || 0);
-  const out = { api, ok: false, ms: null, count: 0, note: "" };
-  if (!probeAllowed(api)) { out.note = "host 不允许探测"; return out; }
-  let url = api;
-  if (type === 3) {
-    const ext = typeof item.ext === "string" ? item.ext : "";
-    if (api.startsWith("csp_")) { out.ok = true; out.note = "内置CSP"; return out; }
-    if (!ext.startsWith("http")) { out.note = "type3 无 ext"; return out; }
-    url = ext;
-  } else {
-    url = api + (api.includes("?") ? "&" : "?") + (type === 1 ? "ac=list" : "ac=videolist");
-  }
-  const ctl = new AbortController();
-  const timer = setTimeout(() => ctl.abort(), 9000);
-  const t0 = Date.now();
-  try {
-    const r = await fetch(url, {
-      headers: { "User-Agent": UA },
-      signal: ctl.signal,
-      redirect: "follow",
-    });
-    out.ms = Date.now() - t0;
-    if (!r.ok) { out.note = "HTTP " + r.status; return out; }
-    const txt = (await r.text()).slice(0, 400000);
-    const low = txt.slice(0, 2000).toLowerCase();
-    if (low.includes("<video") || low.includes("<list")) {
-      out.ok = true; out.count = (txt.match(/<video/g) || []).length; out.note = "XML";
-    } else {
-      try {
-        const d = JSON.parse(txt);
-        let lst = d && d.list;
-        if (d && d.vod_list) lst = d.vod_list;
-        if (Array.isArray(lst) && lst.length) {
-          out.ok = true; out.count = lst.length; out.note = "JSON";
-        } else out.note = "JSON 无片单";
-      } catch { out.note = "非 XML/JSON"; }
-    }
-  } catch (e) {
-    out.ms = Date.now() - t0;
-    out.note = "超时/连接失败";
-  } finally {
-    clearTimeout(timer);
-  }
-  return out;
-}
-
-async function handleProbe(q, request) {
-  let items = [];
-  if (request.method === "POST") {
-    try {
-      const body = await request.json();
-      items = Array.isArray(body.items) ? body.items : [];
-    } catch { return json({ error: "invalid json" }, 400); }
-  } else {
-    // GET 兼容：?urls=<JSON数组>
-    try { items = JSON.parse(q.get("items") || "[]"); } catch { items = []; }
-  }
-  items = items.slice(0, 8); // 单次最多 8 个（并发上限）
-  if (!items.length) return json({ error: "empty items" }, 400);
-  const results = await Promise.all(items.map((it) => probeOne(it)));
-  return json({ ok: true, from: "edgeone", results });
-}
-
 function normName(s) {
   return String(s || "").toLowerCase().replace(/[\s\p{P}\p{S}]+/gu, "");
 }
@@ -645,24 +559,6 @@ export async function onRequest({ request, env }) {
       if (token && q.get("key") !== token) return json({ error: "unauthorized" }, 401);
       const cat = await rebuild(env);
       return json({ ok: true, total: cat.items.length, upstreams: cat.upstreams });
-    }
-    if (mode === "probe") return await handleProbe(q, request);
-    if (mode === "diag") {
-      // 探测边缘节点出口 IP 与归属地，判断是否为国内出口
-      const ips = {};
-      for (const [k, u] of Object.entries({
-        ipify: "https://api.ipify.org?format=json",
-        ipapi: "https://ip-api.com/json/?fields=status,country,regionName,city,isp,query",
-      })) {
-        try {
-          const ctl = new AbortController();
-          const timer = setTimeout(() => ctl.abort(), 6000);
-          const r = await fetch(u, { signal: ctl.signal });
-          ips[k] = await r.json();
-          clearTimeout(timer);
-        } catch (e) { ips[k] = { error: String(e && e.message || e) }; }
-      }
-      return json({ ok: true, from: "edgeone", exit_ips: ips });
     }
     if (mode === "status") {
       const cat = await getCatalog(env, url.origin);

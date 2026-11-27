@@ -1266,25 +1266,28 @@ def auto_mode(args):
             if gen.get("lives"):
                 latest["lives"] = gen["lives"]
                 print(f"[直播] 采用 {live_name}：{len(gen['lives'])} 个直播源")
-                # 配置瘦身：内联的几千个频道会让 latest.json 从 ~90KB 涨到 ~200KB，
-                # 魔屏这类盒子解析 200KB JSON + 拉取本身就要多花好几秒。
-                # 这里把内联频道组替换成对 live.txt 的 url 引用（打开"直播"页时才去拉），
-                # 主配置只剩站点列表，冷启动明显更快。
-                slim = []
-                for lv in latest["lives"]:
-                    if lv.get("url"):
-                        slim.append(lv)
-                    elif any(k in lv for k in ("groups", "channel", "channels")):
-                        slim.append({"name": lv.get("name") or "自建直播",
-                                     "url": RAW + "live.txt",
-                                     "ua": lv.get("ua") or "okHttp/Mod-1.5.0.0",
-                                     "timeout": 10})
-                    else:
-                        slim.append(lv)
-                latest["lives"] = slim
                 break
         except Exception as e:
             print(f"[直播] {live_name} 读取失败，沿用种子直播源: {e}")
+
+    # 配置瘦身（无论直播来自哪里都要做）：内联几千个频道会让 latest.json 从 ~50KB 涨到 200~400KB，
+    # 魔屏这类盒子光是拉取+解析就要多花十几秒。这里把内联频道组换成对 live.txt 的 url 引用，
+    # 频道只在用户打开"直播"页时才去拉，主配置只剩站点列表。
+    slim = []
+    for lv in latest.get("lives", []):
+        if not isinstance(lv, dict):
+            continue
+        if lv.get("url"):
+            slim.append(lv)
+        elif any(k in lv for k in ("groups", "channel", "channels")):
+            slim.append({"name": lv.get("name") or "自建直播",
+                         "url": RAW + "live.txt",
+                         "ua": lv.get("ua") or "okHttp/Mod-1.5.0.0",
+                         "timeout": 10})
+        else:
+            slim.append(lv)
+    if slim:
+        latest["lives"] = slim
 
     # 生成超级源静态目录（边缘函数直接秒级加载，不再实时聚合）
     try:

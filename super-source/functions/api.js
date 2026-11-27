@@ -25,21 +25,64 @@ const KV_KEY = "catalog";
 const UA = "okhttp/3.12.0";
 const REFRESH_INTERVAL_MS = 20 * 3600 * 1000; // 超过 20 小时自动重建
 
-// KV 尚未绑定/审批中时的内存兜底缓存（同一隔离实例内多请求共享，冷启动后需重建）
+// ------------------------------------------------------------
+// 存储层：Blob 优先（免审批、首次调用自动创建命名空间）→ KV → 内存兜底
+// Blob 用于：片单缓存(catalog)、详情缓存(d:*)。全部失败时仅内存可用（冷启动后需重建）。
+// ------------------------------------------------------------
 let memStore = new Map();
+let blobState = null;   // null=未探测, false=不可用, 其余=store 实例
+let backendName = "memory";
 
-async function kvGet(env, key) {
+async function getBlobStore() {
+  if (blobState !== null) return blobState;
   try {
-    if (env.KV && typeof env.KV.get === "function") return await env.KV.get(key, "json");
-  } catch { /* KV 异常时退回内存 */ }
+    // 动态导入：部署环境没打包该依赖时自动降级，不影响服务
+    const mod = await import("@edgeone/pages-blob");
+    blobState = mod.getStore("super-source");
+    backendName = "blob";
+  } catch {
+    blobState = false;
+  }
+  return blobState || null;
+}
+
+async function cacheGet(env, key) {
+  // 1) Blob（最终一致，秒级生效，适合缓存场景）
+  const store = await getBlobStore();
+  if (store) {
+    try {
+      const v = await store.get(key, { type: "json" });
+      if (v !== null && v !== undefined) { backendName = "blob"; return v; }
+    } catch { /* 降级 */ }
+  }
+  // 2) KV 绑定（审批通过后无需改代码自动生效）
+  try {
+    if (env.KV && typeof env.KV.get === "function") {
+      const v = await env.KV.get(key, "json");
+      if (v !== null && v !== undefined) { backendName = "kv"; return v; }
+    }
+  } catch { /* 降级 */ }
+  // 3) 同实例内存
+  backendName = memStore.has(key) ? backendName : "memory";
   return memStore.has(key) ? memStore.get(key) : null;
 }
 
-async function kvPut(env, key, value) {
-  memStore.set(key, value); // 始终写内存，保证无 KV 时同实例请求可直接复用
-  try {
-    if (env.KV && typeof env.KV.put === "function") await env.KV.put(key, JSON.stringify(value));
-  } catch { /* 忽略 KV 写入失败 */ }
+async function cachePut(env, key, value) {
+  memStore.set(key, value); // 始终写内存，保证同实例请求零开销
+  let ok = false;
+  const store = await getBlobStore();
+  if (store) {
+    try { await store.setJSON(key, value); ok = true; backendName = "blob"; } catch { /* 降级 */ }
+  }
+  if (!ok) {
+    try {
+      if (env.KV && typeof env.KV.put === "function") {
+        await env.KV.put(key, JSON.stringify(value));
+        ok = true; backendName = "kv";
+      }
+    } catch { /* 忽略 */ }
+  }
+  return ok;
 }
 
 const FIXED_CLASSES = [
@@ -323,7 +366,7 @@ async function rebuild(env) {
     classes: FIXED_CLASSES,
     items: [...seen.values()],
   };
-  await kvPut(env, KV_KEY, catalog);
+  await cachePut(env, KV_KEY, catalog);
   return catalog;
 }
 
@@ -337,11 +380,11 @@ async function getCatalog(env, origin) {
   if (fresh) {
     memCatalog = fresh;
     memCatalogAt = Date.now();
-    kvPut(env, KV_KEY, fresh).catch(() => {});
+    cachePut(env, KV_KEY, fresh).catch(() => {});
     return fresh;
   }
   // 3) 全部失败：退回 KV 缓存，再退回边端实时聚合
-  const kv = await kvGet(env, KV_KEY);
+  const kv = await cacheGet(env, KV_KEY);
   if (kv?.items?.length) {
     memCatalog = kv;
     memCatalogAt = Date.now();
@@ -464,7 +507,7 @@ async function handleDetail(ids, cat, env, origin) {
 
   // 详情缓存：6小时内点过的片直接秒开，不再回源
   const cacheKey = "d:" + first;
-  const cached = await kvGet(env, cacheKey);
+  const cached = await cacheGet(env, cacheKey);
   if (cached?.vod && Date.now() - new Date(cached.t).getTime() < 6 * 3600 * 1000) {
     return json({ code: 1, list: [cached.vod] });
   }
@@ -501,7 +544,7 @@ async function handleDetail(ids, cat, env, origin) {
     vod_play_from: ok.flatMap((p) => p.value.groups.map((g) => g.label)).join("$$$"),
     vod_play_url: ok.flatMap((p) => p.value.groups.map((g) => g.play)).join("$$$"),
   };
-  kvPut(env, cacheKey, { t: new Date().toISOString(), vod }).catch(() => {});
+  cachePut(env, cacheKey, { t: new Date().toISOString(), vod }).catch(() => {});
   return json({ code: 1, list: [vod] });
 }
 
@@ -519,7 +562,11 @@ export async function onRequest({ request, env }) {
     }
     if (mode === "status") {
       const cat = await getCatalog(env, url.origin);
-      return json({ updated: cat.updated, upstreams: cat.upstreams, total: (cat.items || []).length });
+      // 探测真实可用的存储后端（写一个小探针并回读，结果反映在 storage 字段）
+      await cachePut(env, "probe", { t: Date.now() });
+      const probe = await cacheGet(env, "probe");
+      const storage = probe ? `${backendName}(读写OK)` : `${backendName}(只写不读!)`;
+      return json({ updated: cat.updated, upstreams: cat.upstreams, total: (cat.items || []).length, storage });
     }
 
     const ac = q.get("ac") || "list";

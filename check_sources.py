@@ -1273,6 +1273,8 @@ def auto_mode(args):
     # 配置瘦身（无论直播来自哪里都要做）：内联几千个频道会让 latest.json 从 ~50KB 涨到 200~400KB，
     # 魔屏这类盒子光是拉取+解析就要多花十几秒。这里把内联频道组换成对 live.txt 的 url 引用，
     # 频道只在用户打开"直播"页时才去拉，主配置只剩站点列表。
+    LIVE_TXT_URL = ("https://gh-proxy.com/https://raw.githubusercontent.com/"
+                    "WJS1987/tvbox-auto/main/live.txt")
     slim = []
     for lv in latest.get("lives", []):
         if not isinstance(lv, dict):
@@ -1281,7 +1283,7 @@ def auto_mode(args):
             slim.append(lv)
         elif any(k in lv for k in ("groups", "channel", "channels")):
             slim.append({"name": lv.get("name") or "自建直播",
-                         "url": RAW + "live.txt",
+                         "url": LIVE_TXT_URL,
                          "ua": lv.get("ua") or "okHttp/Mod-1.5.0.0",
                          "timeout": 10})
         else:

@@ -7,7 +7,7 @@
       "type": 1,
       "api": "https://tvbox-juxu-spegz3xv.edgeone.cool/api",
       "header": {
-        "Cookie": "eo_token=0ea15fda4de69241af11eb9be2d56c2c; eo_time=1795786786"
+        "Cookie": "eo_token=31f597ef2c8394b94b3053154027b29f; eo_time=1795787464"
       },
       "searchable": 1,
       "quickSearch": 1,
@@ -77,6 +77,16 @@
       "timeout": 15
     },
     {
+      "key": "sd3f31183",
+      "name": "百度 采集",
+      "type": 1,
+      "api": "https://api.apibdzy.com/api.php/provide/vod/?ac=list",
+      "searchable": 1,
+      "filterable": 0,
+      "timeout": 15,
+      "quickSearch": 1
+    },
+    {
       "key": "s6643d465",
       "name": "火狐采集",
       "type": 1,
@@ -110,16 +120,6 @@
         "欧美动漫"
       ],
       "timeout": 15
-    },
-    {
-      "key": "sd3f31183",
-      "name": "百度 采集",
-      "type": 1,
-      "api": "https://api.apibdzy.com/api.php/provide/vod/?ac=list",
-      "searchable": 1,
-      "filterable": 0,
-      "timeout": 15,
-      "quickSearch": 1
     },
     {
       "key": "s1b48dbda",
@@ -171,6 +171,17 @@
       "timeout": 15
     },
     {
+      "key": "sdf0646f7",
+      "name": "聚玩盒子4K",
+      "type": 3,
+      "api": "https://jihulab.com/yydfys/yydf/-/raw/main/yydf/lib/drpy2.min.js",
+      "ext": "https://jihulab.com/yydfys/yydf/-/raw/main/yydf/lib/douban.js",
+      "timeout": 15,
+      "searchable": 1,
+      "filterable": 0,
+      "quickSearch": 1
+    },
+    {
       "key": "s76fcfa82",
       "name": "儿童 启蒙",
       "type": 3,
@@ -198,27 +209,41 @@
       "quickSearch": 1
     },
     {
-      "key": "s84f81a77",
-      "name": "疯狗 影视",
+      "key": "s6b597762",
+      "name": "弹幕 小窗",
       "type": 3,
-      "api": "csp_FengGo",
-      "playerType": 2,
-      "jar": "./libs/jar/Panda.jar",
+      "jar": "https://gitee.com/zj521jj/little-tiger-spot/raw/master/jar/HubanTC.jar",
+      "api": "csp_Huban",
       "timeout": 15,
       "searchable": 1,
       "filterable": 0,
       "quickSearch": 1
     },
     {
-      "key": "sade56b58",
-      "name": "立播 4K",
+      "key": "sd4a8d2c2",
+      "name": "Vod DIY",
       "type": 3,
-      "api": "csp_AiNewLibvioGuard",
+      "api": "csp_DiyVodGuard",
       "searchable": 1,
-      "quickSearch": 1,
+      "changeable": 0,
+      "style": {
+        "type": "list"
+      },
+      "timeout": 15,
+      "filterable": 0,
+      "quickSearch": 1
+    },
+    {
+      "key": "s6be292a8",
+      "name": "短剧 小薇",
+      "type": 3,
+      "类型": "短剧",
+      "api": "csp_DuanJuAiWeiGuanGuard",
+      "searchable": 1,
       "changeable": 0,
       "timeout": 15,
-      "filterable": 0
+      "filterable": 0,
+      "quickSearch": 0
     },
     {
       "key": "s474b3c07",
@@ -239,39 +264,6 @@
       "timeout": 15,
       "searchable": 1,
       "filterable": 0,
-      "quickSearch": 1
-    },
-    {
-      "key": "s1f6dd2af",
-      "name": "哔哩 影视",
-      "type": 3,
-      "api": "csp_BiliYsGuard",
-      "searchable": 1,
-      "quickSearch": 0,
-      "filterable": 1,
-      "timeout": 15
-    },
-    {
-      "key": "s0479ef88",
-      "name": "共和 动漫",
-      "type": 3,
-      "api": "csp_AnimeAiGongHeGuoGuard",
-      "searchable": 1,
-      "changeable": 0,
-      "timeout": 15,
-      "filterable": 0,
-      "quickSearch": 0
-    },
-    {
-      "key": "s7219da01",
-      "name": "爱看 影视",
-      "type": 3,
-      "api": "csp_Ikan",
-      "playerType": 2,
-      "jar": "./libs/jar/Panda.jar",
-      "timeout": 15,
-      "searchable": 1,
-      "filterable": 0,
       "quickSearch": 0
     },
     {
@@ -286,62 +278,6 @@
       "filterable": 0
     },
     {
-      "key": "sd4a8d2c2",
-      "name": "Vod DIY",
-      "type": 3,
-      "api": "csp_DiyVodGuard",
-      "searchable": 1,
-      "changeable": 0,
-      "style": {
-        "type": "list"
-      },
-      "timeout": 15,
-      "filterable": 0,
-      "quickSearch": 0
-    },
-    {
-      "key": "s6be292a8",
-      "name": "短剧 小薇",
-      "type": 3,
-      "类型": "短剧",
-      "api": "csp_DuanJuAiWeiGuanGuard",
-      "searchable": 1,
-      "changeable": 0,
-      "timeout": 15,
-      "filterable": 0,
-      "quickSearch": 0
-    },
-    {
-      "key": "se4da63f1",
-      "name": "蔬菜 APP",
-      "type": 3,
-      "api": "csp_AppGet",
-      "ext": "https://allinadmin.oss-cn-hangzhou.aliyuncs.com/bk/9.txt|88689667dce61725",
-      "timeout": 15,
-      "searchable": 1,
-      "filterable": 0,
-      "quickSearch": 0
-    },
-    {
-      "key": "sf7bebf34",
-      "name": "哔哩 合集",
-      "type": 3,
-      "api": "csp_Bili",
-      "playerType": 2,
-      "ext": {
-        "json": "https://nos.netease.com/ysf/0075389dca9afadd4614e9713765ff17.txt",
-        "cookie": ""
-      },
-      "style": {
-        "type": "rect",
-        "ratio": 1.333
-      },
-      "timeout": 15,
-      "searchable": 1,
-      "filterable": 0,
-      "quickSearch": 0
-    },
-    {
       "key": "s3b10251e",
       "name": "素白 影视",
       "type": 3,
@@ -351,17 +287,6 @@
       "searchable": 1,
       "filterable": 0,
       "quickSearch": 0
-    },
-    {
-      "key": "s66ae56be",
-      "name": "蜡笔 4K",
-      "type": 3,
-      "api": "csp_AiNewLaBiGuard",
-      "searchable": 1,
-      "quickSearch": 0,
-      "changeable": 0,
-      "timeout": 15,
-      "filterable": 0
     },
     {
       "key": "sf037d6a1",
@@ -387,11 +312,11 @@
       "quickSearch": 0
     },
     {
-      "key": "sc0a4695f",
-      "name": "金牌 影视",
+      "key": "se4da63f1",
+      "name": "蔬菜 APP",
       "type": 3,
-      "api": "csp_Jpys",
-      "ext": "https://y2s52n7.com",
+      "api": "csp_AppGet",
+      "ext": "https://allinadmin.oss-cn-hangzhou.aliyuncs.com/bk/9.txt|88689667dce61725",
       "timeout": 15,
       "searchable": 1,
       "filterable": 0,
@@ -410,10 +335,29 @@
       "quickSearch": 0
     },
     {
-      "key": "s8606cba0",
-      "name": "快影 4K",
+      "key": "sf7bebf34",
+      "name": "哔哩 合集",
       "type": 3,
-      "api": "csp_AiNewKuaiYingGuard",
+      "api": "csp_Bili",
+      "playerType": 2,
+      "ext": {
+        "json": "https://nos.netease.com/ysf/0075389dca9afadd4614e9713765ff17.txt",
+        "cookie": ""
+      },
+      "style": {
+        "type": "rect",
+        "ratio": 1.333
+      },
+      "timeout": 15,
+      "searchable": 1,
+      "filterable": 0,
+      "quickSearch": 0
+    },
+    {
+      "key": "s66ae56be",
+      "name": "蜡笔 4K",
+      "type": 3,
+      "api": "csp_AiNewLaBiGuard",
       "searchable": 1,
       "quickSearch": 0,
       "changeable": 0,
@@ -456,10 +400,10 @@
       "timeout": 15
     },
     {
-      "key": "s1759bef7",
-      "name": "多多 4K",
+      "key": "s8606cba0",
+      "name": "快影 4K",
       "type": 3,
-      "api": "csp_AiNewDuoDuoGuard",
+      "api": "csp_AiNewKuaiYingGuard",
       "searchable": 1,
       "quickSearch": 0,
       "changeable": 0,
@@ -505,10 +449,10 @@
       "filterable": 0
     },
     {
-      "key": "sf0cf82c6",
-      "name": "木偶 4K",
+      "key": "s1759bef7",
+      "name": "多多 4K",
       "type": 3,
-      "api": "csp_AiNewMuOuGuard",
+      "api": "csp_AiNewDuoDuoGuard",
       "searchable": 1,
       "quickSearch": 0,
       "changeable": 0,
@@ -551,15 +495,74 @@
       "filterable": 0
     },
     {
-      "key": "s694d189b",
-      "name": "配置 中心",
+      "key": "sf0cf82c6",
+      "name": "木偶 4K",
       "type": 3,
-      "api": "csp_Config",
-      "playerType": 2,
-      "timeout": 15,
+      "api": "csp_AiNewMuOuGuard",
       "searchable": 1,
+      "quickSearch": 0,
+      "changeable": 0,
+      "timeout": 15,
+      "filterable": 0
+    },
+    {
+      "key": "s29075e65",
+      "name": "115 分享‍",
+      "type": 3,
+      "api": "csp_FakeAi115ShareGuard",
+      "searchable": 1,
+      "changeable": 0,
+      "timeout": 50,
+      "style": {
+        "type": "list"
+      },
       "filterable": 0,
       "quickSearch": 0
+    },
+    {
+      "key": "s338a5133",
+      "name": "漫短 小喜",
+      "type": 3,
+      "类型": "短剧",
+      "api": "csp_ManJuAiXiFanGuard",
+      "searchable": 1,
+      "changeable": 0,
+      "timeout": 15,
+      "filterable": 0,
+      "quickSearch": 0
+    },
+    {
+      "key": "s5394d7ad",
+      "name": "六九 美剧",
+      "type": 3,
+      "api": "csp_AppYsV2",
+      "searchable": 1,
+      "quickSearch": 0,
+      "filterable": 1,
+      "ext": "https://www.69mj.com/xgapp.php/v2/",
+      "timeout": 15
+    },
+    {
+      "key": "se3dcf617",
+      "name": "Btt 秒播",
+      "type": 3,
+      "api": "csp_Bttwoo",
+      "searchable": 1,
+      "quickSearch": 0,
+      "changeable": 1,
+      "timeout": 15,
+      "filterable": 0
+    },
+    {
+      "key": "sbe147e59",
+      "name": "虎斑 4K",
+      "type": 3,
+      "api": "csp_AiNewHuBanGuard",
+      "searchable": 1,
+      "quickSearch": 0,
+      "changeable": 0,
+      "timeout": 15,
+      "filterable": 0
     },
     {
       "key": "pan_search",

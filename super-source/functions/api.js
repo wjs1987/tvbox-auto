@@ -617,6 +617,47 @@ async function panSearch(wd, pg, want, env) {
   return out;
 }
 
+// 网盘搜索首页：无搜索词时展示热门真实资源，避免电视端“找不到数据”
+const PAN_HOT_WORDS = [
+  { wd: "庆余年", cat: "c_tv" },
+  { wd: "狂飙", cat: "c_tv" },
+  { wd: "流浪地球", cat: "c_movie" },
+  { wd: "奔跑吧", cat: "c_variety" },
+  { wd: "蜡笔小新", cat: "c_anime" },
+  { wd: "舌尖上的中国", cat: "c_doc" },
+];
+let panHomeMem = null;
+async function panHome(env) {
+  if (panHomeMem && Date.now() - panHomeMem.t < 6 * 3600 * 1000) return panHomeMem.v;
+  if (env) {
+    const cached = await cacheGet(env, "pan:home2");
+    if (Array.isArray(cached) && cached.length) {
+      panHomeMem = { t: Date.now(), v: cached };
+      return cached;
+    }
+  }
+  // 各热门词并发抓取，每个词取 3 条，减少子请求数
+  const groups = await Promise.allSettled(PAN_HOT_WORDS.map((h) => panSearch(h.wd, 1, 3, env)));
+  const out = [];
+  groups.forEach((g, i) => {
+    if (g.status !== "fulfilled" || !Array.isArray(g.value)) return;
+    for (const p of g.value) {
+      if (out.some((x) => x.link === p.link)) continue; // 热门词交叉时按链接去重
+      out.push({ ...p, cat: PAN_HOT_WORDS[i].cat, title: p.title.replace(/^\d+\s*[.．、]\s*/, "") });
+    }
+  });
+  if (out.length) {
+    panHomeMem = { t: Date.now(), v: out };
+    if (env) cachePut(env, "pan:home2", out).catch(() => {});
+  }
+  return out;
+}
+function panCatOf(p) {
+  if (p.cat) return p.cat;
+  for (const [re, id] of CAT_MAP) if (re.test(p.title || "")) return id;
+  return "c_all";
+}
+
 // 网盘结果的 id：pan:<网盘类型>|<片名>|<网盘链接>（均 URL 编码）
 function makePanId(p) {
   return "pan:" + [p.disk, p.title, p.link].map((x) => encodeURIComponent(x)).join("|");
@@ -813,18 +854,34 @@ export async function onRequest({ request, env }) {
     }
     if (mode === "pansearch") {
       // 独立网盘搜索源：供魔屏作为单独站点并行调用，不拖慢主片单搜索
+      const ac = q.get("ac") || "list";
+      const ids = q.get("ids") || "";
+      // 详情请求必须透传，否则点击网盘结果会落到这里返回空列表
+      if (ac === "detail" && ids) {
+        const cat = await getCatalog(env, url.origin);
+        return await handleDetail(ids, cat, env, url.origin);
+      }
       const wd = (q.get("wd") || "").trim();
       const pg = Math.max(1, parseInt(q.get("pg") || "1", 10));
-      if (!wd) return json({ code: 1, msg: "数据列表", page: 1, limit: 40, total: 0, pagecount: 1, class: FIXED_CLASSES, list: [] });
-      const pans = await panSearch(wd, pg, 12, env);
-      const list = pans.map((p) => ({
-        vod_id: makePanId(p),
-        vod_name: p.title,
-        vod_pic: "",
-        vod_remarks: "📀" + p.disk,
-        type_id: "c_all",
-        type_name: "网盘",
-      }));
+      const t = (q.get("t") || "").trim();
+      let pans;
+      if (wd) {
+        pans = await panSearch(wd, pg, 12, env);
+      } else {
+        pans = await panHome(env);
+        if (t && t !== "c_all") pans = pans.filter((p) => panCatOf(p) === t);
+      }
+      const list = pans.map((p) => {
+        const cid = panCatOf(p);
+        return {
+          vod_id: makePanId(p),
+          vod_name: p.title,
+          vod_pic: "",
+          vod_remarks: "📀" + p.disk,
+          type_id: cid,
+          type_name: FIXED_CLASSES.find((c) => c.type_id === cid)?.type_name || "网盘",
+        };
+      });
       return json({ code: 1, msg: "数据列表", page: pg, limit: 40, total: list.length, pagecount: 1, class: FIXED_CLASSES, list });
     }
     if (mode === "probe") return await handleProbe(q, request);

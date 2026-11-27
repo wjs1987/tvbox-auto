@@ -7,24 +7,6 @@
    "ext": ""
   },
   {
-   "api": "http://xhztv.top/xhz/js/lib/drpy.min.js",
-   "type": 3,
-   "name": "JRKAN直播",
-   "ext": "http://xhztv.top/xhz/js/JRKAN直播.js"
-  },
-  {
-   "api": "https://jihulab.com/yydfys/yydf/-/raw/main/yydf/lib/drpy2.min.js",
-   "type": 3,
-   "name": "🔥聚玩盒子4K",
-   "ext": "https://jihulab.com/yydfys/yydf/-/raw/main/yydf/lib/douban.js"
-  },
-  {
-   "api": "https://jszyapi.com/api.php/provide/vod/?ac=list",
-   "type": 1,
-   "name": "影视 | 极速[直连]",
-   "ext": ""
-  },
-  {
    "api": "http://api.xinlangapi.com/xinlangapi.php/provide/vod/",
    "type": 1,
    "name": "新浪资源(切)",
@@ -49,6 +31,18 @@
    "ext": ""
   },
   {
+   "api": "https://jszyapi.com/api.php/provide/vod/?ac=list",
+   "type": 1,
+   "name": "影视 | 极速[直连]",
+   "ext": ""
+  },
+  {
+   "api": "http://xhztv.top/xhz/js/lib/drpy.min.js",
+   "type": 3,
+   "name": "JRKAN直播",
+   "ext": "http://xhztv.top/xhz/js/JRKAN直播.js"
+  },
+  {
    "api": "http://tyyszy.com/api.php/provide/vod",
    "type": 1,
    "name": "影视 | 天涯",
@@ -61,10 +55,22 @@
    "ext": ""
   },
   {
+   "api": "https://jihulab.com/yydfys/yydf/-/raw/main/yydf/lib/drpy2.min.js",
+   "type": 3,
+   "name": "🔥聚玩盒子4K",
+   "ext": "https://jihulab.com/yydfys/yydf/-/raw/main/yydf/lib/douban.js"
+  },
+  {
    "api": "https://suoniapi.com/api.php/provide/vod/",
    "type": 1,
    "name": "🎥┃索尼┃资源",
    "ext": ""
+  },
+  {
+   "api": "https://git.yylx.win/https://raw.githubusercontent.com/fantaiying7/EXT/refs/heads/main/drpy2.min.js",
+   "type": 3,
+   "name": "📚儿童┃启蒙",
+   "ext": "https://szyyds.cn/tv/jx/兔小贝.js"
   },
   {
    "api": "http://sdzyapi.com/api.php/provide/vod/",
@@ -73,9 +79,33 @@
    "ext": ""
   },
   {
+   "api": "https://szyyds.cn/js/6F02.js",
+   "type": 3,
+   "name": "爱奇艺",
+   "ext": "https://szyyds.cn/js/3c16.js"
+  },
+  {
+   "api": "https://www.hongniuzy2.com/api.php/provide/vod/",
+   "type": 1,
+   "name": "红牛资源(切)",
+   "ext": ""
+  },
+  {
    "api": "https://api.apibdzy.com/api.php/provide/vod/?ac=list",
    "type": 1,
    "name": "🎏百度┃采集",
+   "ext": ""
+  },
+  {
+   "api": "http://ffzy1.tv/api.php/provide/vod/",
+   "type": 1,
+   "name": "🥗┃非凡┃资源",
+   "ext": ""
+  },
+  {
+   "api": "http://ffzy.tv/api.php/provide/vod/",
+   "type": 1,
+   "name": "影视 | 非凡[直连]",
    "ext": ""
   },
   {
@@ -91,27 +121,15 @@
    "ext": ""
   },
   {
-   "api": "https://taopianapi.com/cjapi/mc/vod/json.html",
-   "type": 1,
-   "name": "🕹️淘片┃采集",
-   "ext": ""
-  },
-  {
    "api": "https://bfzyapi.com/api.php/provide/vod/?ac=list",
    "type": 1,
    "name": "影视 | 暴風[直连]",
    "ext": ""
   },
   {
-   "api": "http://caiji.dyttzyapi.com/api.php/provide/vod",
+   "api": "https://taopianapi.com/cjapi/mc/vod/json.html",
    "type": 1,
-   "name": "影视 | 电影天堂",
-   "ext": ""
-  },
-  {
-   "api": "http://caiji.dyttzyapi.com/api.php/provide/vod/from/dyttm3u8/at/m3u8/",
-   "type": 1,
-   "name": "️天堂┃采集",
+   "name": "🕹️淘片┃采集",
    "ext": ""
   },
   {
@@ -121,34 +139,22 @@
    "ext": ""
   },
   {
-   "api": "https://www.hongniuzy2.com/api.php/provide/vod/",
+   "api": "http://caiji.dyttzyapi.com/api.php/provide/vod/from/dyttm3u8/at/m3u8/",
    "type": 1,
-   "name": "红牛资源(切)",
+   "name": "️天堂┃采集",
    "ext": ""
   },
   {
-   "api": "http://ffzy.tv/api.php/provide/vod/",
+   "api": "http://caiji.dyttzyapi.com/api.php/provide/vod",
    "type": 1,
-   "name": "影视 | 非凡[直连]",
+   "name": "影视 | 电影天堂",
    "ext": ""
   },
   {
-   "api": "http://ffzy1.tv/api.php/provide/vod/",
+   "api": "http://cj.lziapi.com/api.php/provide/vod/",
    "type": 1,
-   "name": "🥗┃非凡┃资源",
+   "name": "量子资源(切)",
    "ext": ""
-  },
-  {
-   "api": "https://git.yylx.win/https://raw.githubusercontent.com/fantaiying7/EXT/refs/heads/main/drpy2.min.js",
-   "type": 3,
-   "name": "📚儿童┃启蒙",
-   "ext": "https://szyyds.cn/tv/jx/兔小贝.js"
-  },
-  {
-   "api": "https://szyyds.cn/js/6F02.js",
-   "type": 3,
-   "name": "爱奇艺",
-   "ext": "https://szyyds.cn/js/3c16.js"
   },
   {
    "api": "https://shayuapi.com/api.php/Seacms/vod",
@@ -160,12 +166,6 @@
    "api": "https://cj.lziapi.com/api.php/provide/vod/",
    "type": 1,
    "name": "影视 | 量子[直连]",
-   "ext": ""
-  },
-  {
-   "api": "http://cj.lziapi.com/api.php/provide/vod/",
-   "type": 1,
-   "name": "量子资源(切)",
    "ext": ""
   },
   {
@@ -181,15 +181,15 @@
    "ext": ""
   },
   {
-   "api": "http://fhapi9.com/api.php/provide/vod/at/xml/",
-   "type": 0,
-   "name": "9号资源",
-   "ext": ""
-  },
-  {
    "api": "https://lbapi9.com/api.php/provide/vod/",
    "type": 1,
    "name": "*乐播资源",
+   "ext": ""
+  },
+  {
+   "api": "http://fhapi9.com/api.php/provide/vod/at/xml/",
+   "type": 0,
+   "name": "9号资源",
    "ext": ""
   },
   {

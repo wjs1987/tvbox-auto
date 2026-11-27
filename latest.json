@@ -7,7 +7,7 @@
       "type": 1,
       "api": "https://tvbox-juxu-spegz3xv.edgeone.cool/api",
       "header": {
-        "Cookie": "eo_token=325609b5f494fde9169398f807a747de; eo_time=1795753564"
+        "Cookie": "eo_token=f655b00d53fcdfcc06a85a7e169d7f6b; eo_time=1795755640"
       },
       "searchable": 1,
       "quickSearch": 1,
@@ -24,7 +24,7 @@
       "type": 1,
       "api": "https://tvbox-juxu-spegz3xv.edgeone.cool/api?mode=pansearch",
       "header": {
-        "Cookie": "eo_token=325609b5f494fde9169398f807a747de; eo_time=1795753564"
+        "Cookie": "eo_token=f655b00d53fcdfcc06a85a7e169d7f6b; eo_time=1795755640"
       },
       "searchable": 1,
       "quickSearch": 0,
@@ -249,35 +249,25 @@
       "timeout": 15
     },
     {
-      "key": "src126",
-      "name": "原创 不卡",
+      "key": "src127",
+      "name": "Btt 秒播",
       "type": 3,
-      "api": "csp_YCyz",
-      "timeout": 15,
-      "playerType": 1,
+      "api": "csp_Bttwoo",
       "searchable": 1,
       "quickSearch": 1,
-      "changeable": 1
-    },
-    {
-      "key": "src34",
-      "name": "‍七味 4K‍",
-      "type": 3,
-      "api": "csp_AiQwMkvGuard",
-      "searchable": 1,
-      "quickSearch": 1,
-      "changeable": 0,
+      "changeable": 1,
       "timeout": 15
     },
     {
-      "key": "src157",
-      "name": "皮皮 影视",
+      "key": "src96",
+      "name": "WWE 体育",
       "type": 3,
-      "api": "csp_PipiXia",
+      "api": "csp_SportAiWweGuard",
       "searchable": 1,
-      "quickSearch": 1,
-      "filterable": 1,
-      "jar": "./libs/jar/P4.jar",
+      "changeable": 0,
+      "style": {
+        "type": "list"
+      },
       "timeout": 15
     },
     {
@@ -299,6 +289,16 @@
       "timeout": 15
     },
     {
+      "key": "src208",
+      "name": "比特 秒播",
+      "type": 3,
+      "api": "csp_BttwooGuard",
+      "timeout": 10,
+      "searchable": 1,
+      "quickSearch": 1,
+      "changeable": 1
+    },
+    {
       "key": "src7",
       "name": "潮流 APP",
       "type": 3,
@@ -307,10 +307,31 @@
       "timeout": 15
     },
     {
-      "key": "src207",
-      "name": "原创 秒播",
+      "key": "src65",
+      "name": "漫剧 小猫",
       "type": 3,
-      "api": "csp_YCyzGuard",
+      "类型": "短剧",
+      "api": "csp_ManJuAiQiMaoGuard",
+      "searchable": 1,
+      "changeable": 0,
+      "timeout": 15
+    },
+    {
+      "key": "src157",
+      "name": "皮皮 影视",
+      "type": 3,
+      "api": "csp_PipiXia",
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 1,
+      "jar": "./libs/jar/P4.jar",
+      "timeout": 15
+    },
+    {
+      "key": "src126",
+      "name": "原创 不卡",
+      "type": 3,
+      "api": "csp_YCyz",
       "timeout": 15,
       "playerType": 1,
       "searchable": 1,
@@ -330,34 +351,33 @@
       "timeout": 15
     },
     {
-      "key": "src64",
-      "name": "漫剧 小龙",
+      "key": "src35",
+      "name": "盘库 4K",
       "type": 3,
-      "类型": "短剧",
-      "api": "csp_ManJuAiHuoLongGuard",
+      "api": "csp_AiNewPianKuGuard",
       "searchable": 1,
+      "quickSearch": 1,
       "changeable": 0,
       "timeout": 15
     },
     {
-      "key": "src125",
-      "name": "厂长 不卡",
+      "key": "src207",
+      "name": "原创 秒播",
       "type": 3,
-      "api": "csp_NewCz",
+      "api": "csp_YCyzGuard",
       "timeout": 15,
-      "playerType": 2,
+      "playerType": 1,
       "searchable": 1,
       "quickSearch": 1,
-      "changeable": 1,
-      "ext": "https://www.czzy77.com/"
+      "changeable": 1
     },
     {
-      "key": "src33",
-      "name": "‍观影 4K‍",
+      "key": "src66",
+      "name": "漫短 小喜",
       "type": 3,
-      "api": "csp_AiNewGuanYingGuard",
+      "类型": "短剧",
+      "api": "csp_ManJuAiXiFanGuard",
       "searchable": 1,
-      "quickSearch": 1,
       "changeable": 0,
       "timeout": 15
     },
@@ -375,33 +395,11 @@
       "timeout": 25
     },
     {
-      "key": "src156",
-      "name": "哔嘀 影视",
+      "key": "src64",
+      "name": "漫剧 小龙",
       "type": 3,
-      "api": "csp_Bdys",
-      "playerType": "1",
-      "searchable": 1,
-      "quickSearch": 1,
-      "filterable": 1,
-      "jar": "./libs/jar/P4.jar",
-      "timeout": 15
-    },
-    {
-      "key": "src206",
-      "name": "文采 秒播",
-      "type": 3,
-      "api": "csp_JpysGuard",
-      "timeout": 10,
-      "playerType": 2,
-      "searchable": 1,
-      "quickSearch": 1,
-      "changeable": 1
-    },
-    {
-      "key": "src94",
-      "name": "八八 体育",
-      "type": 3,
-      "api": "csp_SportAiKanqiuGuard",
+      "类型": "短剧",
+      "api": "csp_ManJuAiHuoLongGuard",
       "searchable": 1,
       "changeable": 0,
       "timeout": 15
@@ -411,7 +409,7 @@
       "name": "云盘搜索",
       "type": 3,
       "api": "csp_PanSearch",
-      "jar": "https://raw.githubusercontent.com/regtostudy/TVBox_warehouse/main/spider.jar",
+      "jar": "https://raw.githubusercontent.com/WJS1987/tvbox-auto/main/libs/pan_spider.jar",
       "searchable": 1,
       "quickSearch": 1,
       "filterable": 0,
@@ -422,7 +420,7 @@
       "name": "SeedHub磁力",
       "type": 3,
       "api": "csp_SeedHub",
-      "jar": "https://raw.githubusercontent.com/regtostudy/TVBox_warehouse/main/spider.jar",
+      "jar": "https://raw.githubusercontent.com/WJS1987/tvbox-auto/main/libs/pan_spider.jar",
       "searchable": 1,
       "quickSearch": 1,
       "filterable": 1,
@@ -433,7 +431,7 @@
       "name": "New6V磁力",
       "type": 3,
       "api": "csp_New6v",
-      "jar": "https://raw.githubusercontent.com/regtostudy/TVBox_warehouse/main/spider.jar",
+      "jar": "https://raw.githubusercontent.com/WJS1987/tvbox-auto/main/libs/pan_spider.jar",
       "ext": "https://www.xb6v.com",
       "searchable": 1,
       "quickSearch": 1,
@@ -445,7 +443,7 @@
       "name": "我的云盘 扫码登录",
       "type": 3,
       "api": "csp_MyDriveGuard",
-      "jar": "https://xiuxiu-pro-new.meitudata.com/posters/8ad28c3ad40145e2f9331fe3f8abddb2.jpg;md5;5302302a73a9e27cfaa65f3873b727ab",
+      "jar": "https://raw.githubusercontent.com/WJS1987/tvbox-auto/main/libs/fty_spider.jar;md5;5302302a73a9e27cfaa65f3873b727ab",
       "changeable": 0,
       "indexs": 0,
       "searchable": 1,
@@ -462,7 +460,7 @@
       "name": "玩偶哥哥4K",
       "type": 3,
       "api": "csp_WoGGGuard",
-      "jar": "https://xiuxiu-pro-new.meitudata.com/posters/8ad28c3ad40145e2f9331fe3f8abddb2.jpg;md5;5302302a73a9e27cfaa65f3873b727ab",
+      "jar": "https://raw.githubusercontent.com/WJS1987/tvbox-auto/main/libs/fty_spider.jar;md5;5302302a73a9e27cfaa65f3873b727ab",
       "changeable": 0,
       "searchable": 1,
       "quickSearch": 1,
@@ -476,7 +474,7 @@
       "name": "盘她夸父",
       "type": 3,
       "api": "csp_YpanSoGuard",
-      "jar": "https://xiuxiu-pro-new.meitudata.com/posters/8ad28c3ad40145e2f9331fe3f8abddb2.jpg;md5;5302302a73a9e27cfaa65f3873b727ab",
+      "jar": "https://raw.githubusercontent.com/WJS1987/tvbox-auto/main/libs/fty_spider.jar;md5;5302302a73a9e27cfaa65f3873b727ab",
       "changeable": 0,
       "searchable": 1,
       "quickSearch": 1,
@@ -490,7 +488,7 @@
       "name": "盘他嘟嘟",
       "type": 3,
       "api": "csp_BpanSoGuard",
-      "jar": "https://xiuxiu-pro-new.meitudata.com/posters/8ad28c3ad40145e2f9331fe3f8abddb2.jpg;md5;5302302a73a9e27cfaa65f3873b727ab",
+      "jar": "https://raw.githubusercontent.com/WJS1987/tvbox-auto/main/libs/fty_spider.jar;md5;5302302a73a9e27cfaa65f3873b727ab",
       "changeable": 0,
       "searchable": 1,
       "quickSearch": 1,
@@ -504,7 +502,7 @@
       "name": "抠抠搜搜",
       "type": 3,
       "api": "csp_KkSsGuard",
-      "jar": "https://xiuxiu-pro-new.meitudata.com/posters/8ad28c3ad40145e2f9331fe3f8abddb2.jpg;md5;5302302a73a9e27cfaa65f3873b727ab",
+      "jar": "https://raw.githubusercontent.com/WJS1987/tvbox-auto/main/libs/fty_spider.jar;md5;5302302a73a9e27cfaa65f3873b727ab",
       "changeable": 0,
       "searchable": 1,
       "quickSearch": 1,
@@ -518,7 +516,7 @@
       "name": "优汐搜搜",
       "type": 3,
       "api": "csp_UuSsGuard",
-      "jar": "https://xiuxiu-pro-new.meitudata.com/posters/8ad28c3ad40145e2f9331fe3f8abddb2.jpg;md5;5302302a73a9e27cfaa65f3873b727ab",
+      "jar": "https://raw.githubusercontent.com/WJS1987/tvbox-auto/main/libs/fty_spider.jar;md5;5302302a73a9e27cfaa65f3873b727ab",
       "changeable": 0,
       "searchable": 1,
       "quickSearch": 1,

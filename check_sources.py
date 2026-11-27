@@ -454,13 +454,21 @@ def build_latest(seed_cfg: dict, selected_sites: list, alive_channels: list, liv
     # 魔屏加载配置时下载 jar 是同步等待，这 50 秒会直接变成黑屏等待。
     PAN_JAR = ("https://raw.githubusercontent.com/"
                "regtostudy/TVBox_warehouse/main/spider.jar")
-    # 饭太硬同款网盘爬虫包（实测含 csp_MyDriveGuard/Guard/panso 类，1.4MB）；
-    # 只有它才能解析夸克/阿里等网盘分享的播放直链。伪装成 .jpg，需按站点单独挂 jar，
-    # 不进全局 spider（全局 jar 决定其他 type3 站点兼容性，换掉会连累它们）。
+    # 饭太硬同款网盘爬虫包（实测与饭太硬官方 spider 字节级一致：
+    # assets/ftyguard_v7.so + v8.so + ftyshinidie.guard，含全套 csp_*Guard 网盘类）。
+    # 伪装成 .jpg，按站点单独挂 jar，不进全局 spider（全局 jar 决定其他 type3
+    # 站点兼容性，换掉会连累它们）。
     FTY_JAR = ("https://xiuxiu-pro-new.meitudata.com/posters/"
                "8ad28c3ad40145e2f9331fe3f8abddb2.jpg;md5;5302302a73a9e27cfaa65f3873b727ab")
-    # 爬来的"我的云盘"站点没挂 jar（用全局 jar 不含 MyDrive 类，是摆设），先剔除避免重复
-    sites = [s for s in sites if s.get("api") != "csp_MyDriveGuard"]
+    # 真实机制（2026-11-27 用户纠正 + 全网核实）：不是手动填 Cookie。
+    # 点"我的云盘"站点 → 客户端弹二维码 → 手机网盘APP扫码登录 →
+    # token 由客户端自动写进本地 tvfan/Cloud-drive.txt；
+    # 下列共用该账号文件的站点随后才能把网盘分享解析成可播直链。
+    CD = {"Cloud-drive": "tvfan/Cloud-drive.txt"}
+    # 爬来的同名站点没挂 jar（全局 jar 不含这些 Guard 类，是摆设），先剔除避免重复
+    FTY_APIS = {"csp_MyDriveGuard", "csp_WoGGGuard", "csp_YpanSoGuard",
+                "csp_BpanSoGuard", "csp_KkSsGuard", "csp_UuSsGuard"}
+    sites = [s for s in sites if s.get("api") not in FTY_APIS]
     sites.extend([
         {"key": "pan_search", "name": "云盘搜索", "type": 3, "api": "csp_PanSearch",
          "jar": PAN_JAR, "searchable": 1, "quickSearch": 1, "filterable": 0, "timeout": 15},
@@ -468,10 +476,26 @@ def build_latest(seed_cfg: dict, selected_sites: list, alive_channels: list, liv
          "jar": PAN_JAR, "searchable": 1, "quickSearch": 1, "filterable": 1, "timeout": 15},
         {"key": "new6v", "name": "New6V磁力", "type": 3, "api": "csp_New6v", "jar": PAN_JAR,
          "ext": "https://www.xb6v.com", "searchable": 1, "quickSearch": 1, "filterable": 1, "timeout": 15},
-        # 饭太硬同款"我的云盘"：需电视端放自己的网盘账号文件 Cloud-drive.txt 才能播
-        {"key": "mydrive", "name": "我的云盘 要配置账号", "type": 3, "api": "csp_MyDriveGuard",
+        # ① 登录入口：点进去 →「登入自己网盘」→ 弹二维码 → 手机APP扫码
+        {"key": "mydrive", "name": "我的云盘 扫码登录", "type": 3, "api": "csp_MyDriveGuard",
          "jar": FTY_JAR, "changeable": 0, "indexs": 0, "searchable": 1,
-         "style": {"type": "oval"}, "ext": {"Cloud-drive": "tvfan/Cloud-drive.txt"}, "timeout": 20},
+         "style": {"type": "oval"}, "ext": CD, "timeout": 20},
+        # ② 扫码后自动能播的免费网盘片源（照搬饭太硬官方配置，共用 Cloud-drive.txt）
+        {"key": "wogg", "name": "玩偶哥哥4K", "type": 3, "api": "csp_WoGGGuard",
+         "jar": FTY_JAR, "changeable": 0, "searchable": 1, "quickSearch": 1,
+         "ext": CD, "timeout": 30},
+        {"key": "ypanso", "name": "盘她夸父", "type": 3, "api": "csp_YpanSoGuard",
+         "jar": FTY_JAR, "changeable": 0, "searchable": 1, "quickSearch": 1,
+         "ext": CD, "timeout": 20},
+        {"key": "bpanso", "name": "盘他嘟嘟", "type": 3, "api": "csp_BpanSoGuard",
+         "jar": FTY_JAR, "changeable": 0, "searchable": 1, "quickSearch": 1,
+         "ext": CD, "timeout": 20},
+        {"key": "kkss", "name": "抠抠搜搜", "type": 3, "api": "csp_KkSsGuard",
+         "jar": FTY_JAR, "changeable": 0, "searchable": 1, "quickSearch": 1,
+         "ext": CD, "timeout": 20},
+        {"key": "uuss", "name": "优汐搜搜", "type": 3, "api": "csp_UuSsGuard",
+         "jar": FTY_JAR, "changeable": 0, "searchable": 1, "quickSearch": 1,
+         "ext": CD, "timeout": 20},
     ])
     lives = list(live_refs)
     if alive_channels:

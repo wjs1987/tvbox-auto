@@ -454,6 +454,13 @@ def build_latest(seed_cfg: dict, selected_sites: list, alive_channels: list, liv
     # 魔屏加载配置时下载 jar 是同步等待，这 50 秒会直接变成黑屏等待。
     PAN_JAR = ("https://raw.githubusercontent.com/"
                "regtostudy/TVBox_warehouse/main/spider.jar")
+    # 饭太硬同款网盘爬虫包（实测含 csp_MyDriveGuard/Guard/panso 类，1.4MB）；
+    # 只有它才能解析夸克/阿里等网盘分享的播放直链。伪装成 .jpg，需按站点单独挂 jar，
+    # 不进全局 spider（全局 jar 决定其他 type3 站点兼容性，换掉会连累它们）。
+    FTY_JAR = ("https://xiuxiu-pro-new.meitudata.com/posters/"
+               "8ad28c3ad40145e2f9331fe3f8abddb2.jpg;md5;5302302a73a9e27cfaa65f3873b727ab")
+    # 爬来的"我的云盘"站点没挂 jar（用全局 jar 不含 MyDrive 类，是摆设），先剔除避免重复
+    sites = [s for s in sites if s.get("api") != "csp_MyDriveGuard"]
     sites.extend([
         {"key": "pan_search", "name": "云盘搜索", "type": 3, "api": "csp_PanSearch",
          "jar": PAN_JAR, "searchable": 1, "quickSearch": 1, "filterable": 0, "timeout": 15},
@@ -461,6 +468,10 @@ def build_latest(seed_cfg: dict, selected_sites: list, alive_channels: list, liv
          "jar": PAN_JAR, "searchable": 1, "quickSearch": 1, "filterable": 1, "timeout": 15},
         {"key": "new6v", "name": "New6V磁力", "type": 3, "api": "csp_New6v", "jar": PAN_JAR,
          "ext": "https://www.xb6v.com", "searchable": 1, "quickSearch": 1, "filterable": 1, "timeout": 15},
+        # 饭太硬同款"我的云盘"：需电视端放自己的网盘账号文件 Cloud-drive.txt 才能播
+        {"key": "mydrive", "name": "我的云盘 要配置账号", "type": 3, "api": "csp_MyDriveGuard",
+         "jar": FTY_JAR, "changeable": 0, "indexs": 0, "searchable": 1,
+         "style": {"type": "oval"}, "ext": {"Cloud-drive": "tvfan/Cloud-drive.txt"}, "timeout": 20},
     ])
     lives = list(live_refs)
     if alive_channels:

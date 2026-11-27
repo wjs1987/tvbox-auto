@@ -36,10 +36,21 @@ let backendName = "memory";
 async function getBlobStore() {
   if (blobState !== null) return blobState;
   try {
-    // 动态导入：部署环境没打包该依赖时自动降级，不影响服务
-    const mod = await import("@edgeone/pages-blob");
-    blobState = mod.getStore("super-source");
-    backendName = "blob";
+    // 动态导入：优先用打包进函数目录的本地副本（部署平台 npm 解析不稳定），
+    // 失败再回退到包名解析，最终降级为无 Blob 模式，不影响服务
+    try {
+      const mod = await import("./_vendor/edgeone-pages-blob.cjs");
+      blobState = mod.getStore ? mod.getStore("super-source") : (mod.default?.getStore?.("super-source"));
+      if (!blobState) throw new Error("vendor getStore failed");
+    } catch {
+      try {
+        const mod = await import("@edgeone/pages-blob");
+        blobState = mod.getStore("super-source");
+      } catch {
+        blobState = false;
+      }
+    }
+    if (blobState) backendName = "blob";
   } catch {
     blobState = false;
   }
@@ -316,7 +327,7 @@ function needProxy(pic) {
 // 把坏域名海报 URL 转成经本函数代理的地址（origin 用请求进来的域名，自动适配绑定域名）
 function imgProxy(pic, origin) {
   if (!pic || !needProxy(pic)) return pic;
-  return `${origin}/api?ac=img&u=${encodeURIComponent(pic)}`;
+  return `${origin}/api.js?ac=img&u=${encodeURIComponent(pic)}`;
 }
 
 // 图片代理：海外节点 DNS 干净，能解析真实 IP 拉图
@@ -799,7 +810,7 @@ async function panResolveDirect(p, env, origin) {
     panApi(cfg, cookie, "/1/clouddrive/file/delete", { method: "POST", params: { uc_param_str: "" }, body: { action_type: 2, filelist: [tmpFid], exclude_fids: [] } }).catch(() => {});
     if (!eps.length) return { error: "无可播放的转码流(免费号可能无权限)" };
     // 播放地址换成边缘代理（CDN 流需要 Cookie，播放器带不了）
-    const proxy = `${origin}/api?mode=panstream&u=`;
+    const proxy = `${origin}/api.js?mode=panstream&u=`;
     const v = { t: new Date().toISOString(), disk: p.disk, episodes: eps.map((e) => ({ name: e.name, url: proxy + encodeURIComponent(e.url) })) };
     panResMem.set(key, { t: Date.now(), v });
     if (env) cachePut(env, key, v).catch(() => {});
@@ -1080,7 +1091,7 @@ export async function onRequest({ request, env }) {
       const ct = r.headers.get("content-type") || "";
       if (/mpegurl|m3u8/i.test(ct)) {
         // HLS 播放列表：改写每行分片地址与标签内嵌 URI，全部经由本代理
-        const rewrite = (raw) => `${url.origin}/api?mode=panstream&u=${encodeURIComponent(new URL(raw, tgt).toString())}`;
+        const rewrite = (raw) => `${url.origin}/api.js?mode=panstream&u=${encodeURIComponent(new URL(raw, tgt).toString())}`;
         const out = (await r.text()).split("\n").map((line) => {
           if (!line.trim()) return line;
           if (line.trim().startsWith("#")) return line.replace(/URI="([^"]+)"/g, (m0, u1) => `URI="${rewrite(u1)}"`);

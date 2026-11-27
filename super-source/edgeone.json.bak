@@ -1,0 +1,12 @@
+{
+  "schedules": [
+    {
+      "name": "china-probe",
+      "cron": "0 * * * *",
+      "path": "/api.js",
+      "method": "POST",
+      "payload": { "mode": "cronprobe" },
+      "timezone": "Asia/Shanghai"
+    }
+  ]
+}

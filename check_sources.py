@@ -483,11 +483,16 @@ def test_channel(ch: dict, timeout: float) -> dict:
 
 # ---------- 生成 ----------
 def build_latest(seed_cfg: dict, selected_sites: list, alive_channels: list, live_refs: list, spider_url: str) -> dict:
+    # 成人/番号类聚合源一律不进配置（家里有小孩在用，且这类源广告与风险页多）
+    ADULT_MARKERS = ("18+", "18＋", "番号", "成人", "情色", "AV资源", "福利片")
     sites = []
     used_names = set()
     pool_keys = set()
     for s in selected_sites:
         cn = clean_name(s.get("name", ""))
+        if any(m in cn for m in ADULT_MARKERS):
+            print(f"[过滤] 跳过成人源：{cn}")
+            continue
         if cn in used_names:  # 清理后同名 → 只留排名靠前的
             continue
         used_names.add(cn)

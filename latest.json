@@ -7,7 +7,7 @@
       "type": 1,
       "api": "https://tvbox-juxu-spegz3xv.edgeone.cool/api",
       "header": {
-        "Cookie": "eo_token=f655b00d53fcdfcc06a85a7e169d7f6b; eo_time=1795755640"
+        "Cookie": "eo_token=dee11f7edecf79971ffd96ae19d32018; eo_time=1795761663"
       },
       "searchable": 1,
       "quickSearch": 1,
@@ -24,7 +24,7 @@
       "type": 1,
       "api": "https://tvbox-juxu-spegz3xv.edgeone.cool/api?mode=pansearch",
       "header": {
-        "Cookie": "eo_token=f655b00d53fcdfcc06a85a7e169d7f6b; eo_time=1795755640"
+        "Cookie": "eo_token=dee11f7edecf79971ffd96ae19d32018; eo_time=1795761663"
       },
       "searchable": 1,
       "quickSearch": 0,
@@ -125,6 +125,15 @@
       "timeout": 15
     },
     {
+      "key": "src171",
+      "name": "百度 采集",
+      "type": 1,
+      "api": "https://api.apibdzy.com/api.php/provide/vod/?ac=list",
+      "searchable": 1,
+      "filterable": 0,
+      "timeout": 15
+    },
+    {
       "key": "src169",
       "name": "火狐采集",
       "type": 1,
@@ -157,15 +166,6 @@
         "日本动漫",
         "欧美动漫"
       ],
-      "timeout": 15
-    },
-    {
-      "key": "src171",
-      "name": "百度 采集",
-      "type": 1,
-      "api": "https://api.apibdzy.com/api.php/provide/vod/?ac=list",
-      "searchable": 1,
-      "filterable": 0,
       "timeout": 15
     },
     {
@@ -218,14 +218,6 @@
       "timeout": 15
     },
     {
-      "key": "src226",
-      "name": "聚玩盒子4K",
-      "type": 3,
-      "api": "https://jihulab.com/yydfys/yydf/-/raw/main/yydf/lib/drpy2.min.js",
-      "ext": "https://jihulab.com/yydfys/yydf/-/raw/main/yydf/lib/douban.js",
-      "timeout": 15
-    },
-    {
       "key": "src198",
       "name": "儿童 启蒙",
       "type": 3,
@@ -241,6 +233,14 @@
       "timeout": 15
     },
     {
+      "key": "src226",
+      "name": "聚玩盒子4K",
+      "type": 3,
+      "api": "https://jihulab.com/yydfys/yydf/-/raw/main/yydf/lib/drpy2.min.js",
+      "ext": "https://jihulab.com/yydfys/yydf/-/raw/main/yydf/lib/douban.js",
+      "timeout": 15
+    },
+    {
       "key": "src194",
       "name": "爱奇艺",
       "type": 3,
@@ -249,25 +249,13 @@
       "timeout": 15
     },
     {
-      "key": "src127",
-      "name": "Btt 秒播",
+      "key": "src66",
+      "name": "漫短 小喜",
       "type": 3,
-      "api": "csp_Bttwoo",
-      "searchable": 1,
-      "quickSearch": 1,
-      "changeable": 1,
-      "timeout": 15
-    },
-    {
-      "key": "src96",
-      "name": "WWE 体育",
-      "type": 3,
-      "api": "csp_SportAiWweGuard",
+      "类型": "短剧",
+      "api": "csp_ManJuAiXiFanGuard",
       "searchable": 1,
       "changeable": 0,
-      "style": {
-        "type": "list"
-      },
       "timeout": 15
     },
     {
@@ -289,14 +277,14 @@
       "timeout": 15
     },
     {
-      "key": "src208",
-      "name": "比特 秒播",
+      "key": "src36",
+      "name": "虎斑 4K",
       "type": 3,
-      "api": "csp_BttwooGuard",
-      "timeout": 10,
+      "api": "csp_AiNewHuBanGuard",
       "searchable": 1,
       "quickSearch": 1,
-      "changeable": 1
+      "changeable": 0,
+      "timeout": 15
     },
     {
       "key": "src7",
@@ -307,20 +295,33 @@
       "timeout": 15
     },
     {
-      "key": "src65",
-      "name": "漫剧 小猫",
+      "key": "src95",
+      "name": "咖啡 体育",
       "type": 3,
-      "类型": "短剧",
-      "api": "csp_ManJuAiQiMaoGuard",
+      "api": "csp_SportAiKaFeiGuard",
       "searchable": 1,
       "changeable": 0,
+      "style": {
+        "type": "list"
+      },
       "timeout": 15
     },
     {
-      "key": "src157",
-      "name": "皮皮 影视",
+      "key": "src208",
+      "name": "比特 秒播",
       "type": 3,
-      "api": "csp_PipiXia",
+      "api": "csp_BttwooGuard",
+      "timeout": 10,
+      "searchable": 1,
+      "quickSearch": 1,
+      "changeable": 1
+    },
+    {
+      "key": "src156",
+      "name": "哔嘀 影视",
+      "type": 3,
+      "api": "csp_Bdys",
+      "playerType": "1",
       "searchable": 1,
       "quickSearch": 1,
       "filterable": 1,
@@ -339,15 +340,13 @@
       "changeable": 1
     },
     {
-      "key": "src95",
-      "name": "咖啡 体育",
+      "key": "src65",
+      "name": "漫剧 小猫",
       "type": 3,
-      "api": "csp_SportAiKaFeiGuard",
+      "类型": "短剧",
+      "api": "csp_ManJuAiQiMaoGuard",
       "searchable": 1,
       "changeable": 0,
-      "style": {
-        "type": "list"
-      },
       "timeout": 15
     },
     {
@@ -361,6 +360,26 @@
       "timeout": 15
     },
     {
+      "key": "src181",
+      "name": "免费分享",
+      "type": 3,
+      "api": "csp_DouDouGuard",
+      "indexs": 1,
+      "searchable": 0,
+      "quickSearch": 0,
+      "changeable": 0,
+      "timeout": 15
+    },
+    {
+      "key": "src94",
+      "name": "八八 体育",
+      "type": 3,
+      "api": "csp_SportAiKanqiuGuard",
+      "searchable": 1,
+      "changeable": 0,
+      "timeout": 15
+    },
+    {
       "key": "src207",
       "name": "原创 秒播",
       "type": 3,
@@ -370,39 +389,6 @@
       "searchable": 1,
       "quickSearch": 1,
       "changeable": 1
-    },
-    {
-      "key": "src66",
-      "name": "漫短 小喜",
-      "type": 3,
-      "类型": "短剧",
-      "api": "csp_ManJuAiXiFanGuard",
-      "searchable": 1,
-      "changeable": 0,
-      "timeout": 15
-    },
-    {
-      "key": "src183",
-      "name": "手机 推送",
-      "type": 3,
-      "api": "csp_AweSomeGuard",
-      "searchable": 0,
-      "filterable": 0,
-      "changeable": 0,
-      "ext": {
-        "sp": "Push"
-      },
-      "timeout": 25
-    },
-    {
-      "key": "src64",
-      "name": "漫剧 小龙",
-      "type": 3,
-      "类型": "短剧",
-      "api": "csp_ManJuAiHuoLongGuard",
-      "searchable": 1,
-      "changeable": 0,
-      "timeout": 15
     },
     {
       "key": "pan_search",

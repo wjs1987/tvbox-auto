@@ -7,9 +7,9 @@
    "ext": ""
   },
   {
-   "api": "http://api.xinlangapi.com/xinlangapi.php/provide/vod/",
+   "api": "https://jszyapi.com/api.php/provide/vod/?ac=list",
    "type": 1,
-   "name": "新浪资源(切)",
+   "name": "影视 | 极速[直连]",
    "ext": ""
   },
   {
@@ -17,6 +17,18 @@
    "type": 3,
    "name": "🐯虎牙直播",
    "ext": "http://xhztv.top/xhz/js/虎牙直播.js"
+  },
+  {
+   "api": "http://xhztv.top/xhz/js/lib/drpy.min.js",
+   "type": 3,
+   "name": "JRKAN直播",
+   "ext": "http://xhztv.top/xhz/js/JRKAN直播.js"
+  },
+  {
+   "api": "http://api.xinlangapi.com/xinlangapi.php/provide/vod/",
+   "type": 1,
+   "name": "新浪资源(切)",
+   "ext": ""
   },
   {
    "api": "https://hhzyapi.com/api.php/provide/vod/?ac=list",
@@ -31,39 +43,9 @@
    "ext": ""
   },
   {
-   "api": "https://jszyapi.com/api.php/provide/vod/?ac=list",
-   "type": 1,
-   "name": "影视 | 极速[直连]",
-   "ext": ""
-  },
-  {
-   "api": "http://xhztv.top/xhz/js/lib/drpy.min.js",
-   "type": 3,
-   "name": "JRKAN直播",
-   "ext": "http://xhztv.top/xhz/js/JRKAN直播.js"
-  },
-  {
    "api": "http://tyyszy.com/api.php/provide/vod",
    "type": 1,
    "name": "影视 | 天涯",
-   "ext": ""
-  },
-  {
-   "api": "https://suoniapi.com/api.php/provide/vod/?ac=list",
-   "type": 1,
-   "name": "🐉┃索尼┃高清",
-   "ext": ""
-  },
-  {
-   "api": "https://jihulab.com/yydfys/yydf/-/raw/main/yydf/lib/drpy2.min.js",
-   "type": 3,
-   "name": "🔥聚玩盒子4K",
-   "ext": "https://jihulab.com/yydfys/yydf/-/raw/main/yydf/lib/douban.js"
-  },
-  {
-   "api": "https://suoniapi.com/api.php/provide/vod/",
-   "type": 1,
-   "name": "🎥┃索尼┃资源",
    "ext": ""
   },
   {
@@ -73,10 +55,10 @@
    "ext": "https://szyyds.cn/tv/jx/兔小贝.js"
   },
   {
-   "api": "http://sdzyapi.com/api.php/provide/vod/",
-   "type": 1,
-   "name": "闪电资源(切)",
-   "ext": ""
+   "api": "https://jihulab.com/yydfys/yydf/-/raw/main/yydf/lib/drpy2.min.js",
+   "type": 3,
+   "name": "🔥聚玩盒子4K",
+   "ext": "https://jihulab.com/yydfys/yydf/-/raw/main/yydf/lib/douban.js"
   },
   {
    "api": "https://szyyds.cn/js/6F02.js",
@@ -85,15 +67,45 @@
    "ext": "https://szyyds.cn/js/3c16.js"
   },
   {
+   "api": "http://sdzyapi.com/api.php/provide/vod/",
+   "type": 1,
+   "name": "闪电资源(切)",
+   "ext": ""
+  },
+  {
+   "api": "https://suoniapi.com/api.php/provide/vod/",
+   "type": 1,
+   "name": "🎥┃索尼┃资源",
+   "ext": ""
+  },
+  {
+   "api": "https://suoniapi.com/api.php/provide/vod/?ac=list",
+   "type": 1,
+   "name": "🐉┃索尼┃高清",
+   "ext": ""
+  },
+  {
    "api": "https://www.hongniuzy2.com/api.php/provide/vod/",
    "type": 1,
    "name": "红牛资源(切)",
    "ext": ""
   },
   {
+   "api": "https://app.bfzyapi.com/api.php/provide/vod/",
+   "type": 1,
+   "name": "🌪️暴风影音",
+   "ext": ""
+  },
+  {
    "api": "https://api.apibdzy.com/api.php/provide/vod/?ac=list",
    "type": 1,
    "name": "🎏百度┃采集",
+   "ext": ""
+  },
+  {
+   "api": "https://bfzyapi.com/api.php/provide/vod/?ac=list",
+   "type": 1,
+   "name": "影视 | 暴風[直连]",
    "ext": ""
   },
   {
@@ -109,24 +121,6 @@
    "ext": ""
   },
   {
-   "api": "https://app.bfzyapi.com/api.php/provide/vod/",
-   "type": 1,
-   "name": "🌪️暴风影音",
-   "ext": ""
-  },
-  {
-   "api": "https://ikunzyapi.com/api.php/provide/vod ",
-   "type": 1,
-   "name": "🐓┃爱坤┃资源",
-   "ext": ""
-  },
-  {
-   "api": "https://bfzyapi.com/api.php/provide/vod/?ac=list",
-   "type": 1,
-   "name": "影视 | 暴風[直连]",
-   "ext": ""
-  },
-  {
    "api": "https://taopianapi.com/cjapi/mc/vod/json.html",
    "type": 1,
    "name": "🕹️淘片┃采集",
@@ -136,6 +130,12 @@
    "api": "https://lzizy1.com/api.php/provide/vod/",
    "type": 1,
    "name": "🥑┃量子┃资源",
+   "ext": ""
+  },
+  {
+   "api": "https://ikunzyapi.com/api.php/provide/vod ",
+   "type": 1,
+   "name": "🐓┃爱坤┃资源",
    "ext": ""
   },
   {
@@ -157,27 +157,33 @@
    "ext": ""
   },
   {
-   "api": "https://shayuapi.com/api.php/Seacms/vod",
-   "type": 0,
-   "name": "鲨鱼18+",
-   "ext": ""
-  },
-  {
    "api": "https://cj.lziapi.com/api.php/provide/vod/",
    "type": 1,
    "name": "影视 | 量子[直连]",
    "ext": ""
   },
   {
-   "api": "https://lbapi9.com/api.php/provide/vod/at/xml",
+   "api": "https://shayuapi.com/api.php/Seacms/vod",
    "type": 0,
-   "name": "(18+)乐播",
+   "name": "鲨鱼18+",
+   "ext": ""
+  },
+  {
+   "api": "http://154.219.117.232:9981/jacloudapi.php/provide/vod",
+   "type": 1,
+   "name": "影视 | 建安",
    "ext": ""
   },
   {
    "api": "http://fhapi9.com/api.php/provide/vod/",
    "type": 1,
    "name": "(18+)番号资源",
+   "ext": ""
+  },
+  {
+   "api": "https://lbapi9.com/api.php/provide/vod/at/xml",
+   "type": 0,
+   "name": "(18+)乐播",
    "ext": ""
   },
   {
@@ -202,12 +208,6 @@
    "api": "https://shayuapi.com/api.php/provide/vod/",
    "type": 1,
    "name": "*鲨鱼资源",
-   "ext": ""
-  },
-  {
-   "api": "http://154.219.117.232:9981/jacloudapi.php/provide/vod",
-   "type": 1,
-   "name": "影视 | 建安",
    "ext": ""
   }
  ]

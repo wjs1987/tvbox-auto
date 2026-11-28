@@ -796,6 +796,31 @@ def auto_mode(args):
     alive_sites = [r for r in site_results if r["ok"]]
     dead_sites = [r for r in site_results if not r["ok"]]
 
+    print("[检测] 直播频道并发测试...")
+    ch_results = []
+    with ThreadPoolExecutor(max_workers=args.workers) as ex:
+        futs = [ex.submit(test_channel, c, args.timeout) for c in ch_deduped]
+        for i, f in enumerate(as_completed(futs), 1):
+            ch_results.append(f.result())
+            if i % 50 == 0 or i == len(futs):
+                print(f"  {i}/{len(futs)}")
+    alive_ch = [r["ch"] for r in ch_results if r["ok"]]
+    dead_ch = [r for r in ch_results if not r["ok"]]
+
+    # 测试直播源引用（整个文件可达即算存活），并发检测后按速度排序
+    def test_ref(ref):
+        t0 = time.perf_counter()
+        body = fetch(ref["url"], timeout=args.timeout, ua=UA_BROWSER, max_bytes=20_000)
+        ms = int((time.perf_counter() - t0) * 1000)
+        if body and ("#EXTM3U" in body[:300] or "genre#" in body[:300] or "#EXTINF" in body[:300]):
+            return {"ref": ref, "ms": ms}
+        return None
+    with ThreadPoolExecutor(max_workers=args.workers) as ex:
+        ref_results = [r for r in ex.map(test_ref, ref_deduped) if r]
+    ref_results.sort(key=lambda x: x["ms"])
+    alive_refs = [r["ref"] for r in ref_results[:args.top_lives] if r["ms"] <= 5000]
+    print(f"[检测] 直播源引用存活 {len(ref_results)}/{len(ref_deduped)}，精选最快 {len(alive_refs)} 个")
+
     # ===== 点播源分拣：可播性 → 片单量 → CDN 速度 → 响应延迟，只留前 top 个 =====
     # 原先还有一道"国内节点可达性"过滤（EdgeOne 边缘函数回传国内探测），该链路随
     # 超级源项目被删而失效，2026-11-28 起移除；国内打不开的源由 HOME_DEAD_APIS 黑名单兜底。

@@ -805,6 +805,14 @@ def build_kids_sites(sites: list) -> list:
         api = s.get("api") or ""
         meta = SITE_META.get(api)
         if not meta:
+            # 采集接口的 api 常带 ?ac=list / /at/xml 等后缀，实测表是按另一写法存的，
+            # 这里按规范化后的地址再匹配一次，否则新站会被误判为"无实测数据"
+            napi = norm_api(api)
+            for k, v in SITE_META.items():
+                if norm_api(k) == napi:
+                    meta = v
+                    break
+        if not meta:
             # 没有实测数据的新站，宁可不给小孩用
             continue
         if meta.get("a"):
@@ -971,8 +979,8 @@ def auto_mode(args):
     # 儿童版：同一套配置，去掉成人站与需要 jar 的站（磁力），文件独立、主配置不受影响
     kids = dict(latest)
     # 儿童版从更大的安全池里挑（top 之外的家宽可达站也参与），再做成人/磁力过滤
-    kids_base = build_latest(seed_cfg, kids_pool, alive_ch, alive_refs, spider_url, 0).get("sites", []) if kids_pool else latest.get("sites", [])
-    kids["sites"] = build_kids_sites(kids_base)
+    kids_extra = build_latest(seed_cfg, kids_pool, alive_ch, alive_refs, spider_url, 0).get("sites", []) if kids_pool else []
+    kids["sites"] = build_kids_sites(list(latest.get("sites", [])) + kids_extra)
     kids_path = Path(args.out).with_name("kids.json")
     kids_path.write_text(json.dumps(kids, ensure_ascii=False, indent=2), encoding="utf-8")
     print(f"[儿童版] {len(kids['sites'])} 个站点 → {kids_path}")

@@ -27,8 +27,8 @@ https://gh-proxy.com/https://raw.githubusercontent.com/WJS1987/tvbox-auto/main/l
 
 ## 产物规格
 
-- `latest.json`：约 22KB、50 精选 + 2 磁力，quickSearch 6 个，直播 4 条（1 外链 + 3 轮播 m3u）
-- `live.txt`：约 100KB，由 GitHub m3u 合并去重生成
+- `latest.json`：约 25KB、50 精选 + 2 磁力，quickSearch 6 个，直播 4 条（1 外链 + 3 轮播 m3u）
+- `live.txt`：约 85KB，由 GitHub m3u 合并去重生成
 - 冷启动：12~13 秒（瓶颈在 App 首屏）
 
 ## 不要做

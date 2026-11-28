@@ -66,6 +66,6 @@ jobs:
         # jsDelivr 对 @main 分支有静态缓存（实测能落后 9~10 小时），配置更新后不主动刷新，
         # 用 jsDelivr 地址的客户端会拿到旧配置。
         run: |
-          for f in latest.json live.txt; do
+          for f in latest.json kids.json live.txt; do
             curl -fsS --max-time 20 "https://purge.jsdelivr.net/gh/WJS1987/tvbox-auto@main/$f" >/dev/null 2>&1 || true
           done

@@ -602,14 +602,9 @@ def grade(ms):
 LIVE_TXT_URL = ("https://gh-proxy.com/https://raw.githubusercontent.com/"
                 "WJS1987/tvbox-auto/main/live.txt")
 # 固定直播外挂：虎牙/斗鱼/YY 轮播（stably hosted m3u，与点播源同一套解析）
-LIVE_EXTRAS = [
-    {"name": "虎牙一起看", "url": "https://sub.ottiptv.cc/huyayqk.m3u",
-     "ua": "okHttp/Mod-1.5.0.0", "timeout": 10},
-    {"name": "斗鱼一起看", "url": "https://sub.ottiptv.cc/douyuyqk.m3u",
-     "ua": "okHttp/Mod-1.5.0.0", "timeout": 10},
-    {"name": "YY轮播", "url": "https://sub.ottiptv.cc/yylunbo.m3u",
-     "ua": "okHttp/Mod-1.5.0.0", "timeout": 10},
-]
+# 2026-11-28 家宽实测：只有 vbskycn 那条列表的央视/卫视在国内能看，其余公开 m3u 大面积失效，
+# 因此直播只保留「自建直播」一条（内容由 build_live.py 从该列表生成），不再挂轮播外挂。
+LIVE_EXTRAS = []
 
 HOME_DEAD_APIS = [
     "https://ikunzyapi.com/api.php/provide/vod",
@@ -718,6 +713,19 @@ def legacy_mode(args):
     Path(str(p.with_name(p.stem + "_clean.json"))).write_text(
         json.dumps(out_cfg, ensure_ascii=False, indent=2), encoding="utf-8")
     print(f"[结果] 存活 {len(alive)} / 失效 {len(results) - len(alive)}")
+
+
+# ---------- 儿童版过滤 ----------
+# 主配置按用户要求"不做任何过滤"原样保留；这里另出一份 kids.json 供家里小孩使用：
+# 剔除成人站、剔除需要 jar 的站（磁力搜索可能搜到成人资源）。
+ADULT_MARKERS = ["18+", "18禁", "番号", "杏吧", "大杏", "大奶", "奶子", "搜av", "av资源",
+                 "黄色", "黄仓", "成人", "福利", "情色", "三级", "裸", "约炮",
+                 "naixx", "danaizi", "hsck", "souav", "xingba", "fhapi", "se92", "av99"]
+
+
+def is_adult_site(s: dict) -> bool:
+    blob = " ".join(str(s.get(k, "")) for k in ("name", "api", "key", "ext")).lower()
+    return any(m in blob for m in ADULT_MARKERS)
 
 
 # ---------- 全自动模式 ----------
@@ -863,6 +871,15 @@ def auto_mode(args):
         latest["lives"] = slim
 
     Path(args.out).write_text(json.dumps(latest, ensure_ascii=False, indent=2), encoding="utf-8")
+
+    # 儿童版：同一套配置，去掉成人站与需要 jar 的站（磁力），文件独立、主配置不受影响
+    kids = dict(latest)
+    kids["sites"] = [x for x in latest.get("sites", [])
+                     if not is_adult_site(x) and not x.get("jar")]
+    kids_path = Path(args.out).with_name("kids.json")
+    kids_path.write_text(json.dumps(kids, ensure_ascii=False, indent=2), encoding="utf-8")
+    print(f"[儿童版] {len(kids['sites'])} 个站点 → {kids_path}")
+
     final_sites = latest.get("sites", [])
     write_report(args.report, alive_sites, dead_sites, alive_ch, dead_ch, failed, crawl_stats, final_sites)
 

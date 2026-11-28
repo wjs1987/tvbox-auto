@@ -27,15 +27,11 @@ UA = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
 
 SOURCES = [
     # name, url, 权重（越小越优先）
-    # 只收 GitHub 上的 m3u 列表（海外机房可直连，无需登录），非 GitHub 的直播站已移除
-    ("kimentanm", "https://ghproxy.net/https://raw.githubusercontent.com/Kimentanm/aptv/master/m3u/iptv.m3u", 2),
-    ("guovin", "https://ghproxy.net/https://raw.githubusercontent.com/Guovin/iptv-api/gd/output/result.m3u", 3),
-    ("guovin-master", "https://ghproxy.net/https://raw.githubusercontent.com/Guovin/iptv-api/master/output/result.m3u", 4),
-    ("fanmingming-v6", "https://raw.githubusercontent.com/fanmingming/live/main/tv/m3u/ipv6.m3u", 5),
-    ("fanmingming-idx", "https://raw.githubusercontent.com/fanmingming/live/main/tv/m3u/index.m3u", 6),
-    ("iptv-org-cn", "https://raw.githubusercontent.com/iptv-org/iptv/master/streams/cn.m3u", 9),
-    ("itvlist", "https://ghproxy.net/https://raw.githubusercontent.com/mzky/checklist/master/itvlist.m3u", 8),
+    # 2026-11-28 家宽实测：vbskycn/iptv 的 iptv4 列表央视/卫视可用率 8/10，其余公开列表大面积 404/超时，
+    # 因此直播只保留这一条经过国内验证的列表。
+    ("vbskycn", "https://raw.githubusercontent.com/vbskycn/iptv/master/tv/iptv4.txt", 1),
 ]
+
 
 # 饭太硬同款“一起看”轮播列表，作为独立直播源挂载（不参与合并测速）
 EXTRA_LIVES = [
@@ -93,6 +89,22 @@ def parse_m3u(text):
             cur["url"] = l
             out.append(cur)
             cur = None
+    return out
+
+
+def parse_txt(text):
+    """解析 `频道名,http://...` 或带 `#genre#` 分组的 txt 直播表。"""
+    out = []
+    for l in text.splitlines():
+        l = l.strip()
+        if not l or "#genre#" in l:
+            continue
+        if "," in l and "http" in l:
+            i = l.index(",")
+            name, url = l[:i].strip(), l[i + 1:].strip()
+            if url.startswith("http"):
+                out.append({"raw_name": name, "tvg_name": "", "logo": "",
+                            "group": "", "tvg_id": "", "url": url})
     return out
 
 
@@ -285,7 +297,7 @@ def main():
     for name, url, prio in SOURCES:
         print(f"[源] {name} ...")
         txt = fetch(url)
-        items = parse_m3u(txt)
+        items = parse_m3u(txt) if "#EXTM3U" in txt[:2000] or "#EXTINF" in txt             else parse_txt(txt)
         print(f"     {len(items)} 条")
         for it in items:
             it["src"], it["prio"] = name, prio

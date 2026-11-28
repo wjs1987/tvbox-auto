@@ -494,6 +494,10 @@ def build_latest(seed_cfg: dict, selected_sites: list, alive_channels: list, liv
         s = dict(s)
         s["name"] = cn
         t = s.get("type", 0)
+        # type3 规则源必须有 jar 或 ext 才能工作；爬来的"4K网盘/秒播"多数两者都没有，
+        # 留着只会让首页多出一堆点进去空白的站，直接剔除（固定磁力站稍后单独补）
+        if t == 3 and not s.get("jar") and not s.get("ext"):
+            continue
         s.pop("_play", None)
         s.pop("_src", None)
         s.pop("_spider", None)
@@ -556,9 +560,10 @@ def build_latest(seed_cfg: dict, selected_sites: list, alive_channels: list, liv
         s["quickSearch"] = 1
     for s in sites:
         s.pop("_ms", None)
-    lives = list(live_refs)
-    if alive_channels:
-        lives.append({"group": "精选直播", "channels": alive_channels})
+    # 直播固定 4 条：自建 live.txt（GitHub m3u 合并产物）+ 三条轮播外挂。
+    # 不再采用爬取到的直播引用——它们常指向非 GitHub 站点，且格式各异。
+    lives = [{"name": "自建直播", "url": LIVE_TXT_URL,
+              "ua": "okHttp/Mod-1.5.0.0", "timeout": 10}] + LIVE_EXTRAS
     # 全局 spider 也换成本仓库镜像：libs/spider.png 与原第三方图床包字节完全一致（md5 相同），
     # 但图床一旦清理或开防盗链，所有 type3 站点会一起报废。
     own_spider = CDN + "spider.png"
@@ -588,6 +593,18 @@ def grade(ms):
 # 家庭网络实测稳定失效的源（GitHub 海外机房测出来是活的，但国内连不上，点进去一直转圈）。
 # 2026-11-27 家里网络两轮探测均为 0 成功。按完整 API 地址匹配，避免误杀同域名的正常源。
 # 源若日后恢复，从本列表删除对应行即可重新入选。
+LIVE_TXT_URL = ("https://gh-proxy.com/https://raw.githubusercontent.com/"
+                "WJS1987/tvbox-auto/main/live.txt")
+# 固定直播外挂：虎牙/斗鱼/YY 轮播（stably hosted m3u，与点播源同一套解析）
+LIVE_EXTRAS = [
+    {"name": "虎牙一起看", "url": "https://sub.ottiptv.cc/huyayqk.m3u",
+     "ua": "okHttp/Mod-1.5.0.0", "timeout": 10},
+    {"name": "斗鱼一起看", "url": "https://sub.ottiptv.cc/douyuyqk.m3u",
+     "ua": "okHttp/Mod-1.5.0.0", "timeout": 10},
+    {"name": "YY轮播", "url": "https://sub.ottiptv.cc/yylunbo.m3u",
+     "ua": "okHttp/Mod-1.5.0.0", "timeout": 10},
+]
+
 HOME_DEAD_APIS = [
     "https://ikunzyapi.com/api.php/provide/vod",
     "https://apilj.com/api.php/provide/vod/at/json/",
@@ -772,19 +789,7 @@ def auto_mode(args):
     alive_ch = [r["ch"] for r in ch_results if r["ok"]]
     dead_ch = [r for r in ch_results if not r["ok"]]
 
-    # 测试直播源引用（整个文件可达即算存活），并发检测后按速度排序
-    def test_ref(ref):
-        t0 = time.perf_counter()
-        body = fetch(ref["url"], timeout=args.timeout, ua=UA_BROWSER, max_bytes=20_000)
-        ms = int((time.perf_counter() - t0) * 1000)
-        if body and ("#EXTM3U" in body[:300] or "genre#" in body[:300] or "#EXTINF" in body[:300]):
-            return {"ref": ref, "ms": ms}
-        return None
-    with ThreadPoolExecutor(max_workers=args.workers) as ex:
-        ref_results = [r for r in ex.map(test_ref, ref_deduped) if r]
-    ref_results.sort(key=lambda x: x["ms"])
-    alive_refs = [r["ref"] for r in ref_results[:args.top_lives] if r["ms"] <= 5000]
-    print(f"[检测] 直播源引用存活 {len(ref_results)}/{len(ref_deduped)}，精选最快 {len(alive_refs)} 个")
+    alive_refs = []  # 直播不再从爬取列表里选，统一走 live.txt + 固定轮播
 
     # ===== 点播源分拣：可播性 → 片单量 → CDN 速度 → 响应延迟，只留前 top 个 =====
     # 原先还有一道"国内节点可达性"过滤（EdgeOne 边缘函数回传国内探测），该链路随
@@ -871,8 +876,6 @@ def auto_mode(args):
     # 配置瘦身（无论直播来自哪里都要做）：内联几千个频道会让 latest.json 从 ~50KB 涨到 200~400KB，
     # 魔屏这类盒子光是拉取+解析就要多花十几秒。这里把内联频道组换成对 live.txt 的 url 引用，
     # 频道只在用户打开"直播"页时才去拉，主配置只剩站点列表。
-    LIVE_TXT_URL = ("https://gh-proxy.com/https://raw.githubusercontent.com/"
-                    "WJS1987/tvbox-auto/main/live.txt")
     slim = []
     for lv in latest.get("lives", []):
         if not isinstance(lv, dict):

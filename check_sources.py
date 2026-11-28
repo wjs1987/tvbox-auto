@@ -620,94 +620,6 @@ def grade(ms):
     return "慢"
 
 
-# ---------- 超级源（全网汇总）置顶 ----------
-SUPER_SOURCE_DOMAIN = os.environ.get("SUPER_SOURCE_DOMAIN", "tvbox-juxu-spegz3xv.edgeone.cool")
-SUPER_SOURCE_PROJECT = os.environ.get("SUPER_SOURCE_PROJECT", "makers-lxb2wlvf61qz")
-SUPER_SOURCE_NAME = "全网汇总"
-
-
-# [已弃用] 仅保留备查：全网汇总（超级源）已于 2026-11-28 归档
-def mint_super_token(api_token: str):
-    """调用 EdgeOne API 为超级源域名签发新的预览访问 token（有效期约 3 小时）。"""
-    body = json.dumps({
-        "Action": "DescribePagesEncipherToken",
-        "Region": "ap-guangzhou",
-        "ProjectId": SUPER_SOURCE_PROJECT,
-        "Text": SUPER_SOURCE_DOMAIN,
-    }).encode()
-    req = urllib.request.Request(
-        "https://pages-api.cloud.tencent.com/v1", data=body,
-        headers={"Content-Type": "application/json", "Authorization": "Bearer " + api_token})
-    with urllib.request.urlopen(req, timeout=20) as r:
-        d = json.loads(r.read().decode())
-    resp = d.get("Data", {}).get("Response", d)
-    tok = resp.get("Token")
-    ts = resp.get("Timestamp")
-    if not tok or not ts:
-        raise RuntimeError(f"token 签发失败: {str(d)[:200]}")
-    return tok, ts
-
-
-# [已弃用] 仅保留备查，不再被任何流程调用
-def upsert_super_source(latest: dict, api_token: str) -> bool:
-    """在 latest.json 的 sites 列表置顶插入"全网汇总"超级源（带新鲜 token）。"""
-    try:
-        tok, ts = mint_super_token(api_token)
-    except Exception as e:
-        print(f"[超级源] token 签发失败，本轮跳过: {e}")
-        return False
-    # 健康检查（熔断）：宁可这次不给这个站点，也不要把一个必然 401/404 的站点塞进配置，
-    # 否则用户在首页点一下就卡住转圈，比没有这个源更糟。
-    try:
-        probe = fetch(f"https://{SUPER_SOURCE_DOMAIN}/api?mode=status", timeout=10,
-                      headers={"Cookie": f"eo_token={tok}; eo_time={ts}"})
-        if not probe or '"total"' not in probe:
-            print("[超级源] 健康检查未通过（站点不可用），本轮跳过")
-            return False
-    except Exception as e:
-        print(f"[超级源] 健康检查异常，本轮跳过: {e}")
-        return False
-    # 实测：URL 带 eo_token 会触发 EdgeOne 的 302 换 cookie 流程（FongMi 无 CookieJar 会卡死）；
-    # 只有 Cookie 请求头 + 干净 URL 才直连 200。token 只放 header，不放 URL。
-    url = f"https://{SUPER_SOURCE_DOMAIN}/api"
-    site = {"key": "super", "name": SUPER_SOURCE_NAME, "type": 1, "api": url,
-            # FongMi/TV 无 CookieJar，无法跟随 EdgeOne 的 302 换 cookie 流程，
-            # 必须把 token 直接放进请求头，才能通过 EdgeOne 域名验证
-            "header": {"Cookie": f"eo_token={tok}; eo_time={ts}"},
-            # 官方规范字段：style 控制海报卡片样式（竖版海报3:4），timeout 延长汇总源响应时间
-            "searchable": 1, "quickSearch": 1, "filterable": 1,
-            "style": {"type": "rect", "ratio": 0.75}, "timeout": 20}
-    # 2026-11 移除 "📀网盘搜索"（EdgeOne mode=pansearch）：与本地 csp_PanSearch
-    # 「云盘搜索」功能重复，却多带一条 token 依赖，属于纯负担，已下线；
-    # 旧配置里残留的 pansearch 站点一并清掉。
-    latest["sites"] = [s for s in latest.get("sites", [])
-                       if s.get("key") not in ("super", "pansearch")]
-    latest["sites"].insert(0, site)
-    print(f"[超级源] 已置顶 {SUPER_SOURCE_NAME}（token 有效期约 3 小时）")
-    return True
-
-
-# ==================== 超级源目录生成（super_catalog.json） ====================
-# 将"聚合片单"这一重活从边缘函数挪到流水线：Actions 深挖生成静态目录，
-# 边缘函数只做秒级加载+内存检索，根治 KV 未批期间冷启动 9 秒重建的卡顿。
-
-FIXED_CLASSES_PY = [
-    {"type_id": "c_all", "type_name": "全部"},
-    {"type_id": "c_movie", "type_name": "电影"},
-    {"type_id": "c_tv", "type_name": "剧集"},
-    {"type_id": "c_variety", "type_name": "综艺"},
-    {"type_id": "c_anime", "type_name": "动漫"},
-    {"type_id": "c_doc", "type_name": "纪录"},
-]
-CAT_RULES_PY = [
-    (re.compile(r"电影|院线|动作|喜剧|爱情|科幻|恐怖|剧情|战争|犯罪|奇幻|冒险|灾难"), "c_movie"),
-    (re.compile(r"剧|连续|国产|港台|韩|美|海外"), "c_tv"),
-    (re.compile(r"综艺|娱乐|真人秀|脱口"), "c_variety"),
-    (re.compile(r"动漫|动画|番剧|漫画"), "c_anime"),
-    (re.compile(r"纪录|纪实|解说"), "c_doc"),
-]
-MAIN_CAT_PY = re.compile(r"电影|剧集|电视剧|综艺|动漫|动画|片|连续")
-
 # 家庭网络实测稳定失效的源（GitHub 海外机房测出来是活的，但国内连不上，点进去一直转圈）。
 # 2026-11-27 家里网络两轮探测均为 0 成功。按完整 API 地址匹配，避免误杀同域名的正常源。
 # 源若日后恢复，从本列表删除对应行即可重新入选。
@@ -729,61 +641,6 @@ def is_home_dead(site: dict) -> bool:
     """站点 API 是否在家庭网络实测失效名单里（去尾部斜杠后精确匹配）。"""
     api = str(site.get("api") or "").strip().rstrip("/")
     return any(api == str(d).strip().rstrip("/") for d in HOME_DEAD_APIS)
-
-
-def fetch_china_probe(api_token: str) -> dict:
-    """从 EdgeOne 读国内节点探测结果（Blob，由定时任务在国内节点写入）。
-
-    优先读线上 probe_results；失败则回退到仓库里的 china_alive.json。
-    返回 {api: {ok, ms, count, note, ts}}；拿不到任何数据时返回 {}。
-    """
-    try:
-        tok, ts = mint_super_token(api_token)
-        last_err = None
-        for attempt in range(3):  # 522 偶发超时，重试 3 次
-            try:
-                req = urllib.request.Request(
-                    f"https://{SUPER_SOURCE_DOMAIN}/api?mode=probe_results&_t={int(time.time()*1000)}",
-                    headers={"Cookie": f"eo_token={tok}; eo_time={ts}", "User-Agent": UA_BROWSER})
-                with urllib.request.urlopen(req, timeout=45, context=ssl._create_unverified_context()) as r:
-                    d = json.loads(r.read().decode())
-                results = d.get("results") or {}
-                if results:
-                    print(f"[国内探测] 读到 EdgeOne 结果 {len(results)} 条（节点标记: {d.get('meta', {}).get('mainland')}）")
-                    return results
-            except Exception as e:
-                last_err = e
-                print(f"[国内探测] 第 {attempt + 1}/3 次读取失败: {e}")
-                time.sleep(10)
-        print(f"[国内探测] 线上读取最终失败({last_err})，尝试本地文件")
-    except Exception as e:
-        print(f"[国内探测] token 签发失败({e})，尝试本地文件")
-    for f in ("china_alive.json", "home_alive.json"):
-        try:
-            data = json.loads(Path(f).read_text(encoding="utf-8"))
-            res = {}
-            for api in data.get("alive", []):
-                res[api] = {"ok": True, "ms": None, "count": 0, "note": "file"}
-            for api in data.get("dead", []):
-                res[api] = {"ok": False, "ms": None, "count": 0, "note": "file"}
-            if res:
-                print(f"[国内探测] 使用本地文件 {f}：{len(res)} 条")
-                return res
-        except Exception:
-            continue
-    return {}
-
-
-def write_china_candidates(alive_sites: list) -> int:
-    """把本轮美国侧存活的候选源写成 probe_candidates.json，供国内定时任务探测。"""
-    items = [{"api": r["site"].get("api", ""), "type": r["site"].get("type", 1),
-              "name": r["site"].get("name", ""), "ext": r["site"].get("ext", "")}
-             for r in alive_sites
-             if str(r["site"].get("api", "")).startswith("http")
-             and "edgeone.cool" not in str(r["site"].get("api", ""))]
-    Path("probe_candidates.json").write_text(
-        json.dumps({"items": items}, ensure_ascii=False, indent=1), encoding="utf-8")
-    return len(items)
 
 
 def norm_name_py(s: str) -> str:
@@ -815,177 +672,6 @@ def js_hash_id(s: str) -> str:
             b36 = digits[h % 36] + b36
             h //= 36
     return "m" + b36
-
-
-def classify_py(name: str, cat: str, remarks: str) -> str:
-    """对齐 JS 分类规则：第N期优先判综艺，再按关键词顺序匹配。"""
-    if re.search(r"第\d+期", remarks or ""):
-        return "c_variety"
-    for rx, cid in CAT_RULES_PY:
-        if rx.search(cat or "") or rx.search(name or ""):
-            return cid
-    return "c_all"
-
-
-def fill_pics(items: list, timeout: float = 8, batch: int = 20,
-              workers: int = 6, per_src_limit: int = 8000) -> int:
-    """补齐海报：多数采集站的 ac=list 列表不带封面（实测最大上游 4205 部全空），
-    只能再调一次 ac=detail&ids=a,b,c 批量取。这一步放在流水线里做一次、
-    结果固化进 catalog，客户端打开就立刻有图，不额外增加请求。
-    返回补到的条数。
-    """
-    groups = {}  # 规范化 api -> [(oid, item)]
-    for it in items:
-        if it.get("pic"):
-            continue
-        srcs = it.get("srcs") or []
-        if not srcs:
-            continue
-        base = norm_api(srcs[0].get("api") or "")
-        if not base.startswith("http"):
-            continue
-        groups.setdefault(base, []).append((str(srcs[0]["oid"]), it))
-    if not groups:
-        return 0
-
-    def load(group):
-        base, pairs = group
-        done = 0
-        ids = [p[0] for p in pairs[:per_src_limit]]
-        index = {p[0]: p[1] for p in pairs}
-        for i in range(0, len(ids), batch):
-            chunk = ids[i:i + batch]
-            u = f"{base}?ac=detail&ids={','.join(chunk)}"
-            d = None
-            for delay in (0, 0.5, 1.5):
-                if delay:
-                    time.sleep(delay)
-                try:
-                    d = json.loads(fetch(u, timeout=timeout, ua=UA_OKHTTP))
-                    break
-                except Exception:
-                    d = None
-            for v in (d or {}).get("list", []) or []:
-                oid = str(v.get("vod_id"))
-                pic = str(v.get("vod_pic") or "").strip()
-                it = index.get(oid)
-                if it is not None and pic and not it.get("pic"):
-                    it["pic"] = pic
-                    done += 1
-        return done
-
-    with ThreadPoolExecutor(max_workers=workers) as ex:
-        filled = sum(ex.map(load, list(groups.items())))
-    print(f"[目录] 补海报：{filled} 部（{len(groups)} 个上游按 ac=detail 批量回填）")
-    return filled
-
-
-# [已弃用] 仅保留备查，不再生成 super_catalog.json
-def build_super_catalog(selected_sites: list, timeout: float = 8,
-                        latest_pages: int = 20, cat_pages: int = 12,
-                        max_cats: int = 20, max_items: int = 30000,
-                        max_lines: int = 4) -> dict:
-    """深挖各上游源生成汇总目录（去重+多源线路+分类），输出超级源静态目录。"""
-    upstreams = [s for s in selected_sites
-                 if s.get("type", 0) in (0, 1) and s.get("api") and not is_home_dead(s)]
-    if not upstreams:
-        return {"updated": "", "upstreams": [], "classes": FIXED_CLASSES_PY, "items": []}
-    print(f"[目录] 深挖 {len(upstreams)} 个上游（最新{latest_pages}页 + 主流分类{cat_pages}页）...")
-
-    def sep(u):
-        return "&" if "?" in u else "?"
-
-    def pjson(u):
-        # 部分采集站对并发突发限流：失败退避重试2次（0.5s/1.5s）
-        for delay in (0, 0.5, 1.5):
-            if delay:
-                time.sleep(delay)
-            try:
-                return json.loads(fetch(u, timeout=timeout, ua=UA_OKHTTP))
-            except Exception:
-                continue
-        return None
-
-    jobs = []  # (src_name, api, v)
-    for site in upstreams:
-        api = site["api"]
-        base = f"{api}{sep(api)}"
-        # 1) 分类表
-        cls = pjson(api) or {}
-        cat_list = [(str(c.get("type_id")), str(c.get("type_name") or ""))
-                    for c in (cls.get("class") or []) if c.get("type_id") is not None]
-        # 2) 探测 t 参数是否有效：无效的源（如淘片）改为往深翻页
-        first = pjson(f"{base}ac=list&pg=1")
-        t_ok = False
-        if cat_list and first and first.get("list"):
-            probe = pjson(f"{base}ac=list&t={cat_list[0][0]}&pg=1")
-            fids = [v.get("vod_id") for v in first.get("list", [])[:10]]
-            pids = [v.get("vod_id") for v in (probe or {}).get("list", [])[:10]]
-            t_ok = bool(pids) and pids != fids  # 同页码下列表不同=分类过滤生效
-        # 3) 生成抓取 URL
-        urls = []
-        if t_ok:
-            main = [c for c in cat_list if MAIN_CAT_PY.search(c[1])]
-            rest = [c for c in cat_list if c not in main]
-            for _tid, _cname in (main + rest)[:max_cats]:
-                urls += [f"{base}ac=list&t={_tid}&pg={p}" for p in range(1, cat_pages + 1)]
-        else:
-            # t 无效：深翻最新列表（片库按更新排序，翻得越深片越多）
-            urls = [f"{base}ac=list&pg={p}" for p in range(1, latest_pages + 1)]
-        for u in urls:
-            jobs.append((site.get("name") or "", api, u))
-        print(f"[目录] {site.get('name','')[:12]}: t参数{'有效' if t_ok else '无效(深翻页)'}，任务 {len(urls)} 个")
-
-    print(f"[目录] 共 {len(jobs)} 个抓取任务，并发拉取 ...")
-    fetched = {}  # api -> list of (src_name, data)
-    def work(job):
-        name, api, u = job
-        d = pjson(u)
-        return (name, api, d)
-    # 注意：采集站对高并发限流（16并发全被拒），用低并发+重试保证成功率
-    with ThreadPoolExecutor(max_workers=6) as ex:
-        for name, api, d in ex.map(work, jobs):
-            if d and isinstance(d.get("list"), list):
-                fetched.setdefault(api, []).append((name, d))
-
-    # 3) 去重合并（按源优先级，同片名保留多源作备用线路）
-    seen = {}
-    for site in upstreams:  # 按排名顺序处理，保证优先级
-        api = site["api"]
-        src_name = site.get("name") or ""
-        for _name, d in fetched.get(api, []):
-            for v in d["list"]:
-                vn = v.get("vod_name")
-                if not vn or v.get("vod_id") is None:
-                    continue
-                vn = str(vn)
-                key = norm_name_py(vn)
-                if not key:
-                    continue
-                entry = seen.get(key)
-                if entry:
-                    if len(entry["srcs"]) < max_lines:
-                        entry["srcs"].append({"oid": str(v["vod_id"]), "api": api, "name": src_name})
-                    continue
-                seen[key] = {
-                    "id": js_hash_id(key),
-                    "name": vn,
-                    "pic": str(v.get("vod_pic") or ""),
-                    "remarks": str(v.get("vod_remarks") or ""),
-                    "cat": classify_py(str(vn), str(v.get("type_name") or ""), str(v.get("vod_remarks") or "")),
-                    "srcs": [{"oid": str(v["vod_id"]), "api": api, "name": src_name}],
-                }
-
-    items = list(seen.values())[:max_items]
-    fill_pics(items, timeout=timeout)
-    catalog = {
-        "updated": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
-        "upstreams": [s.get("name") or "" for s in upstreams],
-        "classes": FIXED_CLASSES_PY,
-        "items": items,
-    }
-    print(f"[目录] 完成：{len(items)} 部去重片单（深挖前合并 {sum(len(e['srcs']) for e in seen.values())} 条记录）")
-    return catalog
 
 
 def write_report(path, alive_sites, dead_sites, alive_ch, dead_ch, crawl_failed, crawl_stats, selected_sites):
@@ -1110,53 +796,12 @@ def auto_mode(args):
     alive_sites = [r for r in site_results if r["ok"]]
     dead_sites = [r for r in site_results if not r["ok"]]
 
-    # ===== 国内可达性：提交候选给国内节点探测，并读取历史结果用于筛选 =====
-    n_cand = write_china_candidates(alive_sites)
-    print(f"[国内探测] 已提交候选 {n_cand} 个（probe_candidates.json，国内定时任务每小时探 32 个）")
-    # 国内探测结果改为只读本地 china_alive.json（原来靠 EdgeOne 超级源域名中转，
-    # 该域名已随项目误删而 404，2026-11-28 起彻底弃用这条链路）。
-    china_probe = {}
-    print("[国内探测] 读取本地 china_alive.json（EdgeOne 中转已停用）")
-
-    print("[检测] 直播频道并发测试...")
-    ch_results = []
-    with ThreadPoolExecutor(max_workers=args.workers) as ex:
-        futs = [ex.submit(test_channel, c, args.timeout) for c in ch_deduped]
-        for i, f in enumerate(as_completed(futs), 1):
-            ch_results.append(f.result())
-            if i % 50 == 0 or i == len(futs):
-                print(f"  {i}/{len(futs)}")
-    alive_ch = [r["ch"] for r in ch_results if r["ok"]]
-    dead_ch = [r for r in ch_results if not r["ok"]]
-
-    # 测试直播源引用（整个文件可达即算存活），并发检测后按速度排序
-    def test_ref(ref):
-        t0 = time.perf_counter()
-        body = fetch(ref["url"], timeout=args.timeout, ua=UA_BROWSER, max_bytes=20_000)
-        ms = int((time.perf_counter() - t0) * 1000)
-        if body and ("#EXTM3U" in body[:300] or "genre#" in body[:300] or "#EXTINF" in body[:300]):
-            return {"ref": ref, "ms": ms}
-        return None
-    with ThreadPoolExecutor(max_workers=args.workers) as ex:
-        ref_results = [r for r in ex.map(test_ref, ref_deduped) if r]
-    ref_results.sort(key=lambda x: x["ms"])
-    alive_refs = [r["ref"] for r in ref_results[:args.top_lives] if r["ms"] <= 5000]
-    print(f"[检测] 直播源引用存活 {len(ref_results)}/{len(ref_deduped)}，精选最快 {len(alive_refs)} 个")
-
-    # ===== 点播源分拣：国内可达优先 → 可播性 → 片单量 → 速度，只留前 top 个 =====
-    def china_rank(r):
-        """0=国内节点实测可开（最优先），1=未测/待测；实测打不开的直接剔除。"""
-        api = str(r["site"].get("api", ""))
-        st = china_probe.get(api) or china_probe.get(api.rstrip("/")) or {}
-        return 0 if st.get("ok") else 1
-
-    def china_dead(r):
-        api = str(r["site"].get("api", ""))
-        st = china_probe.get(api) or china_probe.get(api.rstrip("/")) or {}
-        return st.get("ok") is False
-
+    # ===== 点播源分拣：可播性 → 片单量 → CDN 速度 → 响应延迟，只留前 top 个 =====
+    # 原先还有一道"国内节点可达性"过滤（EdgeOne 边缘函数回传国内探测），该链路随
+    # 超级源项目被删而失效，2026-11-28 起移除；国内打不开的源由 HOME_DEAD_APIS 黑名单兜底。
     good = [r for r in alive_sites if r["play"] is not False]  # play False 已在检测时标记失效
-    good.sort(key=lambda r: (china_rank(r), r["play"] is not True, -min(r["count"], 50), -(r.get("cdn_speed") or 0), r["ms"] or 99999))
+    good.sort(key=lambda r: (r["play"] is not True, -min(r["count"], 50), -(r.get("cdn_speed") or 0), r["ms"] or 99999))
+
     selected_sites = []
     seen_cn = set()
     # 有 jar 候选时给 type 3 高级源预留 3 个名额，避免普通源占满后高级源无位可进
@@ -1167,8 +812,6 @@ def auto_mode(args):
             continue  # type 3 后面按 jar 配对单独处理
         if is_home_dead(r["site"]):
             continue  # 家庭网络实测打不开的源，剔除（否则点进去一直转圈）
-        if china_dead(r):
-            continue  # 国内节点探测打不开的源，剔除（避免美国机房误判"存活"）
         cn = clean_name(r["site"].get("name", ""))
         if cn in seen_cn:
             continue
@@ -1234,20 +877,7 @@ def auto_mode(args):
     # 全网汇总（超级源）已于 2026-11-28 正式归档：EdgeOne 项目被误删且新项目部署始终失败，
     # 该功能彻底下线，配置里不再注入任何 super 条目。代码与目录保留在 archive/super-source/ 备查。
 
-    # 自建直播：本地实测过的 live.json 优先；没有则用流水线抓取的 live_raw.json（未测速）
-    for live_name in ("live.json", "live_raw.json"):
-        live_path = Path(live_name)
-        if not live_path.exists():
-            continue
-        try:
-            gen = json.loads(live_path.read_text(encoding="utf-8"))
-            if gen.get("lives"):
-                latest["lives"] = gen["lives"]
-                print(f"[直播] 采用 {live_name}：{len(gen['lives'])} 个直播源")
-                break
-        except Exception as e:
-            print(f"[直播] {live_name} 读取失败，沿用种子直播源: {e}")
-
+    # 直播来源：种子配置里内联的频道组（config/tv.json），下面统一瘦身成 live.txt 的外链引用。
     # 配置瘦身（无论直播来自哪里都要做）：内联几千个频道会让 latest.json 从 ~50KB 涨到 200~400KB，
     # 魔屏这类盒子光是拉取+解析就要多花十几秒。这里把内联频道组换成对 live.txt 的 url 引用，
     # 频道只在用户打开"直播"页时才去拉，主配置只剩站点列表。

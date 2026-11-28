@@ -1,96 +1,46 @@
-# 交接说明：直播源整理（build_live.py）
+# 交接说明（当前状态 2026-11-28）
 
-> 在公司电脑上的准备工作已完成，回家后在**家里的电脑**执行本文即可继续。
-> 公司网络测速结果无效（且是公司电脑，不跑扫描），所以所有实测都留到家里做。
+这个仓库只有一件事：**每天自动产出一份能用的 OK影视 配置**。不需要本地电脑参与。
 
-## 当前进度（2026-11-26）
+## 现在在跑什么
 
-- [x] `build_live.py` 完成：抓取 7 个电视台列表 → 频道名归一化 → 分 9 组 → 同频道多线路合并去重 → 输出 FongMi LiveConfig
-- [x] 已接入主流水线：`check_sources.py` 生成 `latest.json` 时，`lives` 字段优先采用 `live.json`
-- [x] `.github/workflows/update.yml` 每日先跑 `build_live.py --out live_raw.json`（只抓取不测速，作兜底）
-- [x] 公司电脑上的一次粗测（走公司网络，仅作参考）：972 频道中 399 个可拉通
-- [ ] **待办：在家里「上海移动、无 IPv6」的网络下重测，按移动优先级排序**
+1. `build_live.py` → 抓直播频道、归一化、分组、合并线路 → 写 `live.txt`
+2. `check_sources.py --auto --top 40` → 爬 12 个聚合站（`sources_pool.json`）→ 提取源 →
+   并发测活/测速/试播 → 剔除 `HOME_DEAD_APIS` → 排序取 40 → 写 `latest.json` + `report.md`
+3. Actions 自动提交；每次提交会用 `git pull --rebase -X ours` 重试 5 次防并发冲突
+4. 收尾 purge jsDelivr 的 `latest.json` / `live.txt` 缓存
 
-## 家里电脑的准备
+定时：`.github/workflows/update.yml`，`cron: 0 19 * * *`（UTC）= 每天 03:00 北京时间；
+也可以手动 `workflow_dispatch`，或直接 push 触发。
 
-1. Python 3.10+（`python --version` 能出版本即可，无需装第三方库，全部用标准库）
-2. Git
-3. 网络：**关闭代理 / VPN / 加速器**。IPTV 源是按运营商定向的，挂着代理测出来的结果全部作废。
+## 配置里是什么
 
-> 脚本内部对测速请求已强制直连（`ProxyHandler({})`），但保险起见还是把系统代理关掉。
+- `sites`：40 个由流水线精选 + 8 个固定自建站（云盘搜索、磁力、我的云盘扫码、若干 type3）= 48 站
+- `quickSearch`：只在最快 6 个纯 CMS 源上开（1GB 内存盒子并发搜索扛不住更多）
+- `lives`：`自建直播` 指向 `live.txt`（外链），另加虎牙/斗鱼/YY 三个 m3u
+- `spider`：`libs/spider.png`（jsDelivr），客户端按字节和 md5 校验
 
-## 三步继续
+## 已下线，不要试图复活
 
-```bash
-git clone https://github.com/WJS1987/tvbox-auto.git
-cd tvbox-auto
-
-# 关键一步：按「上海移动」优先排序 + 每频道测 5 条线路，实测最快
-python build_live.py --test --test-urls 5 --limit-urls 3 --isp mobile
-```
-
-跑完会在当前目录生成：
-
-| 文件 | 内容 |
+| 功能 | 状态 |
 |---|---|
-| `live.json` | 最终产物（FongMi LiveConfig：自建直播 + 虎牙/斗鱼/YY 一起看） |
-| `live.txt` | 通用 TXT 格式（`分组,#genre#` + `频道,url`），可给别的播放器 |
-| `live_stats.json` | 分组频道数、线路数统计 |
+| 全网汇总 / 超级源（EdgeOne 边缘函数、网盘播放、panck Cookie 管理） | 已归档到 `archive/super-source/`，代码路径已移除 |
+| EdgeOne token 每小时续签 | `archive/refresh_token.yml.off`，已停用 |
+| 国内节点探测（EdgeOne 中转） | 已移除，改由 `HOME_DEAD_APIS` 黑名单兜底 |
+| `edge_probe.py`（依赖 EdgeOne 的家宽探测脚本） | 已归档到 `archive/manual-tools/` |
+| 网盘播放配置文档 | 已归档到 `archive/` |
 
-## 参数说明
+## 已知问题
 
-| 参数 | 默认 | 说明 |
-|---|---|---|
-| `--test` | 关 | 开启实测（不测就只做合并去重，会保留大量死链） |
-| `--test-urls N` | 5 | 每个频道最多测几条线路，测得多命中率高、耗时线性增加 |
-| `--limit-urls N` | 3 | 每个频道最终保留几条线路（按实测速度排序，第一条最优） |
-| `--isp` | 空 | `mobile`/`telecom`/`unicom`，同运营商线路排前面 |
-| `--workers N` | 48 | 并发数，家用宽带建议 48~64，太高反而掉包 |
+- **冷启动抖动**：最好 10~12 秒，但偶发 20~70 秒，卡在"品牌名+转圈"。
+  已排除配置体积（18KB）、镜像速度（curl 0.3~0.6s）、jar 预下载；
+  怀疑是 OK影视 首拉失败后的自身重试逻辑，非配置侧问题，暂未根治。
+- **海外机房测速不准**：`report.md` 里的延迟只作筛选参考，真实体验以魔屏为准。
+  需要精测时在家跑 `device_test.py`。
+- 直播频道在海外机房探测常显示"存活 0"，属正常（国内 IPTV 海外连不上），以设备实测为准。
 
-耗时参考：972 频道 × 5 条 ≈ 3000 条线路，64 并发约 8~10 分钟。
+## 增删源怎么做
 
-## 跑完怎么看结果
-
-终端最后会打印，例如：
-
-```
-[测速] 可播放频道 399/972
-[统计] 分组频道数: {"央视频道": 9, "卫视频道": 23, ...}
-```
-
-判断标准：
-- **央视频道 ≥ 20、卫视频道 ≥ 30** 算达标（公司网络下只有 9 / 23，因为在上海移动网络里很多源不可达）
-- 若央视仍然个位数，说明 `CCTV-1` 这类频道的候选源全在同一批失效主机上，需要往 `SOURCES` 里再加源（见下）
-
-## 结果怎么生效
-
-```bash
-git add -A
-git commit -m "live: 上海移动实测后的直播源"
-git push
-```
-
-推送后 GitHub Actions 会自动跑一轮（抓取 + 生成 `latest.json`）。之后在魔屏 OK影视 里**重新拉一次配置**，直播页会出现 4 个源：
-
-1. `自建直播`（央视/卫视/地方/港澳台/影视/少儿/体育/国际）
-2. `虎牙一起看`
-3. `斗鱼一起看`
-4. `YY轮播`
-
-## 想加更多源
-
-改 `build_live.py` 顶部的 `SOURCES`（名称、m3u 地址、优先级），优先级数字越小越靠前。目前这些源的结构：
-
-| 源 | 性质 |
-|---|---|
-| `iptvphp` | 央卫为主，IP:端口型，死链多 |
-| `kimentanm` | 干净的央卫列表，120 条 |
-| `guovin` | 聚合 + 自身测速（但测速机房在海外，偏向海外可达源） |
-| `fanmingming-v6` | **纯 IPv6，家里没 IPv6 时全废**，可考虑临时注释 |
-| `iptv-org-cn` | 国内频道英文名居多，主要贡献国际频道 |
-
-## 注意事项
-
-- 直播源是公开 HLS 链接，寿命通常几天到几周；这是所有聚合方案（含饭太硬）的共同问题，需要定期重跑测速
-- `build_live.py` 里 `BLOCK_RE` 会剔除成人/赌博类频道，这是固定策略，不要改
-- 不要在公司电脑或公司网络跑 `--test`
+- 加聚合站：编辑 `sources_pool.json`，加一行 url
+- 屏蔽某个具体源：把它的完整 API 加进 `check_sources.py` 的 `HOME_DEAD_APIS`
+- 调数量：改 workflow 里的 `--top 40`（越大首页越重、加载越慢）

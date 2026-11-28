@@ -29,6 +29,20 @@ maccms 接口和网盘 Cookie 管理页（`?mode=panck`）。EdgeOne 项目 `mak
 
 > 注意：腾讯云 API 的 `DeletePagesProject` 接口极危险，曾导致本项目域名被删，不要再用来探测。
 
+## manual-tools/edge_probe.py
+
+依赖 EdgeOne 边缘函数从"国内节点视角"探测源的家宽探测脚本，EdgeOne 下线后失效，仅存档。
+现在国内可达性只靠 `check_sources.py` 里的 `HOME_DEAD_APIS` 黑名单兜底。
+
+## docs/
+
+- `jar依赖说明-自建与兜底.md`：jar 自托管的调研与结论（结论已落地，文中"用 raw 直连"的早期方案已改为 jsDelivr `.png`）
+- `RESEARCH_国内采集方案.md`：早期国内可达性方案调研（EdgeOne 中转方案已弃用）
+
+## 回家必看-网盘播放配置.md
+
+网盘播放（夸克/UC Cookie、panck 接口）的旧操作说明，随超级源一起弃用。
+
 ## refresh_token.yml.off
 
 原每小时刷新超级源 token 的工作流，已停用（文件后缀 `.off`，GitHub 不会执行）。

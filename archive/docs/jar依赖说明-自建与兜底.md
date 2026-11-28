@@ -90,9 +90,9 @@
 把三个 jar 下载进本仓库 `libs/`，配置改指向自己的 GitHub raw：
 
 ```
-libs/fty_spider.jar      1.40 MB  md5 5302302a73a9e27cfaa65f3873b727ab  (饭太硬包)
-libs/pan_spider.jar      2.74 MB  md5 540cb3abf9883a2de6d73b0624ffcabc  (云盘/磁力搜索)
-libs/global_spider.jar   1.15 MB  md5 3f9b9cac793a3e9b818131c8a7208800  (全局 spider，仅备份)
+libs/fty_spider.png      1.40 MB  md5 5302302a73a9e27cfaa65f3873b727ab  (饭太硬包，.png 后缀分发)
+libs/pan_spider.png      2.74 MB  md5 540cb3abf9883a2de6d73b0624ffcabc  (云盘/磁力搜索)
+libs/spider.png   1.15 MB  md5 3f9b9cac793a3e9b818131c8a7208800  (全局 spider，仅备份)
 ```
 
 - `check_sources.py` 里 `PAN_JAR` / `FTY_JAR` 改为 `REPO_RAW`，9 个站点全部指向自有仓库
@@ -149,7 +149,7 @@ md5sum libs/*.jar
 |---|---|
 | 自有仓库的 jar 误删 | 从 `libs/` 恢复并推送，或直接从本地 U 盘拷回仓库 |
 | 想彻底不依赖 GitHub | 把 `libs/*.jar` 放到任何静态托管（自家 NAS / 对象存储），把 `REPO_RAW` 换成新地址即可 |
-| 全局 spider 图床挂了 | 编辑 `latest.json` 顶层 `"spider"` 为 `https://raw.githubusercontent.com/WJS1987/tvbox-auto/main/libs/global_spider.jar`，重新导入配置 |
+| 全局 spider 图床挂了 | 编辑 `latest.json` 顶层 `"spider"` 为 `https://raw.githubusercontent.com/WJS1987/tvbox-auto/main/libs/spider.png`，重新导入配置 |
 | 网盘站点全空 | 不影响主功能；先确认 jar 地址能否在电视浏览器打开，再重导配置 |
 
 ---

@@ -276,7 +276,6 @@ def main():
     ap.add_argument("--test-urls", type=int, default=5, help="每个频道最多测几条线路")
     ap.add_argument("--isp", default="", choices=["", "mobile", "telecom", "unicom"],
                     help="你家宽带运营商，同运营商线路优先")
-    ap.add_argument("--out", default="live.json")
     args = ap.parse_args()
 
     def isp_rank(u):
@@ -369,9 +368,9 @@ def main():
         "groups": [{"name": g, "channel": sorted(v, key=lambda x: x["name"])}
                    for g, v in groups.items() if v],
     }
-    live = {"lives": [main_live] + [dict(x) for x in EXTRA_LIVES]}
-    with open(args.out, "w", encoding="utf-8") as f:
-        json.dump(live, f, ensure_ascii=False, indent=1)
+
+    # 只输出通用 TXT：魔屏配置里直播走 url 引用 live.txt，live.json 已不再被任何地方消费。
+    _ = main_live  # 保留结构定义，便于以后要恢复 JSON 格式时直接用
 
     # TXT（通用格式，取每频道最优线路）
     with open("live.txt", "w", encoding="utf-8") as f:

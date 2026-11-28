@@ -482,7 +482,7 @@ def test_channel(ch: dict, timeout: float) -> dict:
 
 
 # ---------- 生成 ----------
-def build_latest(seed_cfg: dict, selected_sites: list, alive_channels: list, live_refs: list, spider_url: str) -> dict:
+def build_latest(seed_cfg: dict, selected_sites: list, alive_channels: list, live_refs: list, spider_url: str, top_n: int = 0) -> dict:
     sites = []
     used_names = set()
     pool_keys = set()
@@ -545,6 +545,12 @@ def build_latest(seed_cfg: dict, selected_sites: list, alive_channels: list, liv
         s.setdefault("timeout", 15)
         fixed.append(s)
     sites = fixed
+    # 按 top_n 截断：普通采集站取前 top_n 个，磁力等固定站不占名额
+    if top_n:
+        heads, jars = [], []
+        for x in sites:
+            (jars if x.get("jar") else heads).append(x)
+        sites = heads[:top_n] + jars
     # quickSearch 名额有限：一次全库搜索时，客户端会并发请求所有开着 quickSearch 的站点。
     # 实测魔屏（1GB 内存盒子）并发 20 个搜索请求会长时间空白，
     # 因此只让"纯 CMS 采集站"里最快的 6 个参与全库搜索：
@@ -801,7 +807,7 @@ def auto_mode(args):
     seen_cn = set()
     # 有 jar 候选时给 type 3 高级源预留 3 个名额，避免普通源占满后高级源无位可进
     reserve = min(3, len(jar_candidates)) if jar_candidates else 0
-    cap = max(1, args.top - reserve)
+    cap = max(1, args.top * 2 - reserve)  # 多取候选：同名站去重后会变少，build_latest 再截到 top
     for r in good:
         if r["site"].get("type", 0) != 0 and r["site"].get("type", 0) != 1:
             continue  # type 3 后面按 jar 配对单独处理
@@ -818,48 +824,12 @@ def auto_mode(args):
         if len(selected_sites) >= cap:
             break
 
-    # ===== spider jar 测试：让 type 3 高质量源复活 =====
+    # ===== 只保留纯 CMS 采集站 =====
+    # type3 规则源（4K网盘/秒播/动漫巴士/AList 之流）要靠各自的第三方 jar 才能工作，
+    # 那些 jar 随时被撤、且会让首页多出大量点进去空白的站。2026-11-28 定稿：
+    # 全站不再使用任何 type3 源，spider 统一用本仓库自托管的 libs/spider.png
+    # （只为保持兼容性，实际没有 type3 站引用它）。
     spider_url = ""
-    if jar_candidates:
-        print(f"[jar] 测试 {len(jar_candidates)} 个爬虫包 ...")
-        jar_results = []
-        with ThreadPoolExecutor(max_workers=8) as ex:
-            futs = {ex.submit(fetch_bytes, j, args.timeout, None, 3_000_000): j
-                    for j in jar_candidates}
-            for f in as_completed(futs):
-                body, _ms = f.result()
-                # jar 是 ZIP 包（PK\x03\x04 头），按字节校验：decode 后字节数会失真，
-                # 用 str 比较 "PK" 也可能把 HTML 错误页误判为可用包
-                if body and len(body) >= 10_000 and body[:4] == b"PK\x03\x04":
-                    jar_results.append(futs[f])
-        if jar_results:
-            # 选出能配对最多 type 3 存活源的 jar（并列时取源响应最快的）
-            from collections import Counter as _C
-            alive_t3 = [r for r in good if r["site"].get("type", 0) == 3]
-            jar2cnt = _C(r["site"].get("_spider", "") for r in alive_t3
-                         if r["site"].get("_spider") in jar_results)
-            spider_url = max(jar_results, key=lambda j: jar2cnt.get(j, 0)) if jar2cnt \
-                else jar_results[0]
-            print(f"[jar] 可用 {len(jar_results)} 个，选用: {spider_url[:60]}"
-                  f"（配对 {jar2cnt.get(spider_url, 0)} 个 type3 存活源）")
-            # 加入与该 jar 配对的 type 3 源（哔哩/Emby 等高级源）
-            t3 = [r for r in good if r["site"].get("type", 0) == 3
-                  and r["site"].get("_spider") == spider_url]
-            t3.sort(key=lambda r: r["ms"] or 99999)
-            for r in t3:
-                if len(selected_sites) >= args.top:
-                    break
-                cn = clean_name(r["site"].get("name", ""))
-                if cn in seen_cn or not cn:
-                    continue
-                seen_cn.add(cn)
-                r["site"]["_ms"] = r["ms"]
-                r["site"]["_play"] = r["play"]
-                selected_sites.append(r["site"])
-            print(f"[jar] 复活 type 3 源 {len(selected_sites)} 个总数中包含的 type3: "
-                  f"{sum(1 for s in selected_sites if s.get('type', 0) == 3)}")
-        else:
-            print("[jar] 无可用爬虫包，type 3 源全部排除")
 
     # 种子配置里的 flags/ads 等参数沿用
     seed_cfg = {}
@@ -868,7 +838,7 @@ def auto_mode(args):
             seed_cfg = parse_config_text(Path(args.seed).read_text(encoding="utf-8-sig")) or {}
         except Exception:
             pass
-    latest = build_latest(seed_cfg, selected_sites, alive_ch, alive_refs, spider_url)
+    latest = build_latest(seed_cfg, selected_sites, alive_ch, alive_refs, spider_url, args.top)
     # 全网汇总（超级源）已于 2026-11-28 彻底下线：EdgeOne 项目被误删且新项目部署始终失败，
     # 相关代码与目录也已删除，配置里不再注入任何 super 条目。
 

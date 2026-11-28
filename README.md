@@ -25,7 +25,7 @@
 → 生成 latest.json（+ report.md），自动提交回仓库
 ```
 
-直播由 `build_live.py` 抓 GitHub 上的 m3u 列表，归一化后写 `live.txt`；配置里直播只放
+直播清单是人工核验过的成果（`live.txt`，只保留序列会前进的真直播），不再由每日任务重建，避免混入伪直播；配置里直播只放
 **url 引用**，频道表等用户点进直播页才加载，主配置因此保持在 20KB 出头。
 
 ## 关键设计（别随手改）
@@ -56,7 +56,8 @@
 | 文件 | 作用 |
 |---|---|
 | `check_sources.py` | 主流水线：爬取、测活、测速、生成 `latest.json` + `report.md` |
-| `build_live.py` | 直播整理：抓 GitHub m3u、归一化分组、合并多线路 → `live.txt` |
+| `build_live.py` | 直播整理（手动）：抓列表、归一化分组、合并多线路 → `live.txt` |
+| `live_verify.py` | 直播核验（手动）：同一 m3u8 隔 8 秒抓两次，序列不动的一律剔除 → `live_verified.txt` |
 | `sources_pool.json` | GitHub 配置清单地址池（想加源就加一行） |
 | `config/tv.json` | 种子配置：参数沿用（ads 黑名单）+ 兜底源 |
 | `libs/spider.png` | 全局爬虫包（type3 源用），jsDelivr 分发副本 |
@@ -70,7 +71,8 @@
 python check_sources.py --auto --crawl-only   # 只爬取看清单质量，不联网测
 python check_sources.py --auto --limit 20     # 快速试 20 个源
 python check_sources.py --auto                # 全量
-python build_live.py                          # 单独重建 live.txt
+python build_live.py                          # 单独重建 live.txt（原始全量）
+python live_verify.py live.txt live_verified.txt   # 再核验，只留真直播
 ```
 
 ## 注意

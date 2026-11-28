@@ -29,13 +29,6 @@ jobs:
         with:
           python-version: '3.13'
 
-      - name: Build live list (自建直播源)
-        run: |
-          # GitHub 机房在海外，测速结果不代表国内网络，这里只做抓取+归一化+去重
-          # 输出 live.txt（配置里直播走 url 引用这个文件，按需再拉，避免主配置变大）
-          # 需要按国内网络测速择优时，本地跑：python build_live.py --test --test-urls 5 --isp mobile
-          python build_live.py
-
       - name: Crawl + Test + Build latest.json
         run: |
           python check_sources.py --auto --workers 30 --timeout 8 --top 50

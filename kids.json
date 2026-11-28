@@ -13,6 +13,17 @@
       "quickSearch": 0
     },
     {
+      "key": "sf23da7d8",
+      "name": "极速 零一",
+      "type": 1,
+      "api": "https://ww96.taiee.xyz/api.php/provide/vod/",
+      "searchable": 1,
+      "quickSearch": 0,
+      "timeout": 15,
+      "filterable": 1,
+      "categories": []
+    },
+    {
       "key": "s30486df3",
       "name": "影视 建安",
       "type": 1,
@@ -28,10 +39,10 @@
       "categories": []
     },
     {
-      "key": "sf23da7d8",
-      "name": "极速 零一",
+      "key": "sa3a969c4",
+      "name": "暴风资源2",
       "type": 1,
-      "api": "https://ww96.taiee.xyz/api.php/provide/vod/",
+      "api": "http://bf.xoxowin86cisyap.com/api.php/provide/vod",
       "searchable": 1,
       "quickSearch": 0,
       "timeout": 15,
@@ -39,10 +50,10 @@
       "categories": []
     },
     {
-      "key": "sa3a969c4",
-      "name": "暴风资源2",
+      "key": "s883a7ded",
+      "name": "麒麟 影音",
       "type": 1,
-      "api": "http://bf.xoxowin86cisyap.com/api.php/provide/vod",
+      "api": "https://www.qlys.cc/api.php/provide/vod/",
       "searchable": 1,
       "quickSearch": 0,
       "timeout": 15,

@@ -53,7 +53,6 @@ CGTN 纪录,https://english-livebkali.cgtn.com/live/doccgtn_0.m3u8
 贵州卫视,http://173.208.212.130:8181/720p/gzws.m3u8
 云南卫视,http://173.208.212.130:8181/720p/ynws.m3u8
 西藏卫视,http://112.27.5.218:9901/tsfile/live/0111_1.m3u8?key=txiptv&playlive=1&authid=0
-安多卫视,https://liveout.xntv.tv/a65jur/96iln2.m3u8
 甘肃卫视,http://173.208.212.130:8181/720p/gsws.m3u8
 新疆卫视,http://218.84.12.186:8001/hls/main/playlist.m3u8?zxinjd
 延边卫视,https://srs.iyb983.cn/video/CYS/index.m3u8

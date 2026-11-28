@@ -27,16 +27,13 @@ UA = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
 
 SOURCES = [
     # name, url, 权重（越小越优先）
-    # 只收“电视台”性质的列表；虎牙/斗鱼/YY 一起看属于主播房间，改为独立 live 源单独挂
-    ("iptvphp", "http://193.123.86.190:14888/TV/iptv.php", 1),
+    # 只收 GitHub 上的 m3u 列表（海外机房可直连，无需登录），非 GitHub 的直播站已移除
     ("kimentanm", "https://ghproxy.net/https://raw.githubusercontent.com/Kimentanm/aptv/master/m3u/iptv.m3u", 2),
     ("guovin", "https://ghproxy.net/https://raw.githubusercontent.com/Guovin/iptv-api/gd/output/result.m3u", 3),
     ("guovin-master", "https://ghproxy.net/https://raw.githubusercontent.com/Guovin/iptv-api/master/output/result.m3u", 4),
     ("fanmingming-v6", "https://raw.githubusercontent.com/fanmingming/live/main/tv/m3u/ipv6.m3u", 5),
     ("fanmingming-idx", "https://raw.githubusercontent.com/fanmingming/live/main/tv/m3u/index.m3u", 6),
     ("iptv-org-cn", "https://raw.githubusercontent.com/iptv-org/iptv/master/streams/cn.m3u", 9),
-    # 2026-11-26 新增：上海移动实测抽测可达率 iptv4 100% / itvlist 80%
-    ("iptv4", "https://live.zbds.top/tv/iptv4.m3u", 7),
     ("itvlist", "https://ghproxy.net/https://raw.githubusercontent.com/mzky/checklist/master/itvlist.m3u", 8),
 ]
 

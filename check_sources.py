@@ -508,47 +508,22 @@ def build_latest(seed_cfg: dict, selected_sites: list, alive_channels: list, liv
         # 先全部关掉，最后按实测延迟只给最快的十几个开 quickSearch（见下方收尾）
         s["quickSearch"] = 0
         sites.append(s)
-    # ---------- 固定精选：网盘/磁力爬虫源 ----------
-    # 【自托管 + 换成能下载的链路】jar 都在本仓库 libs/，不依赖任何第三方图床。
-    # 2026-11-27 上海家宽实测：raw.githubusercontent 直连 2.7MB 的 jar，142 秒后被重置失败；
-    # 同一文件走 gh-proxy 17 秒可下完；jsDelivr 对 .jar 直接 403，但对 .png 秒开。
-    # 所以把同一份包再存一份 .png 后缀（客户端只看字节和 md5，不看后缀），走 jsDelivr。
-    # 时间多出来的黑屏等待就是这么来的：魔屏要等 jar 下完才能进站点。
+    # ---------- 固定精选：磁力爬虫源 ----------
+    # 2026-11-28 定稿：只做"采集站"这一条线，网盘/汇总已彻底下线，不再挂任何网盘爬虫包。
+    # 剩余两个磁力站用同一份自托管内核（libs/pan_spider.png，jsDelivr 供货），
+    # 好处是无需登录、不需要 Cloud-drive.txt，点开就能出磁力结果。
     RAW = "https://gh-proxy.com/https://raw.githubusercontent.com/WJS1987/tvbox-auto/main/"
     CDN = "https://cdn.jsdelivr.net/gh/WJS1987/tvbox-auto@main/libs/"
     PAN_JAR = CDN + "pan_spider.png"
-    # 饭太硬同款网盘爬虫包（与官方 spider 字节级一致：ftyguard_v7/v8.so +
-    # ftyshinidie.guard 加密代码 + classes.dex 壳，含全套 csp_*Guard 网盘类）。
-    # 私有加壳包、无源码，故只能整体镜像；按站点单独挂，不进全局 spider
-    #（全局 jar 决定其他 type3 站点兼容性，换掉会连累它们）。
-    FTY_JAR = (CDN + "fty_spider.png"
-               + ";md5;5302302a73a9e27cfaa65f3873b727ab")
-    # 真实机制（2026-11-27 用户纠正 + 全网核实）：不是手动填 Cookie。
-    # 点"我的云盘"站点 → 客户端弹二维码 → 手机网盘APP扫码登录 →
-    # token 由客户端自动写进本地 tvfan/Cloud-drive.txt；
-    # 下列共用该账号文件的站点随后才能把网盘分享解析成可播直链。
-    CD = {"Cloud-drive": "tvfan/Cloud-drive.txt"}
-    # 爬来的同名站点没挂 jar（全局 jar 不含这些 Guard 类，是摆设），先剔除避免重复
+    # 爬来的网盘/登录类站点（Arc/玩偶/夸父系列）没挂对应 jar，属摆设，先剔除避免重复
     FTY_APIS = {"csp_MyDriveGuard", "csp_WoGGGuard", "csp_YpanSoGuard",
                 "csp_BpanSoGuard", "csp_KkSsGuard", "csp_UuSsGuard"}
     sites = [s for s in sites if s.get("api") not in FTY_APIS]
     sites.extend([
-        {"key": "pan_search", "name": "云盘搜索", "type": 3, "api": "csp_PanSearch",
-         "jar": PAN_JAR, "searchable": 1, "quickSearch": 1, "filterable": 0, "timeout": 15},
         {"key": "seedhub", "name": "SeedHub磁力", "type": 3, "api": "csp_SeedHub",
          "jar": PAN_JAR, "searchable": 1, "quickSearch": 1, "filterable": 1, "timeout": 15},
         {"key": "new6v", "name": "New6V磁力", "type": 3, "api": "csp_New6v", "jar": PAN_JAR,
          "ext": "https://www.xb6v.com", "searchable": 1, "quickSearch": 1, "filterable": 1, "timeout": 15},
-        # ① 登录入口：点进去 →「登入自己网盘」→ 弹二维码 → 手机APP扫码
-        {"key": "mydrive", "name": "我的云盘 扫码登录", "type": 3, "api": "csp_MyDriveGuard",
-         "jar": FTY_JAR, "changeable": 0, "indexs": 0, "searchable": 1,
-         "style": {"type": "oval"}, "ext": CD, "timeout": 20},
-        # ② 扫码后自动能播的免费网盘片源（只留一个能出片的，其余同质站点已砍：
-        #    盘她夸父/盘他嘟嘟/抠抠搜搜/优汐搜搜 都要同一份 Cloud-drive.txt，
-        #    留着只是重复加长首页、还拖慢冷启动）
-        {"key": "wogg", "name": "玩偶哥哥4K", "type": 3, "api": "csp_WoGGGuard",
-         "jar": FTY_JAR, "changeable": 0, "searchable": 1, "quickSearch": 1,
-         "ext": CD, "timeout": 30},
     ])
     # 收尾统一：补默认值 + 按 key 去重
     # （同一后台被写成不同 URL 时，前面按名字去重拦不住，这里按稳定 key 再兜一层，
@@ -862,7 +837,7 @@ def auto_mode(args):
                 else jar_results[0]
             print(f"[jar] 可用 {len(jar_results)} 个，选用: {spider_url[:60]}"
                   f"（配对 {jar2cnt.get(spider_url, 0)} 个 type3 存活源）")
-            # 加入与该 jar 配对的 type 3 源（如 玩偶/哔哩/Emby 等高级源）
+            # 加入与该 jar 配对的 type 3 源（哔哩/Emby 等高级源）
             t3 = [r for r in good if r["site"].get("type", 0) == 3
                   and r["site"].get("_spider") == spider_url]
             t3.sort(key=lambda r: r["ms"] or 99999)
@@ -889,8 +864,8 @@ def auto_mode(args):
         except Exception:
             pass
     latest = build_latest(seed_cfg, selected_sites, alive_ch, alive_refs, spider_url)
-    # 全网汇总（超级源）已于 2026-11-28 正式归档：EdgeOne 项目被误删且新项目部署始终失败，
-    # 该功能彻底下线，配置里不再注入任何 super 条目。代码与目录保留在 archive/super-source/ 备查。
+    # 全网汇总（超级源）已于 2026-11-28 彻底下线：EdgeOne 项目被误删且新项目部署始终失败，
+    # 相关代码与目录也已删除，配置里不再注入任何 super 条目。
 
     # 直播来源：种子配置里内联的频道组（config/tv.json），下面统一瘦身成 live.txt 的外链引用。
     # 配置瘦身（无论直播来自哪里都要做）：内联几千个频道会让 latest.json 从 ~50KB 涨到 200~400KB，

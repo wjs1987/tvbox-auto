@@ -2,16 +2,3 @@ __pycache__/
 *.pyc
 node_modules/
 *.log
-super-source/.edgeone/
-test_latest.json
-test_report.md
-verify_super.py
-super_catalog.json
-
-live_all.json
-live_test.log
-live_raw.json
-live_stats.json
-device_report.md
-remote_latest.json
-super-source/.env

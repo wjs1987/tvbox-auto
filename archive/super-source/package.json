@@ -1,8 +1,0 @@
-{
-  "name": "tvbox-super-source",
-  "private": true,
-  "type": "module",
-  "dependencies": {
-    "@edgeone/pages-blob": "^0.0.19"
-  }
-}

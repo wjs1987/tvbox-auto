@@ -12,8 +12,8 @@ permissions:
   contents: write
 
 concurrency:
-  # 与 refresh_token.yml 共用同一组，跨工作流排队串行，避免两个作业
-  # 同时改写 latest.json 时并发 rebase 互相顶掉（曾导致配置生成结果丢失）。
+  # 手动触发与定时任务共用同一组，排队串行，避免两次作业同时改写
+  # latest.json 时并发 rebase 互相顶掉（曾导致配置生成结果丢失）。
   group: tvbox-main
   cancel-in-progress: false  # 排队等待，不取消正在跑的作业
 

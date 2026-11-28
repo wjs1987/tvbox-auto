@@ -1,14 +1,22 @@
 # TVBox 自动维护仓库（自用 OK影视 源）
 
-一个人的自建源：GitHub Actions 每天爬源、测活、测速，产出 `latest.json` 给天猫魔屏里的 OK影视 用。
-**纯云端，不需要家里的电脑开机参与。**
+一个人的自建源：GitHub Actions 每天爬 GitHub 上的公开配置清单，测活、测速，产出 `latest.json`
+给天猫魔屏里的 OK影视（`com.fongmi.android.tv`）使用。**纯云端，不需要家里的电脑开机参与。**
 
-## 流水线干什么
+## 只做一件事：采集站
+
+本仓库只维护“采集站（CMS）”这一条线，也就是别人已经搭好的影视接口。
+
+- ✅ 采集站：别人有片库和接口，我们只负责挑、测、筛
+- ❌ 网盘：要各自登录、分享链接易失效、解析要维护 —— 已彻底下线
+- ❌ 全网汇总（超级源）：要自建聚合服务 —— 已彻底下线
+
+## 流水线
 
 每天北京时间 03:00（＋每次推送代码）自动执行：
 
 ```
-爬取聚合配置站（sources_pool.json 里的地址，含多仓递归）
+爬取 GitHub 上的配置清单（sources_pool.json，多仓递归一层）
 → 提取点播源 / 直播频道 / 直播源引用
 → 按 (type, 规范化 API) 去重
 → 并发测试：HTTP 存活 + 延迟 + 片单数据量 + 真实可播性
@@ -17,18 +25,19 @@
 → 生成 latest.json（+ report.md），自动提交回仓库
 ```
 
-直播由 `build_live.py` 抓取归一化后写 `live.txt`；配置里直播只放一条 **url 引用**，
-频道表等用户点进直播页才加载，主配置因此只有 ~20KB。
+直播由 `build_live.py` 抓 GitHub 上的 m3u 列表，归一化后写 `live.txt`；配置里直播只放
+**url 引用**，频道表等用户点进直播页才加载，主配置因此保持在 20KB 出头。
 
 ## 关键设计（别随手改）
 
 - **站点 key 是 API 的短哈希**，不是序号；改成 `src1/src2` 递增会让客户端收藏全部失效。
-- **jar / spider 自托管在 `libs/`**，统一用 jsDelivr 的 `.png` 后缀分发（jsDelivr 对 `.jar` 返回 403，
+- **jar 自托管在 `libs/`**，用 jsDelivr 的 `.png` 后缀分发（jsDelivr 对 `.jar` 返回 403，
   对 `.png` 秒开；客户端只校验字节和 md5，不看后缀）。raw 直连 2.7MB 的 jar 实测 142 秒后被重置。
 - **quickSearch 只给 type=1 且无 jar/ext 的最快 6 个 CMS 源**；全开会让 1GB 内存的魔屏搜索页长时间空白。
 - **直播外链**：`latest.json` 里 `lives` 只留 `live.txt` 的 url，别把几千个频道内联回去（会把配置撑到 400KB）。
-- **国内探测链路已废弃**：原来靠 EdgeOne 边缘函数回传国内节点探测结果，该服务已删，
-  现在只用 `HOME_DEAD_APIS` 黑名单兜底。
+- **只从 GitHub 取源**：格式统一（TVBox JSON）、免登录、无反爬；其他站点的 txt/网页/二维码
+  一律不接，避免天天维护解析器。
+- **国内探测链路已废弃**：现在只用 `HOME_DEAD_APIS` 黑名单兜底。
 
 ## 魔屏 OK影视 配置地址
 
@@ -47,23 +56,25 @@
 | 文件 | 作用 |
 |---|---|
 | `check_sources.py` | 主流水线：爬取、测活、测速、生成 `latest.json` + `report.md` |
-| `build_live.py` | 直播整理：抓取频道、归一化分组、合并多线路 → `live.txt` |
-| `sources_pool.json` | 聚合配置站地址池（想加源就加一行） |
-| `config/tv.json` | 种子配置：参数沿用 + 兜底源 |
-| `libs/*.png` | 自托管 jar/spider 的 jsDelivr 分发副本（`spider.png`、`pan_spider.png`、`fty_spider.png`） |
-| `device_test.py` | 家里网络端到端实测（需同出口），生成 `device_report.md` |
+| `build_live.py` | 直播整理：抓 GitHub m3u、归一化分组、合并多线路 → `live.txt` |
+| `sources_pool.json` | GitHub 配置清单地址池（想加源就加一行） |
+| `config/tv.json` | 种子配置：参数沿用（ads 黑名单）+ 兜底源 |
+| `libs/spider.png` | 全局爬虫包（type3 源用），jsDelivr 分发副本 |
+| `libs/pan_spider.png` | 磁力站爬虫包（SeedHub / New6V 用） |
 | `latest.json` / `live.txt` | 成品（客户端用） |
-| `archive/` | 已下线功能的存档（超级源、国内探测工具、旧网盘文档），流程不读 |
+| `report.md` | 每轮运行报告（存活/失效/精选明细） |
 
 ## 本地跑一次（可选）
 
 ```bash
-python check_sources.py --auto --limit 20   # 快速试 20 个源
-python check_sources.py --auto              # 全量
-python device_test.py                       # 家里网络端到端实测
+python check_sources.py --auto --crawl-only   # 只爬取看清单质量，不联网测
+python check_sources.py --auto --limit 20     # 快速试 20 个源
+python check_sources.py --auto                # 全量
+python build_live.py                          # 单独重建 live.txt
 ```
 
 ## 注意
 
-- 仓库是 Public，内容任何人可见。
-- `sources_pool.json` 里的聚合站随时可能挂，流水线会自动跳过失败的。
+- 仓库是 Public，内容任何人可见；配置里不含任何账号信息。
+- `sources_pool.json` 里的清单仓库随时可能停更，流水线会自动跳过失败的地址。
+- 冷启动 12~13 秒，瓶颈在 OK影视 自身首屏加载，配置侧已无优化空间。

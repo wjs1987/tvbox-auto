@@ -1,0 +1,19 @@
+{
+  "updated_at": "2026-11-28",
+  "note": "家庭宽带(上海)实测打不开的域名：海外机房能连通、家里连不上，写进配置只会点开空白。新增死站请追加到这里。",
+  "hosts": [
+    "naixxzy1.com",
+    "naixxzy.com",
+    "cj.ffzyapi.com",
+    "ffzy1.tv",
+    "subocaiji.com",
+    "api.xiaojizy.live",
+    "apilj.com",
+    "xingba111.com",
+    "api.1080zyku.com",
+    "cj.rycjapi.com",
+    "ikunzyapi.com",
+    "www.jingpinx.com",
+    "api.yzzy-api.com"
+  ]
+}

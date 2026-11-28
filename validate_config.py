@@ -4,6 +4,7 @@
 任何一项不通过就退出非 0，Actions 会失败、不提交坏配置。"""
 import json
 import sys
+import urllib.parse
 from pathlib import Path
 
 
@@ -66,8 +67,28 @@ def check(path: str, min_sites: int) -> list:
     return errs
 
 
+def load_blocklist() -> set:
+    p = Path("home_blocklist.json")
+    if not p.exists():
+        return set()
+    try:
+        return {str(x).lower() for x in json.loads(p.read_text(encoding="utf-8")).get("hosts", [])}
+    except Exception:
+        return set()
+
+
 def main() -> int:
+    blocked = load_blocklist()
     errs = check("latest.json", 20) + check("kids.json", 3)
+    for f in ("latest.json", "kids.json"):
+        try:
+            d = json.loads(Path(f).read_text(encoding="utf-8"))
+        except Exception:
+            continue
+        for s in d.get("sites", []):
+            api = str(s.get("api") or "")
+            if api.startswith("http") and urllib.parse.urlsplit(api).netloc.lower() in blocked:
+                errs.append(f"{f} {s.get('name')} 命中家宽黑名单域名 {urllib.parse.urlsplit(api).netloc}")
     if errs:
         print("[校验失败]")
         for e in errs:

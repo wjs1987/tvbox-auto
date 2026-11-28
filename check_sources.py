@@ -515,6 +515,8 @@ def build_latest(seed_cfg: dict, selected_sites: list, alive_channels: list, liv
         # type3 规则源必须有 csp_/http 的 api，否则整条丢弃
         if s.get("type") == 3 and not (str(s.get("api", "")).startswith("http") or str(s.get("api", "")).startswith("csp_")):
             continue
+        if in_home_blocklist(s):
+            continue  # 家宽实测打不开（海外机房能连），点开只会空白
         s["name"] = cn
         t = s.get("type", 0)
         # type3 规则源必须有 jar 或 ext 才能工作；爬来的"4K网盘/秒播"多数两者都没有，
@@ -655,6 +657,27 @@ def load_home_whitelist(path="home_whitelist.json"):
 
 
 HOME_OK_DOMAINS = load_home_whitelist()
+
+
+def load_home_blocklist(path="home_blocklist.json"):
+    """家庭宽带实测打不开的域名（黑名单），这些站一律不进配置。"""
+    p = Path(path)
+    if not p.exists():
+        return set()
+    try:
+        return {str(d).lower() for d in json.loads(p.read_text(encoding="utf-8")).get("hosts", [])}
+    except Exception:
+        return set()
+
+
+HOME_DEAD_HOSTS = load_home_blocklist()
+
+
+def in_home_blocklist(site: dict) -> bool:
+    api = str(site.get("api") or "")
+    if not api.startswith("http"):
+        return False
+    return urllib.parse.urlsplit(api).netloc.lower() in HOME_DEAD_HOSTS
 
 
 def not_home_ok(site: dict) -> bool:
@@ -815,7 +838,7 @@ def build_kids_sites(sites: list) -> list:
         if k in seen:
             continue
         seen.add(k)
-        if s.get("jar") or is_adult_site(s):
+        if s.get("jar") or is_adult_site(s) or in_home_blocklist(s):
             continue
         api = s.get("api") or ""
         meta = SITE_META.get(api)
@@ -944,7 +967,7 @@ def auto_mode(args):
     for r in good:
         if r["site"].get("type", 0) != 0 and r["site"].get("type", 0) != 1:
             continue  # type 3 后面按 jar 配对单独处理
-        if is_home_dead(r["site"]):
+        if is_home_dead(r["site"]) or in_home_blocklist(r["site"]):
             continue  # 家庭网络实测打不开的源，剔除（否则点进去一直转圈）
         if HOME_OK_DOMAINS and not_home_ok(r["site"]):
             continue  # 家宽白名单之外的域名一律不选（海外机房能连通、家里连不上）

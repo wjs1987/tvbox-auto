@@ -260,6 +260,8 @@ def clean_name(name: str) -> str:
     """清理源名称：去 emoji、装饰符号、来源后缀，便于去重和展示。"""
     import re
     n = name or ""
+    n = re.sub(r"\[[^\]]*\]", " ", n)  # 去掉聚合站塞进名字里的 [延时/来源URL] 前缀
+    n = re.sub(r"https?:\S+", " ", n)
     n = re.sub(r"[┃│|｜/\\◆★☆⚡→←➕·•●○]+", " ", n)
     n = re.sub(r"[\U0001F000-\U0001FAFF\u2600-\u27BF\uFE00-\uFE0F\u2B00-\u2BFF]", "", n)
     n = re.sub(r"\s+", " ", n).strip()

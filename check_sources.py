@@ -620,6 +620,27 @@ HOME_DEAD_APIS = [
 ]
 
 
+def load_home_whitelist(path="home_whitelist.json"):
+    """家宽实测可连通的域名清单（本地跑 home_probe 生成），每日任务只在这些域名里选站。"""
+    p = Path(path)
+    if not p.exists():
+        return set()
+    try:
+        return {d.lower() for d in json.loads(p.read_text(encoding="utf-8")).get("domains", [])}
+    except Exception:
+        return set()
+
+
+HOME_OK_DOMAINS = load_home_whitelist()
+
+
+def not_home_ok(site: dict) -> bool:
+    api = site.get("api", "")
+    if not api.startswith("http"):
+        return False
+    return urllib.parse.urlsplit(api).netloc.lower() not in HOME_OK_DOMAINS
+
+
 def is_home_dead(site: dict) -> bool:
     """站点 API 是否在家庭网络实测失效名单里（去尾部斜杠后精确匹配）。"""
     api = str(site.get("api") or "").strip().rstrip("/")
@@ -821,6 +842,8 @@ def auto_mode(args):
             continue  # type 3 后面按 jar 配对单独处理
         if is_home_dead(r["site"]):
             continue  # 家庭网络实测打不开的源，剔除（否则点进去一直转圈）
+        if HOME_OK_DOMAINS and not_home_ok(r["site"]):
+            continue  # 家宽白名单之外的域名一律不选（海外机房能连通、家里连不上）
         cn = clean_name(r["site"].get("name", ""))
         if cn in seen_cn:
             continue

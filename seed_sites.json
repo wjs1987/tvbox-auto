@@ -1,0 +1,59 @@
+{
+ "sites": [
+  {
+   "key": "srcX1",
+   "name": "souavzy",
+   "type": 1,
+   "api": "https://api.souavzy.vip/api.php/provide/vod"
+  },
+  {
+   "key": "srcX2",
+   "name": "玉兔资源",
+   "type": 1,
+   "api": "https://apiyutu.com/api.php/provide/vod"
+  },
+  {
+   "key": "srcX3",
+   "name": "apilsbzy",
+   "type": 1,
+   "api": "https://apilsbzy1.com/api.php/provide/vod"
+  },
+  {
+   "key": "srcX4",
+   "name": "iqiyizy",
+   "type": 1,
+   "api": "https://iqiyizyapi.com/api.php/provide/vod"
+  },
+  {
+   "key": "srcX5",
+   "name": "hhzy",
+   "type": 1,
+   "api": "https://hhzyapi.com/api.php/provide/vod"
+  },
+  {
+   "key": "srcX6",
+   "name": "hsckzy",
+   "type": 1,
+   "api": "https://hsckzy.xyz/api.php/provide/vod"
+  },
+  {
+   "key": "srcX7",
+   "name": "subozy",
+   "type": 1,
+   "api": "https://subocj.com/api.php/provide/vod/from/subm3u8/at/json"
+  },
+  {
+   "key": "srcX8",
+   "name": "天涯资源",
+   "type": 1,
+   "api": "https://tyyszyapi.com/api.php/provide/vod/at/?ac=list"
+  },
+  {
+   "key": "srcX9",
+   "name": "如意资源",
+   "type": 1,
+   "api": "https://bycj.rytvapi.com/api.php/provide/vod/"
+  }
+ ],
+ "_说明": "手机家宽实测的快源种子，auto重建时--seed并入"
+}

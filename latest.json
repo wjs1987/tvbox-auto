@@ -44,6 +44,16 @@
       "quickSearch": 0
     },
     {
+      "key": "sdf75d79d",
+      "name": "*乐播资源",
+      "type": 1,
+      "api": "https://lbapi9.com/api.php/provide/vod/",
+      "searchable": 0,
+      "quickSearch": 0,
+      "timeout": 15,
+      "filterable": 1
+    },
+    {
       "key": "s161440fd",
       "name": "(18+)番号资源",
       "type": 1,
@@ -54,14 +64,20 @@
       "timeout": 15
     },
     {
-      "key": "sdf75d79d",
-      "name": "*乐播资源",
+      "key": "s30486df3",
+      "name": "影视 建安",
       "type": 1,
-      "api": "https://lbapi9.com/api.php/provide/vod/",
-      "searchable": 0,
+      "api": "http://154.219.117.232:9981/jacloudapi.php/provide/vod",
+      "style": {
+        "type": "rect",
+        "ratio": 1.33
+      },
+      "searchable": 1,
       "quickSearch": 0,
-      "timeout": 15,
-      "filterable": 1
+      "filterable": 1,
+      "changeable": 1,
+      "playerType": 2,
+      "timeout": 15
     },
     {
       "key": "s88195273",
@@ -110,14 +126,79 @@
       "quickSearch": 1
     },
     {
-      "key": "s49f59375",
-      "name": "红牛资源(切)",
-      "type": 1,
-      "api": "https://www.hongniuzy2.com/api.php/provide/vod/",
+      "key": "s6c659fb2",
+      "name": "影视 索尼[直连]",
+      "type": 0,
+      "api": "https://suoniapi.com/api.php/provide/vod/at/xml/",
       "searchable": 1,
-      "quickSearch": 1,
+      "categories": [
+        "动作片",
+        "喜剧片",
+        "爱情片",
+        "科幻片",
+        "恐怖片",
+        "剧情片",
+        "战争片",
+        "国产剧",
+        "欧美剧",
+        "港剧",
+        "台剧",
+        "韩剧",
+        "日剧",
+        "泰剧",
+        "纪录片",
+        "海外剧",
+        "大陆综艺",
+        "港台综艺",
+        "日韩综艺",
+        "欧美综艺",
+        "国产动漫",
+        "日韩动漫",
+        "欧美动漫",
+        "港台动漫",
+        "海外动漫",
+        "影视解说"
+      ],
       "timeout": 15,
-      "filterable": 1
+      "filterable": 1,
+      "quickSearch": 0
+    },
+    {
+      "key": "s6fe9afd8",
+      "name": "影视 非凡[直连]",
+      "type": 1,
+      "api": "http://ffzy.tv/api.php/provide/vod/",
+      "searchable": 1,
+      "categories": [
+        "动作片",
+        "喜剧片",
+        "爱情片",
+        "科幻片",
+        "恐怖片",
+        "剧情片",
+        "战争片",
+        "国产剧",
+        "香港剧",
+        "韩国剧",
+        "欧美剧",
+        "记录片",
+        "台湾剧",
+        "日本剧",
+        "海外剧",
+        "泰国剧",
+        "大陆综艺",
+        "港台综艺",
+        "日韩综艺",
+        "欧美综艺",
+        "国产动漫",
+        "日韩动漫",
+        "欧美动漫",
+        "港台动漫",
+        "海外动漫"
+      ],
+      "timeout": 15,
+      "filterable": 1,
+      "quickSearch": 1
     },
     {
       "key": "sc42f05e0",
@@ -158,20 +239,10 @@
       "timeout": 15
     },
     {
-      "key": "sd3f31183",
-      "name": "百度 采集",
+      "key": "s49f59375",
+      "name": "红牛资源(切)",
       "type": 1,
-      "api": "https://api.apibdzy.com/api.php/provide/vod/?ac=list",
-      "searchable": 1,
-      "filterable": 0,
-      "timeout": 15,
-      "quickSearch": 1
-    },
-    {
-      "key": "s8cffeef3",
-      "name": "闪电资源(切)",
-      "type": 1,
-      "api": "http://sdzyapi.com/api.php/provide/vod/",
+      "api": "https://www.hongniuzy2.com/api.php/provide/vod/",
       "searchable": 1,
       "quickSearch": 1,
       "timeout": 15,
@@ -194,41 +265,23 @@
       "timeout": 15
     },
     {
-      "key": "s6c659fb2",
-      "name": "影视 索尼[直连]",
-      "type": 0,
-      "api": "https://suoniapi.com/api.php/provide/vod/at/xml/",
+      "key": "s8cffeef3",
+      "name": "闪电资源(切)",
+      "type": 1,
+      "api": "http://sdzyapi.com/api.php/provide/vod/",
       "searchable": 1,
-      "categories": [
-        "动作片",
-        "喜剧片",
-        "爱情片",
-        "科幻片",
-        "恐怖片",
-        "剧情片",
-        "战争片",
-        "国产剧",
-        "欧美剧",
-        "港剧",
-        "台剧",
-        "韩剧",
-        "日剧",
-        "泰剧",
-        "纪录片",
-        "海外剧",
-        "大陆综艺",
-        "港台综艺",
-        "日韩综艺",
-        "欧美综艺",
-        "国产动漫",
-        "日韩动漫",
-        "欧美动漫",
-        "港台动漫",
-        "海外动漫",
-        "影视解说"
-      ],
+      "quickSearch": 1,
       "timeout": 15,
-      "filterable": 1,
+      "filterable": 1
+    },
+    {
+      "key": "sd3f31183",
+      "name": "百度 采集",
+      "type": 1,
+      "api": "https://api.apibdzy.com/api.php/provide/vod/?ac=list",
+      "searchable": 1,
+      "filterable": 0,
+      "timeout": 15,
       "quickSearch": 0
     },
     {
@@ -264,22 +317,6 @@
         "日本动漫",
         "欧美动漫"
       ],
-      "timeout": 15
-    },
-    {
-      "key": "s30486df3",
-      "name": "影视 建安",
-      "type": 1,
-      "api": "http://154.219.117.232:9981/jacloudapi.php/provide/vod",
-      "style": {
-        "type": "rect",
-        "ratio": 1.33
-      },
-      "searchable": 1,
-      "quickSearch": 0,
-      "filterable": 1,
-      "changeable": 1,
-      "playerType": 2,
       "timeout": 15
     },
     {
@@ -324,43 +361,6 @@
       ],
       "timeout": 15,
       "searchable": 1,
-      "filterable": 1,
-      "quickSearch": 0
-    },
-    {
-      "key": "s6fe9afd8",
-      "name": "影视 非凡[直连]",
-      "type": 1,
-      "api": "http://ffzy.tv/api.php/provide/vod/",
-      "searchable": 1,
-      "categories": [
-        "动作片",
-        "喜剧片",
-        "爱情片",
-        "科幻片",
-        "恐怖片",
-        "剧情片",
-        "战争片",
-        "国产剧",
-        "香港剧",
-        "韩国剧",
-        "欧美剧",
-        "记录片",
-        "台湾剧",
-        "日本剧",
-        "海外剧",
-        "泰国剧",
-        "大陆综艺",
-        "港台综艺",
-        "日韩综艺",
-        "欧美综艺",
-        "国产动漫",
-        "日韩动漫",
-        "欧美动漫",
-        "港台动漫",
-        "海外动漫"
-      ],
-      "timeout": 15,
       "filterable": 1,
       "quickSearch": 0
     },
@@ -542,15 +542,14 @@
       "timeout": 15
     },
     {
-      "key": "sd14376e2",
-      "name": "爱看 Bot",
+      "key": "s8a79213a",
+      "name": "圣城 影视",
       "type": 3,
-      "api": "csp_Ikanbot",
+      "api": "csp_SC1080",
       "searchable": 1,
       "quickSearch": 0,
       "filterable": 1,
-      "ext": "[排序:lz线路,kuaik]",
-      "jar": "./libs/jar/XYQH.jar",
+      "jar": "./libs/jar/Panda.jar",
       "timeout": 15
     },
     {
@@ -582,68 +581,6 @@
       "ext": "https://lanyingjisu.oss-cn-wuhan-lr.aliyuncs.com/lyjszx.txt|oW5UxZ5kWVr1DI69",
       "timeout": 15,
       "searchable": 1,
-      "filterable": 0,
-      "quickSearch": 0
-    },
-    {
-      "key": "s7181a1ac",
-      "name": "豆瓣 热播",
-      "type": 3,
-      "api": "csp_DouDou",
-      "searchable": 0,
-      "quickSearch": 0,
-      "filterable": 0,
-      "timeout": 15
-    },
-    {
-      "key": "s44002a93",
-      "name": "闪电 秒播",
-      "type": 3,
-      "api": "csp_WexAiYueYueGuard",
-      "searchable": 1,
-      "quickSearch": 0,
-      "changeable": 0,
-      "timeout": 15,
-      "filterable": 0
-    },
-    {
-      "key": "s6a889c19",
-      "name": "宝宝 儿歌",
-      "type": 3,
-      "api": "csp_ChildrenAiBaoBaoGuard",
-      "searchable": 1,
-      "changeable": 0,
-      "style": {
-        "type": "rect",
-        "ratio": 2
-      },
-      "timeout": 15,
-      "filterable": 0,
-      "quickSearch": 0
-    },
-    {
-      "key": "s8a79213a",
-      "name": "圣城 影视",
-      "type": 3,
-      "api": "csp_SC1080",
-      "searchable": 1,
-      "quickSearch": 0,
-      "filterable": 1,
-      "jar": "./libs/jar/Panda.jar",
-      "timeout": 15
-    },
-    {
-      "key": "sb65b5319",
-      "name": "贝贝 儿歌",
-      "type": 3,
-      "api": "csp_ChildrenAiBeiWaGuard",
-      "searchable": 1,
-      "changeable": 0,
-      "style": {
-        "type": "rect",
-        "ratio": 2
-      },
-      "timeout": 15,
       "filterable": 0,
       "quickSearch": 0
     },
@@ -681,17 +618,6 @@
       "quickSearch": 0
     },
     {
-      "key": "s29e91819",
-      "name": "叨观荐影 预告片",
-      "type": 3,
-      "api": "csp_YGPGuard",
-      "searchable": 0,
-      "quickSearch": 0,
-      "changeable": 0,
-      "timeout": 15,
-      "filterable": 0
-    },
-    {
       "key": "sf7877fc3",
       "name": "毛驴 影视",
       "type": 3,
@@ -725,21 +651,13 @@
       "filterable": 0
     },
     {
-      "key": "se1483ed1",
-      "name": "酷狗 音乐",
+      "key": "s7475070f",
+      "name": "‍悦庭 听书",
       "type": 3,
-      "api": "csp_Kugou",
-      "playerType": 2,
-      "ext": {
-        "classes": [
-          {
-            "type_name": "酷狗",
-            "type_id": "kugou"
-          }
-        ]
-      },
-      "timeout": 15,
+      "api": "csp_BookAiYueTingGuard",
       "searchable": 1,
+      "changeable": 0,
+      "timeout": 120,
       "filterable": 0,
       "quickSearch": 0
     },
@@ -753,17 +671,6 @@
       "filterable": 1,
       "jar": "./libs/jar/Panda.jar",
       "timeout": 15
-    },
-    {
-      "key": "s7475070f",
-      "name": "‍悦庭 听书",
-      "type": 3,
-      "api": "csp_BookAiYueTingGuard",
-      "searchable": 1,
-      "changeable": 0,
-      "timeout": 120,
-      "filterable": 0,
-      "quickSearch": 0
     },
     {
       "key": "sce767c03",
@@ -786,6 +693,75 @@
       "changeable": 0,
       "timeout": 15,
       "filterable": 0
+    },
+    {
+      "key": "sfbc75a51",
+      "name": "‍小马 听书",
+      "type": 3,
+      "api": "csp_BookHeMaGuard",
+      "searchable": 1,
+      "changeable": 0,
+      "timeout": 15,
+      "filterable": 0,
+      "quickSearch": 0
+    },
+    {
+      "key": "se1483ed1",
+      "name": "酷狗 音乐",
+      "type": 3,
+      "api": "csp_Kugou",
+      "playerType": 2,
+      "ext": {
+        "classes": [
+          {
+            "type_name": "酷狗",
+            "type_id": "kugou"
+          }
+        ]
+      },
+      "timeout": 15,
+      "searchable": 1,
+      "filterable": 0,
+      "quickSearch": 0
+    },
+    {
+      "key": "s17235b3b",
+      "name": "忍者 影视",
+      "type": 3,
+      "playerType": "2",
+      "api": "csp_AppRZ",
+      "ext": "http://rzys.xyz/",
+      "jar": "./libs/jar/Panda.jar",
+      "timeout": 15,
+      "searchable": 1,
+      "filterable": 0,
+      "quickSearch": 0
+    },
+    {
+      "key": "s6a889c19",
+      "name": "宝宝 儿歌",
+      "type": 3,
+      "api": "csp_ChildrenAiBaoBaoGuard",
+      "searchable": 1,
+      "changeable": 0,
+      "style": {
+        "type": "rect",
+        "ratio": 2
+      },
+      "timeout": 15,
+      "filterable": 0,
+      "quickSearch": 0
+    },
+    {
+      "key": "s52d5e1ee",
+      "name": "爱盘 综合",
+      "type": 3,
+      "api": "csp_SoAiAiPanSoGuard",
+      "searchable": 1,
+      "changeable": 0,
+      "timeout": 15,
+      "filterable": 0,
+      "quickSearch": 0
     },
     {
       "key": "sf7bebf34",
@@ -818,15 +794,35 @@
       "quickSearch": 0
     },
     {
-      "key": "s17235b3b",
-      "name": "忍者 影视",
+      "key": "s2d779330",
+      "name": "Vid 影视",
       "type": 3,
-      "playerType": "2",
-      "api": "csp_AppRZ",
-      "ext": "http://rzys.xyz/",
-      "jar": "./libs/jar/Panda.jar",
-      "timeout": 15,
+      "api": "csp_Vidhub2",
       "searchable": 1,
+      "quickSearch": 0,
+      "filterable": 1,
+      "jar": "./libs/jar/Panda.jar",
+      "timeout": 15
+    },
+    {
+      "key": "s4c73e4a6",
+      "name": "逸动 4K",
+      "type": 3,
+      "api": "csp_AiNewYiDong4KGuard",
+      "searchable": 1,
+      "quickSearch": 0,
+      "changeable": 0,
+      "timeout": 15,
+      "filterable": 0
+    },
+    {
+      "key": "s5965e279",
+      "name": "‍小红 听书",
+      "type": 3,
+      "api": "csp_BookHongGuoGuard",
+      "searchable": 1,
+      "changeable": 0,
+      "timeout": 15,
       "filterable": 0,
       "quickSearch": 0
     },
@@ -901,11 +897,6 @@
   ],
   "lives": [
     {
-      "name": "直播-pool",
-      "type": 0,
-      "url": "https://live.zbds.top/tv/iptv4.txt"
-    },
-    {
       "name": "咪咕",
       "type": 0,
       "url": "https://develop202.github.io/migu_video/interface.txt"
@@ -914,6 +905,11 @@
       "name": "live",
       "type": 0,
       "url": "http://xhztv.top/xhz/live.txt"
+    },
+    {
+      "name": "直播-pool",
+      "type": 0,
+      "url": "https://live.zbds.top/tv/iptv4.txt"
     }
   ],
   "parses": [

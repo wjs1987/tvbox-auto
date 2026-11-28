@@ -974,21 +974,44 @@ def auto_mode(args):
         print(f"[目录] 生成失败（边缘函数会回退到实时聚合）: {e}")
 
     # ---------- 套用家宽真实播放速度排名（手机定时测速上传 home_speed_rank.json）----------
+    # 匹配优先级: api地址(稳定,重建后key会重编号) > key > 名称去空格包含
     try:
         rank_path = Path(args.out).with_name("home_speed_rank.json")
         if rank_path.exists():
             hr = json.loads(rank_path.read_text(encoding="utf-8"))
-            speed = {r["key"]: r["speed"] for r in hr.get("rank", []) if r.get("key")}
-            old_idx = {s.get("key"): i for i, s in enumerate(latest.get("sites", []))}
+
+            def _norm_api(u):
+                u = (u or "").lower().replace("https://", "").replace("http://", "")
+                return u.split("?")[0].rstrip("/")
+
+            def _norm_name(n):
+                return re.sub(r"\s+", "", n or "")
+
+            by_api, by_key, by_name = {}, {}, {}
+            for r in hr.get("rank", []):
+                if r.get("api"):
+                    by_api.setdefault(_norm_api(r["api"]), r.get("speed"))
+                if r.get("key"):
+                    by_key.setdefault(r["key"], r.get("speed"))
+                if r.get("name"):
+                    by_name.setdefault(_norm_name(r["name"]), r.get("speed"))
+            old_idx = {id(s): i for i, s in enumerate(latest.get("sites", []))}
             def _home_rank(s):
-                sp = speed.get(s.get("key"))
+                sp = by_api.get(_norm_api(s.get("api")))
                 if sp is None:
-                    return (1, old_idx.get(s.get("key"), 0), 0)     # 未测：保持原位
+                    sp = by_key.get(s.get("key"))
+                if sp is None:
+                    nm = _norm_name(s.get("name"))
+                    for n, v in by_name.items():
+                        if n and (n in nm or nm in n):
+                            sp = v; break
+                if sp is None:
+                    return (1, old_idx.get(id(s), 0), 0)     # 未测：保持原位
                 if sp >= 10:
-                    return (0, -sp, 0)                              # 快源：置顶
-                return (2, sp, old_idx.get(s.get("key"), 0))        # 慢源：沉底
+                    return (0, -sp, 0)                       # 快源：置顶
+                return (2, sp, old_idx.get(id(s), 0))        # 慢源：沉底
             latest["sites"].sort(key=_home_rank)
-            print(f"[家宽排名] 已套用 {len(speed)} 个源的真实播放速度排序")
+            print(f"[家宽排名] 已套用 {len(by_api)} 个源的真实播放速度排序")
     except Exception as e:
         print(f"[家宽排名] 套用失败（沿用默认排序）: {e}")
 

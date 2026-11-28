@@ -671,7 +671,7 @@ def write_report(path, alive_sites, dead_sites, alive_ch, dead_ch, crawl_failed,
          f"- 时间：{time.strftime('%Y-%m-%d %H:%M:%S')}",
          f"- 爬取聚合配置：{crawl_stats}",
          f"- 点播源：采集去重 {len(alive_sites) + len(dead_sites)} → 存活 {len(alive_sites)} / 失效 {len(dead_sites)}"
-         f" → **写入配置 {len(final_sites)} 个**（可播性+片单量+速度综合排名，含固定磁力站）",
+         f" → **写入配置 {len(selected_sites)} 个**（可播性+片单量+速度综合排名，含固定磁力站）",
          f"- 直播频道：去重 {len(alive_ch) + len(dead_ch)} → 存活 {len(alive_ch)}"
          "（海外机房探测，国内 IPTV 连不上属正常，不代表失效；直播以设备实测为准）",
          f"- 配置站失效：{len(crawl_failed)} 个", "",

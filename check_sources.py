@@ -822,6 +822,10 @@ def build_kids_sites(sites: list) -> list:
             continue
         # 分类全部来自采集站自己的 ac=list 返回，不做自定义；
         # 只有"不正经分类超过 3 个"时才需要收窄，2~3 个的站直接整站放行。
+        if meta.get("a"):
+            # 整站被实测判定为成人站：这类站即使挂着"电影/连续剧"的正常分类，
+            # 点进去也多是成人片，不能只靠分类名放行
+            continue
         cats = meta.get("c") or []
         if not cats:
             continue

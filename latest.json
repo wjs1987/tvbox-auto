@@ -83,6 +83,19 @@
       "quickSearch": 0
     },
     {
+      "key": "se9e7c34a",
+      "name": "155资源",
+      "api": "https://155api.com/api.php/provide/vod/",
+      "playUrl": "",
+      "type": 1,
+      "ext": "",
+      "categories": [],
+      "timeout": 15,
+      "searchable": 1,
+      "filterable": 1,
+      "quickSearch": 1
+    },
+    {
       "key": "se80270d8",
       "name": "百花资源",
       "api": "https://bhziyuan.com/api.php/provide/vod/",
@@ -96,22 +109,19 @@
       "quickSearch": 0
     },
     {
+      "key": "s6c1593c5",
+      "name": "深林",
+      "type": 1,
+      "api": "https://slapibf.com/api.php/provide/vod/at/json",
+      "searchable": 1,
+      "quickSearch": 0,
+      "timeout": 15,
+      "filterable": 1
+    },
+    {
       "key": "s6cb700b8",
       "name": "滴滴资源",
       "api": "https://api.ddapi.cc/api.php/provide/vod/",
-      "playUrl": "",
-      "type": 1,
-      "ext": "",
-      "categories": [],
-      "timeout": 15,
-      "searchable": 1,
-      "filterable": 1,
-      "quickSearch": 1
-    },
-    {
-      "key": "s9fe11742",
-      "name": "森林资源",
-      "api": "https://slapibf.com/api.php/provide/vod/",
       "playUrl": "",
       "type": 1,
       "ext": "",
@@ -135,19 +145,9 @@
       "quickSearch": 0
     },
     {
-      "key": "s6c1593c5",
-      "name": "深林",
-      "type": 1,
-      "api": "https://slapibf.com/api.php/provide/vod/at/json",
-      "searchable": 1,
-      "quickSearch": 0,
-      "timeout": 15,
-      "filterable": 1
-    },
-    {
-      "key": "se9e7c34a",
-      "name": "155资源",
-      "api": "https://155api.com/api.php/provide/vod/",
+      "key": "s681a4ef4",
+      "name": "360资源",
+      "api": "https://360zy.com/api.php/provide/vod/",
       "playUrl": "",
       "type": 1,
       "ext": "",
@@ -158,9 +158,9 @@
       "quickSearch": 0
     },
     {
-      "key": "s681a4ef4",
-      "name": "360资源",
-      "api": "https://360zy.com/api.php/provide/vod/",
+      "key": "s9fe11742",
+      "name": "森林资源",
+      "api": "https://slapibf.com/api.php/provide/vod/",
       "playUrl": "",
       "type": 1,
       "ext": "",
@@ -185,9 +185,9 @@
       "filterable": 1
     },
     {
-      "key": "s047f6f19",
-      "name": "CK资源采集接口",
-      "api": "https://ckzy.me/api.php/provide/vod/at/xml/",
+      "key": "s948892e6",
+      "name": "155资源站采集接口",
+      "api": "https://155api.com/api.php/provide/vod/at/xml/",
       "playUrl": "",
       "type": 0,
       "ext": "",
@@ -198,9 +198,9 @@
       "quickSearch": 0
     },
     {
-      "key": "sf1458cc1",
-      "name": "黄色仓库",
-      "api": "https://hsckzy.vip/api.php/provide/vod/",
+      "key": "s8468aa5e",
+      "name": "最大资源",
+      "api": "https://api.zuidapi.com/api.php/provide/vod/",
       "playUrl": "",
       "type": 1,
       "ext": "",
@@ -257,6 +257,56 @@
       "quickSearch": 1
     },
     {
+      "key": "s047f6f19",
+      "name": "CK资源采集接口",
+      "api": "https://ckzy.me/api.php/provide/vod/at/xml/",
+      "playUrl": "",
+      "type": 0,
+      "ext": "",
+      "categories": [],
+      "timeout": 15,
+      "searchable": 1,
+      "filterable": 1,
+      "quickSearch": 0
+    },
+    {
+      "key": "s6fe9afd8",
+      "name": "影视 非凡[直连]",
+      "type": 1,
+      "api": "http://ffzy.tv/api.php/provide/vod/",
+      "searchable": 1,
+      "categories": [
+        "动作片",
+        "喜剧片",
+        "爱情片",
+        "科幻片",
+        "恐怖片",
+        "剧情片",
+        "战争片",
+        "国产剧",
+        "香港剧",
+        "韩国剧",
+        "欧美剧",
+        "记录片",
+        "台湾剧",
+        "日本剧",
+        "海外剧",
+        "泰国剧",
+        "大陆综艺",
+        "港台综艺",
+        "日韩综艺",
+        "欧美综艺",
+        "国产动漫",
+        "日韩动漫",
+        "欧美动漫",
+        "港台动漫",
+        "海外动漫"
+      ],
+      "timeout": 15,
+      "filterable": 1,
+      "quickSearch": 1
+    },
+    {
       "key": "s49f59375",
       "name": "红牛 资源",
       "type": 1,
@@ -279,19 +329,6 @@
       "quickSearch": 1
     },
     {
-      "key": "se7fd1b19",
-      "name": "丫丫资源网采集接口",
-      "api": "https://cj.yayazy.net/api.php/provide/vod/at/xml/",
-      "playUrl": "",
-      "type": 0,
-      "ext": "",
-      "categories": [],
-      "timeout": 15,
-      "searchable": 1,
-      "filterable": 1,
-      "quickSearch": 0
-    },
-    {
       "key": "s8c1f7ed4",
       "name": "闪电资源",
       "api": "https://sdzyapi.com/api.php/provide/vod/",
@@ -303,6 +340,42 @@
       "searchable": 1,
       "filterable": 1,
       "quickSearch": 1
+    },
+    {
+      "key": "s4b5a61e3",
+      "name": "牛牛资源",
+      "api": "https://api.niuniuzy.me/api.php/provide/vod/",
+      "playUrl": "",
+      "type": 1,
+      "ext": "",
+      "categories": [],
+      "timeout": 15,
+      "searchable": 1,
+      "filterable": 1,
+      "quickSearch": 0
+    },
+    {
+      "key": "sd3f31183",
+      "name": "百度 采集",
+      "type": 1,
+      "api": "https://api.apibdzy.com/api.php/provide/vod/?ac=list",
+      "searchable": 1,
+      "timeout": 15,
+      "filterable": 1,
+      "quickSearch": 0
+    },
+    {
+      "key": "s9817ab93",
+      "name": "天涯影视资源网采集接口",
+      "api": "https://tyyszyapi.com/api.php/provide/vod/at/xml/",
+      "playUrl": "",
+      "type": 0,
+      "ext": "",
+      "categories": [],
+      "timeout": 15,
+      "searchable": 1,
+      "filterable": 1,
+      "quickSearch": 0
     },
     {
       "key": "s89b4bdb9",
@@ -319,16 +392,6 @@
       "filterable": 1
     },
     {
-      "key": "sd3f31183",
-      "name": "百度 采集",
-      "type": 1,
-      "api": "https://api.apibdzy.com/api.php/provide/vod/?ac=list",
-      "searchable": 1,
-      "timeout": 15,
-      "filterable": 1,
-      "quickSearch": 0
-    },
-    {
       "key": "s8cffeef3",
       "name": "闪电资源(切)",
       "type": 1,
@@ -339,48 +402,9 @@
       "filterable": 1
     },
     {
-      "key": "se33a4ccb",
-      "name": "鸭鸭资源",
-      "api": "https://cj.yayazy.net/api.php/provide/vod/",
-      "playUrl": "",
-      "type": 1,
-      "ext": "",
-      "categories": [],
-      "timeout": 15,
-      "searchable": 1,
-      "filterable": 1,
-      "quickSearch": 0
-    },
-    {
-      "key": "s8468aa5e",
-      "name": "最大资源",
-      "api": "https://api.zuidapi.com/api.php/provide/vod/",
-      "playUrl": "",
-      "type": 1,
-      "ext": "",
-      "categories": [],
-      "timeout": 15,
-      "searchable": 1,
-      "filterable": 1,
-      "quickSearch": 0
-    },
-    {
-      "key": "s4b5a61e3",
-      "name": "牛牛资源",
-      "api": "https://api.niuniuzy.me/api.php/provide/vod/",
-      "playUrl": "",
-      "type": 1,
-      "ext": "",
-      "categories": [],
-      "timeout": 15,
-      "searchable": 1,
-      "filterable": 1,
-      "quickSearch": 0
-    },
-    {
-      "key": "s9817ab93",
-      "name": "天涯影视资源网采集接口",
-      "api": "https://tyyszyapi.com/api.php/provide/vod/at/xml/",
+      "key": "se7fd1b19",
+      "name": "丫丫资源网采集接口",
+      "api": "https://cj.yayazy.net/api.php/provide/vod/at/xml/",
       "playUrl": "",
       "type": 0,
       "ext": "",
@@ -404,9 +428,9 @@
       "quickSearch": 0
     },
     {
-      "key": "saf403cdd",
-      "name": "无尽资源",
-      "api": "https://api.wujinapi.net/api.php/provide/vod/",
+      "key": "s84f41efe",
+      "name": "CK资源",
+      "api": "https://ckzy.me/api.php/provide/vod/",
       "playUrl": "",
       "type": 1,
       "ext": "",
@@ -417,11 +441,11 @@
       "quickSearch": 0
     },
     {
-      "key": "s97d2457a",
-      "name": "森林资源网采集接口",
-      "api": "https://slapibf.com/api.php/provide/vod/at/xml/",
+      "key": "se33a4ccb",
+      "name": "鸭鸭资源",
+      "api": "https://cj.yayazy.net/api.php/provide/vod/",
       "playUrl": "",
-      "type": 0,
+      "type": 1,
       "ext": "",
       "categories": [],
       "timeout": 15,
@@ -480,35 +504,9 @@
       "quickSearch": 0
     },
     {
-      "key": "s84f41efe",
-      "name": "CK资源",
-      "api": "https://ckzy.me/api.php/provide/vod/",
-      "playUrl": "",
-      "type": 1,
-      "ext": "",
-      "categories": [],
-      "timeout": 15,
-      "searchable": 1,
-      "filterable": 1,
-      "quickSearch": 0
-    },
-    {
-      "key": "s948892e6",
-      "name": "155资源站采集接口",
-      "api": "https://155api.com/api.php/provide/vod/at/xml/",
-      "playUrl": "",
-      "type": 0,
-      "ext": "",
-      "categories": [],
-      "timeout": 15,
-      "searchable": 1,
-      "filterable": 1,
-      "quickSearch": 0
-    },
-    {
-      "key": "sdb97606f",
-      "name": "大奶子资源网采集接口",
-      "api": "https://apidanaizi.com/api.php/provide/vod/at/xml/",
+      "key": "s97d2457a",
+      "name": "森林资源网采集接口",
+      "api": "https://slapibf.com/api.php/provide/vod/at/xml/",
       "playUrl": "",
       "type": 0,
       "ext": "",
@@ -532,6 +530,19 @@
       "quickSearch": 0
     },
     {
+      "key": "s0b990f84",
+      "name": "搜av资源站采集接口",
+      "api": "https://api.souavzy.vip/api.php/provide/vod/at/xml/",
+      "playUrl": "",
+      "type": 0,
+      "ext": "",
+      "categories": [],
+      "timeout": 15,
+      "searchable": 1,
+      "filterable": 1,
+      "quickSearch": 0
+    },
+    {
       "key": "sd2483bdd",
       "name": "爱坤联盟资源网采集接口",
       "api": "https://www.jkunzyapi.com/api.php/provide/vod/at/xml/",
@@ -545,11 +556,24 @@
       "quickSearch": 0
     },
     {
-      "key": "sf894b3e4",
-      "name": "360资源站采集接口",
-      "api": "https://360zyzz.com/api.php/provide/vod/at/xml/",
+      "key": "sdb97606f",
+      "name": "大奶子资源网采集接口",
+      "api": "https://apidanaizi.com/api.php/provide/vod/at/xml/",
       "playUrl": "",
       "type": 0,
+      "ext": "",
+      "categories": [],
+      "timeout": 15,
+      "searchable": 1,
+      "filterable": 1,
+      "quickSearch": 0
+    },
+    {
+      "key": "s453748c1",
+      "name": "搜AV资源",
+      "api": "https://api.souavzy.vip/api.php/provide/vod/",
+      "playUrl": "",
+      "type": 1,
       "ext": "",
       "categories": [],
       "timeout": 15,
@@ -610,9 +634,9 @@
       "quickSearch": 0
     },
     {
-      "key": "s6c596fca",
-      "name": "茅台资源",
-      "api": "https://caiji.maotaizy.cc/api.php/provide/vod/",
+      "key": "saf403cdd",
+      "name": "无尽资源",
+      "api": "https://api.wujinapi.net/api.php/provide/vod/",
       "playUrl": "",
       "type": 1,
       "ext": "",
@@ -623,11 +647,37 @@
       "quickSearch": 0
     },
     {
-      "key": "s27659363",
-      "name": "非凡资源网采集接口",
-      "api": "http://api.ffzyapi.com/api.php/provide/vod/at/xml/",
+      "key": "sf894b3e4",
+      "name": "360资源站采集接口",
+      "api": "https://360zyzz.com/api.php/provide/vod/at/xml/",
       "playUrl": "",
       "type": 0,
+      "ext": "",
+      "categories": [],
+      "timeout": 15,
+      "searchable": 1,
+      "filterable": 1,
+      "quickSearch": 0
+    },
+    {
+      "key": "s637647ba",
+      "name": "桃花资源采集网采集接口",
+      "api": "https://thzy1.me/api.php/provide/vod/at/xml/",
+      "playUrl": "",
+      "type": 0,
+      "ext": "",
+      "categories": [],
+      "timeout": 15,
+      "searchable": 1,
+      "filterable": 1,
+      "quickSearch": 0
+    },
+    {
+      "key": "s6c596fca",
+      "name": "茅台资源",
+      "api": "https://caiji.maotaizy.cc/api.php/provide/vod/",
+      "playUrl": "",
+      "type": 1,
       "ext": "",
       "categories": [],
       "timeout": 15,
@@ -662,9 +712,9 @@
       "quickSearch": 0
     },
     {
-      "key": "s637647ba",
-      "name": "桃花资源采集网采集接口",
-      "api": "https://thzy1.me/api.php/provide/vod/at/xml/",
+      "key": "s4d4883f4",
+      "name": "茅台资源站采集接口",
+      "api": "https://caiji.maotaizy.cc/api.php/provide/vod/at/xml/",
       "playUrl": "",
       "type": 0,
       "ext": "",
@@ -675,22 +725,9 @@
       "quickSearch": 0
     },
     {
-      "key": "sdb5eab26",
-      "name": "爱奇艺资源",
-      "api": "https://iqiyizyapi.com/api.php/provide/vod/",
-      "playUrl": "",
-      "type": 1,
-      "ext": "",
-      "categories": [],
-      "timeout": 15,
-      "searchable": 1,
-      "filterable": 1,
-      "quickSearch": 0
-    },
-    {
-      "key": "s4d4883f4",
-      "name": "茅台资源站采集接口",
-      "api": "https://caiji.maotaizy.cc/api.php/provide/vod/at/xml/",
+      "key": "s27659363",
+      "name": "非凡资源网采集接口",
+      "api": "http://api.ffzyapi.com/api.php/provide/vod/at/xml/",
       "playUrl": "",
       "type": 0,
       "ext": "",
@@ -714,22 +751,9 @@
       "quickSearch": 0
     },
     {
-      "key": "s0b990f84",
-      "name": "搜av资源站采集接口",
-      "api": "https://api.souavzy.vip/api.php/provide/vod/at/xml/",
-      "playUrl": "",
-      "type": 0,
-      "ext": "",
-      "categories": [],
-      "timeout": 15,
-      "searchable": 1,
-      "filterable": 1,
-      "quickSearch": 0
-    },
-    {
-      "key": "s453748c1",
-      "name": "搜AV资源",
-      "api": "https://api.souavzy.vip/api.php/provide/vod/",
+      "key": "sdb5eab26",
+      "name": "爱奇艺资源",
+      "api": "https://iqiyizyapi.com/api.php/provide/vod/",
       "playUrl": "",
       "type": 1,
       "ext": "",
@@ -740,17 +764,14 @@
       "quickSearch": 0
     },
     {
-      "key": "sccf2a73c",
-      "name": "玉兔资源",
-      "api": "https://apiyutu.com/api.php/provide/vod/",
-      "playUrl": "",
+      "key": "s24ec0458",
+      "name": "玉兔",
       "type": 1,
-      "ext": "",
-      "categories": [],
-      "timeout": 15,
+      "api": "https://apiyutu.com/api.php/provide/vod/at/json",
       "searchable": 1,
-      "filterable": 1,
-      "quickSearch": 1
+      "quickSearch": 0,
+      "timeout": 15,
+      "filterable": 1
     },
     {
       "key": "seedhub",

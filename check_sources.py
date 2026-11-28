@@ -505,6 +505,16 @@ def build_latest(seed_cfg: dict, selected_sites: list, alive_channels: list, liv
             s["categories"] = []
         if isinstance(s.get("ext"), (dict, list)):
             s["ext"] = json.dumps(s["ext"], ensure_ascii=False)
+        # ext 必须是合法 JSON 字符串（FongMi 会按 JSON 解析）；聚合站里常见的
+        # "proxy" 这类纯文本会让整条站点解析失败，直接清空而不是留着炸配置
+        if isinstance(s.get("ext"), str) and s["ext"].strip():
+            try:
+                json.loads(s["ext"])
+            except Exception:
+                s["ext"] = ""
+        # type3 规则源必须有 csp_/http 的 api，否则整条丢弃
+        if s.get("type") == 3 and not (str(s.get("api", "")).startswith("http") or str(s.get("api", "")).startswith("csp_")):
+            continue
         s["name"] = cn
         t = s.get("type", 0)
         # type3 规则源必须有 jar 或 ext 才能工作；爬来的"4K网盘/秒播"多数两者都没有，

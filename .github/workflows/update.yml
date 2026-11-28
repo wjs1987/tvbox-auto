@@ -33,6 +33,10 @@ jobs:
         run: |
           python check_sources.py --auto --workers 30 --timeout 8 --top 50
 
+      - name: Validate configs
+        # 两个配置文件都必须结构正确才允许提交，避免"修好一个、另一个挂掉"
+        run: python validate_config.py
+
       - name: Commit and Push
         run: |
           git config user.name "github-actions[bot]"

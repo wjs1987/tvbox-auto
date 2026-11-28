@@ -820,14 +820,20 @@ def build_kids_sites(sites: list) -> list:
         if not meta:
             # 没有实测数据的新站，宁可不给小孩用
             continue
-        if meta.get("a"):
-            continue
+        # 分类全部来自采集站自己的 ac=list 返回，不做自定义；
+        # 只有"不正经分类超过 3 个"时才需要收窄，2~3 个的站直接整站放行。
         cats = meta.get("c") or []
+        if not cats:
+            continue
         safe = [c for c in cats if not is_adult_cat(c)]
         if not safe:
-            continue
+            continue  # 整站都是成人分类，没有可放行的分类
+        adult_n = len(cats) - len(safe)
         s = dict(s)
-        s["categories"] = safe  # FongMi 只会显示白名单内的分类
+        if adult_n <= 3:
+            s["categories"] = []          # 不过滤，按采集站原始分类展示
+        else:
+            s["categories"] = safe        # 只保留站内正常分类（名字仍来自采集站）
         out.append(s)
     return out
 

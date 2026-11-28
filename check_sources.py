@@ -501,6 +501,8 @@ def build_latest(seed_cfg: dict, selected_sites: list, alive_channels: list, liv
         ALLOW = {"key", "name", "type", "api", "ext", "jar", "playUrl",
                  "searchable", "quickSearch", "timeout", "style", "header", "categories"}
         s = {k: v for k, v in s.items() if k in ALLOW or k.startswith("_")}
+        if isinstance(s.get("api"), str):
+            s["api"] = s["api"].strip()  # 聚合站常带前导空格，客户端会当成非法地址
         if "categories" in s and not isinstance(s["categories"], list):
             s["categories"] = []
         if isinstance(s.get("ext"), (dict, list)):

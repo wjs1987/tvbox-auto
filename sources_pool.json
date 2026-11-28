@@ -1,21 +1,28 @@
 {
-  "urls": [
-    "https://raw.githubusercontent.com/ReneT3/tvbox-ysc-config/main/output/%E5%8D%95%E4%BB%93%E8%81%9A%E5%90%88.json",
-    "https://raw.githubusercontent.com/ReneT3/tvbox-ysc-config/main/output/%E5%A4%9A%E4%BB%93%E8%AE%A2%E9%98%85.json",
-    "https://raw.githubusercontent.com/ReneT3/tvbox-ysc-config/main/output/4k.json",
-    "https://raw.githubusercontent.com/ReneT3/tvbox-ysc-config/main/output/feimao.json",
-    "https://raw.githubusercontent.com/ReneT3/tvbox-ysc-config/main/output/laoliubei.json",
-    "https://raw.githubusercontent.com/ReneT3/tvbox-ysc-config/main/output/ouge.json",
-    "https://raw.githubusercontent.com/ReneT3/tvbox-ysc-config/main/output/shiguang.json",
-    "https://raw.githubusercontent.com/ReneT3/tvbox-ysc-config/main/output/tinghao.json",
-    "https://raw.githubusercontent.com/ReneT3/tvbox-ysc-config/main/output/wangerxiao.json",
-    "https://raw.githubusercontent.com/ReneT3/tvbox-ysc-config/main/output/xiaohezi.json",
-    "https://raw.githubusercontent.com/ReneT3/tvbox-ysc-config/main/output/xiaoma.json",
-    "https://raw.githubusercontent.com/niubihu1/tvbox/main/tv8.json",
-    "https://raw.githubusercontent.com/xiaolong69/tv/main/duo.json",
-    "https://raw.githubusercontent.com/hd9211/Tvbox1/main/zy.json",
-    "https://raw.githubusercontent.com/dlgt7/TVbox-interface/main/jj.json",
-    "https://raw.githubusercontent.com/alantang1977/pg/main/py.json",
-    "https://raw.githubusercontent.com/ne7359/tvurl/main/0825.json"
-  ]
+ "urls": [
+  "https://raw.githubusercontent.com/ReneT3/tvbox-ysc-config/main/output/%E5%8D%95%E4%BB%93%E8%81%9A%E5%90%88.json",
+  "https://raw.githubusercontent.com/ReneT3/tvbox-ysc-config/main/output/%E5%A4%9A%E4%BB%93%E8%AE%A2%E9%98%85.json",
+  "https://raw.githubusercontent.com/ReneT3/tvbox-ysc-config/main/output/4k.json",
+  "https://raw.githubusercontent.com/ReneT3/tvbox-ysc-config/main/output/feimao.json",
+  "https://raw.githubusercontent.com/ReneT3/tvbox-ysc-config/main/output/laoliubei.json",
+  "https://raw.githubusercontent.com/ReneT3/tvbox-ysc-config/main/output/ouge.json",
+  "https://raw.githubusercontent.com/ReneT3/tvbox-ysc-config/main/output/shiguang.json",
+  "https://raw.githubusercontent.com/ReneT3/tvbox-ysc-config/main/output/tinghao.json",
+  "https://raw.githubusercontent.com/ReneT3/tvbox-ysc-config/main/output/wangerxiao.json",
+  "https://raw.githubusercontent.com/ReneT3/tvbox-ysc-config/main/output/xiaohezi.json",
+  "https://raw.githubusercontent.com/ReneT3/tvbox-ysc-config/main/output/xiaoma.json",
+  "https://raw.githubusercontent.com/niubihu1/tvbox/main/tv8.json",
+  "https://raw.githubusercontent.com/xiaolong69/tv/main/duo.json",
+  "https://raw.githubusercontent.com/hd9211/Tvbox1/main/zy.json",
+  "https://raw.githubusercontent.com/dlgt7/TVbox-interface/main/jj.json",
+  "https://raw.githubusercontent.com/alantang1977/pg/main/py.json",
+  "https://raw.githubusercontent.com/ne7359/tvurl/main/0825.json",
+  "https://raw.githubusercontent.com/hubeizgd1979/tvbox-merge/main/config_all.json",
+  "https://raw.githubusercontent.com/xxl6097/TVBoxTV/main/docs/store/sites.json",
+  "https://raw.githubusercontent.com/xxl6097/TVBoxTV/main/docs/store/subscribe.json",
+  "https://raw.githubusercontent.com/xxl6097/TVBoxTV/main/docs/store/subscribe_neutral.json",
+  "https://raw.githubusercontent.com/no7ren/tvbox/main/0513.json",
+  "https://raw.githubusercontent.com/no7ren/tvbox/main/0607.json",
+  "https://raw.githubusercontent.com/no7ren/tvbox/main/tvbox_full.json"
+ ]
 }

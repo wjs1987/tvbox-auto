@@ -901,6 +901,7 @@ def auto_mode(args):
     good.sort(key=lambda r: (r["play"] is not True, -min(r["count"], 50), -(r.get("cdn_speed") or 0), r["ms"] or 99999))
 
     selected_sites = []
+    kids_pool = []      # 儿童版候选池：不受 top 限制，从家宽可达的全量里挑安全站
     seen_cn = set()
     # 有 jar 候选时给 type 3 高级源预留 3 个名额，避免普通源占满后高级源无位可进
     reserve = min(3, len(jar_candidates)) if jar_candidates else 0
@@ -919,8 +920,10 @@ def auto_mode(args):
         # 把实测延迟带下去，build_latest 用它决定 quickSearch（快的才参与全库并发搜索）
         r["site"]["_ms"] = r["ms"]
         r["site"]["_play"] = r["play"]
-        selected_sites.append(r["site"])
-        if len(selected_sites) >= cap:
+        selected_sites.append(r["site"]) if len(selected_sites) < cap else None
+        if len(kids_pool) < 120:
+            kids_pool.append(r["site"])
+        if len(selected_sites) >= cap and len(kids_pool) >= 120:
             break
 
     # ===== 只保留纯 CMS 采集站 =====
@@ -965,7 +968,9 @@ def auto_mode(args):
 
     # 儿童版：同一套配置，去掉成人站与需要 jar 的站（磁力），文件独立、主配置不受影响
     kids = dict(latest)
-    kids["sites"] = build_kids_sites(latest.get("sites", []))
+    # 儿童版从更大的安全池里挑（top 之外的家宽可达站也参与），再做成人/磁力过滤
+    kids_base = build_latest(seed_cfg, kids_pool, alive_ch, alive_refs, spider_url, 0).get("sites", []) if kids_pool else latest.get("sites", [])
+    kids["sites"] = build_kids_sites(kids_base)
     kids_path = Path(args.out).with_name("kids.json")
     kids_path.write_text(json.dumps(kids, ensure_ascii=False, indent=2), encoding="utf-8")
     print(f"[儿童版] {len(kids['sites'])} 个站点 → {kids_path}")

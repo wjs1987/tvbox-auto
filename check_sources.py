@@ -492,6 +492,17 @@ def build_latest(seed_cfg: dict, selected_sites: list, alive_channels: list, liv
             continue
         used_names.add(cn)
         s = dict(s)
+        # ---- 字段清洗：只保留 OK影视(FongMi)/TVBox 认识的字段 ----
+        # 之前直接把聚合站的原始 JSON 原样搬过来，带了 categories: "" 这种"空字符串"，
+        # 而 FongMi 的 categories 定义是 List<String>，Gson 解析会直接抛异常，
+        # 整条站点被吞掉 → 盒子上只剩数据库里旧的十几个站点。
+        ALLOW = {"key", "name", "type", "api", "ext", "jar", "playUrl",
+                 "searchable", "quickSearch", "timeout", "style", "header", "categories"}
+        s = {k: v for k, v in s.items() if k in ALLOW or k.startswith("_")}
+        if "categories" in s and not isinstance(s["categories"], list):
+            s["categories"] = []
+        if isinstance(s.get("ext"), (dict, list)):
+            s["ext"] = json.dumps(s["ext"], ensure_ascii=False)
         s["name"] = cn
         t = s.get("type", 0)
         # type3 规则源必须有 jar 或 ext 才能工作；爬来的"4K网盘/秒播"多数两者都没有，

@@ -550,7 +550,7 @@ def build_latest(seed_cfg: dict, selected_sites: list, alive_channels: list, liv
         {"key": "seedhub", "name": "SeedHub磁力", "type": 3, "api": "csp_SeedHub",
          "jar": PAN_JAR, "searchable": 1, "quickSearch": 1, "filterable": 1, "timeout": 15},
         {"key": "new6v", "name": "New6V磁力", "type": 3, "api": "csp_New6v", "jar": PAN_JAR,
-         "ext": "https://www.xb6v.com", "searchable": 1, "quickSearch": 1, "filterable": 1, "timeout": 15},
+         "searchable": 1, "quickSearch": 1, "filterable": 1, "timeout": 15},
     ])
     # 收尾统一：补默认值 + 按 key 去重
     # （同一后台被写成不同 URL 时，前面按名字去重拦不住，这里按稳定 key 再兜一层，

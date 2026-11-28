@@ -667,11 +667,11 @@ def write_report(path, alive_sites, dead_sites, alive_ch, dead_ch, crawl_failed,
     selected_keys = {id(s) for s in selected_sites}
     L = ["# 源自动采集检测报告", "",
          "> 注意：本报告延迟由 GitHub 海外机房测得，**不代表国内家庭网络的真实速度**。",
-         "> 国内实测请在家里电脑运行 `python device_test.py`，生成 `device_report.md`。", "",
+         "> 真实体验以魔屏上 OK影视 的实际打开速度为准。", "",
          f"- 时间：{time.strftime('%Y-%m-%d %H:%M:%S')}",
          f"- 爬取聚合配置：{crawl_stats}",
          f"- 点播源：采集去重 {len(alive_sites) + len(dead_sites)} → 存活 {len(alive_sites)} / 失效 {len(dead_sites)}"
-         f" → **精选保留 {len(selected_sites)} 个**（可播性+片单量+速度综合排名）",
+         f" → **写入配置 {len(final_sites)} 个**（可播性+片单量+速度综合排名，含固定磁力站）",
          f"- 直播频道：去重 {len(alive_ch) + len(dead_ch)} → 存活 {len(alive_ch)}"
          "（海外机房探测，国内 IPTV 连不上属正常，不代表失效；直播以设备实测为准）",
          f"- 配置站失效：{len(crawl_failed)} 个", "",
@@ -863,13 +863,14 @@ def auto_mode(args):
         latest["lives"] = slim
 
     Path(args.out).write_text(json.dumps(latest, ensure_ascii=False, indent=2), encoding="utf-8")
-    write_report(args.report, alive_sites, dead_sites, alive_ch, dead_ch, failed, crawl_stats, selected_sites)
+    final_sites = latest.get("sites", [])
+    write_report(args.report, alive_sites, dead_sites, alive_ch, dead_ch, failed, crawl_stats, final_sites)
 
     alive_sites.sort(key=lambda r: (r["play"] is not True, -min(r["count"], 50), -(r.get("cdn_speed") or 0), r["ms"] or 99999))
     fastest = alive_sites[0] if alive_sites else None
     print(f"\n[结果] 点播存活 {len(alive_sites)}"
           + (f"（最快: {fastest['ms']}ms {fastest['site'].get('name','')[:20]}）" if fastest else "")
-          + f" / 精选保留 {len(selected_sites)} 个 / 直播源 {len(alive_refs)} 个")
+          + f" / 写入配置 {len(latest.get('sites', []))} 个")
     print(f"[输出] {args.out} + {args.report}")
 
 

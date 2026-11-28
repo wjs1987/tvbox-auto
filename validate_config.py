@@ -77,9 +77,22 @@ def load_blocklist() -> set:
         return set()
 
 
+ADULT_WORDS = ["伦理", "理论片", "里番", "无码", "有码", "番号", "禁漫", "乱伦", "三级",
+               "成人", "福利", "自拍", "偷拍", "探花", "黑料", "约炮", "门事件"]
+
+
 def main() -> int:
     blocked = load_blocklist()
     errs = check("latest.json", 20) + check("kids.json", 3)
+    try:
+        kid = json.loads(Path("kids.json").read_text(encoding="utf-8"))
+        for s in kid.get("sites", []):
+            for cat in s.get("categories", []) or []:
+                if any(w in str(cat).lower() for w in ADULT_WORDS):
+                    errs.append(f"kids.json {s.get('name')} 分类仍含成人词: {cat}")
+    except Exception:
+        pass
+
     for f in ("latest.json", "kids.json"):
         try:
             d = json.loads(Path(f).read_text(encoding="utf-8"))

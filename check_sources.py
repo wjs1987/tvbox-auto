@@ -805,7 +805,7 @@ def is_adult_site(s: dict) -> bool:
 #      写入该站点的 categories 白名单，App 里这些分类就不会出现。
 ADULT_CAT_MARKERS = ["无码", "有码", "番号", "禁漫", "里番", "乱伦", "探花", "黑料", "国产精品",
                      "主播", "自拍", "偷拍", "巨乳", "淫", "色情", "大奶", "萝莉", "嫩模",
-                     "三级", "伦理", "传媒", "换脸", "外流", "人妻", "口爆", "颜射", "调教",
+                     "三级", "伦理", "理论片", "传媒", "换脸", "外流", "人妻", "口爆", "颜射", "调教",
                      "群交", "美尻", "丝袜", "制服诱惑", "素人", "名优", "swag", "cosplay",
                      "门事件", "强奸", "av", "约炮", "成人", "福利姬"]
 
@@ -855,24 +855,33 @@ def build_kids_sites(sites: list) -> list:
         if not meta:
             # 没有实测数据的新站，宁可不给小孩用
             continue
-        # 分类全部来自采集站自己的 ac=list 返回，不做自定义；
-        # 只有"不正经分类超过 3 个"时才需要收窄，2~3 个的站直接整站放行。
-        if meta.get("a"):
-            # 整站被实测判定为成人站：这类站即使挂着"电影/连续剧"的正常分类，
-            # 点进去也多是成人片，不能只靠分类名放行
-            continue
         cats = meta.get("c") or []
         if not cats:
             continue
-        safe = [c for c in cats if not is_adult_cat(c)]
-        if not safe:
-            continue  # 整站都是成人分类，没有可放行的分类
-        adult_n = len(cats) - len(safe)
+        # 分类名全部来自采集站自己的 ac=list 返回，这里只做"去掉不正经的几个"，
+        # 不做自定义改名，也不凭空造分类。
+        safe = []
+        for c in cats:
+            if is_adult_cat(c):
+                continue
+            if c not in safe:
+                safe.append(c)
+        adult_n = len({c for c in cats if is_adult_cat(c)})  # 去重后数"不正经分类"有几个
         s = dict(s)
-        if adult_n <= 3:
-            s["categories"] = []          # 不过滤，按采集站原始分类展示
+        if adult_n == 0:
+            # 分类里没有任何成人关键词：如果整站仍被判成人（如桃花/黑料那类，
+            # 分类名字正常但内容全是成人片），不能放，直接拦
+            if meta.get("a"):
+                continue
+            s["categories"] = []              # 按采集站原始分类展示
         else:
-            s["categories"] = safe        # 只保留站内正常分类（名字仍来自采集站）
+            if adult_n > 3:
+                continue                       # 不正经分类太多，判定整站成人，直接拦
+            if not safe:
+                continue                       # 去掉后一个正常分类都不剩
+            # 只把"伦理片/理论片/里番…"这几个分类从列表里去掉，其余照常显示。
+            # OK影视(FongMi) 的 categories 是"白名单"语义：写了哪些就只显示哪些。
+            s["categories"] = safe
         out.append(s)
     return out
 

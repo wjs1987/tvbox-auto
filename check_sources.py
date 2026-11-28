@@ -799,7 +799,12 @@ def is_adult_cat(name: str) -> bool:
 
 def build_kids_sites(sites: list) -> list:
     out = []
+    seen = set()
     for s in sites:
+        k = s.get("key") or (s.get("name"), s.get("api"))
+        if k in seen:
+            continue
+        seen.add(k)
         if s.get("jar") or is_adult_site(s):
             continue
         api = s.get("api") or ""

@@ -760,6 +760,63 @@ def is_adult_site(s: dict) -> bool:
     return any(m in blob for m in ADULT_MARKERS)
 
 
+# ---- 儿童版第二道防线：按源站真实分类判定 ----
+# 站名经常起得很正经（"百花资源""滴滴资源""大地资源"），光靠名字必漏。
+# 这里读取 site_meta.json（家宽实测每个接口 ac=list 的分类名），做成两层过滤：
+#   1) 站点本身是成人站（a=true）→ 整站不进儿童版；
+#   2) 综合站里混着成人分类（如"三级伦理""里番动漫"）→ 只屏蔽这些分类，
+#      写入该站点的 categories 白名单，App 里这些分类就不会出现。
+ADULT_CAT_MARKERS = ["无码", "有码", "番号", "禁漫", "里番", "乱伦", "探花", "黑料", "国产精品",
+                     "主播", "自拍", "偷拍", "巨乳", "淫", "色情", "大奶", "萝莉", "嫩模",
+                     "三级", "伦理", "传媒", "换脸", "外流", "人妻", "口爆", "颜射", "调教",
+                     "群交", "美尻", "丝袜", "制服诱惑", "素人", "名优", "swag", "cosplay",
+                     "门事件", "强奸", "av", "约炮", "成人", "福利姬"]
+
+SITE_META = {}
+
+
+def load_site_meta(path="site_meta.json") -> dict:
+    p = Path(__file__).with_name(path)
+    if not p.exists():
+        print(f"[儿童版] 未找到 {path}，仅按站名过滤（可能漏站）")
+        return {}
+    try:
+        data = json.loads(p.read_text(encoding="utf-8"))
+        m = data.get("sites", {}) if isinstance(data.get("sites"), dict) else {}
+        print(f"[儿童版] 分类元数据 {len(m)} 个接口（测试于 {data.get('tested_at', '?')}）")
+        return m
+    except Exception as e:
+        print(f"[儿童版] 读取 {path} 失败: {e}")
+        return {}
+
+
+def is_adult_cat(name: str) -> bool:
+    low = str(name).lower()
+    return any(m in low for m in ADULT_CAT_MARKERS)
+
+
+def build_kids_sites(sites: list) -> list:
+    out = []
+    for s in sites:
+        if s.get("jar") or is_adult_site(s):
+            continue
+        api = s.get("api") or ""
+        meta = SITE_META.get(api)
+        if not meta:
+            # 没有实测数据的新站，宁可不给小孩用
+            continue
+        if meta.get("a"):
+            continue
+        cats = meta.get("c") or []
+        safe = [c for c in cats if not is_adult_cat(c)]
+        if not safe:
+            continue
+        s = dict(s)
+        s["categories"] = safe  # FongMi 只会显示白名单内的分类
+        out.append(s)
+    return out
+
+
 # ---------- 全自动模式 ----------
 def auto_mode(args):
     pool = json.loads(Path(args.pool).read_text(encoding="utf-8"))
@@ -908,8 +965,7 @@ def auto_mode(args):
 
     # 儿童版：同一套配置，去掉成人站与需要 jar 的站（磁力），文件独立、主配置不受影响
     kids = dict(latest)
-    kids["sites"] = [x for x in latest.get("sites", [])
-                     if not is_adult_site(x) and not x.get("jar")]
+    kids["sites"] = build_kids_sites(latest.get("sites", []))
     kids_path = Path(args.out).with_name("kids.json")
     kids_path.write_text(json.dumps(kids, ensure_ascii=False, indent=2), encoding="utf-8")
     print(f"[儿童版] {len(kids['sites'])} 个站点 → {kids_path}")
@@ -941,6 +997,9 @@ def main():
     ap.add_argument("--report", default="report.md")
     ap.add_argument("--check", action="store_true", help="旧模式参数：联网检测")
     args = ap.parse_args()
+
+    global SITE_META
+    SITE_META = load_site_meta()
 
     if args.legacy:
         legacy_mode(args)

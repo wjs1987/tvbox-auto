@@ -64,6 +64,8 @@
 | `libs/pan_spider.png` | 磁力站爬虫包（SeedHub / New6V 用） |
 | `latest.json` / `live.txt` | 成品（客户端用） |
 | `report.md` | 每轮运行报告（存活/失效/精选明细） |
+| `kids.json` | 儿童版配置（去成人站 + 只留安全分类），给家里小孩用 |
+| `site_meta.json` | 各站 `ac=list` 实测分类（含成人标记），儿童版过滤依据；接口有增删时可在家宽环境重测 |
 
 ## 本地跑一次（可选）
 
@@ -79,4 +81,5 @@ python live_verify.py live.txt live_verified.txt   # 再核验，只留真直播
 
 - 仓库是 Public，内容任何人可见；配置里不含任何账号信息。
 - `sources_pool.json` 里的清单仓库随时可能停更，流水线会自动跳过失败的地址。
+- 儿童版 `kids.json`：站名不可信（"百花/滴滴/大地"都是成人站），所以按实测分类判定——整站成人→不进；综合站里的成人分类→只屏蔽该分类（写进该站 `categories` 白名单）。新增站点在 `site_meta.json` 里没有实测记录时，默认不进儿童版。
 - 冷启动 12~13 秒，瓶颈在 OK影视 自身首屏加载，配置侧已无优化空间。

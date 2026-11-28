@@ -1,0 +1,137 @@
+{
+  "time": "2026-11-28 23:19:01",
+  "unit": "KB/s",
+  "source": "home broadband, measured by phone (single connection), matched by name",
+  "rank": [
+    {
+      "key": "sf23da7d8",
+      "name": "极速 零一",
+      "speed": 427.3
+    },
+    {
+      "key": "s0d15c1f8",
+      "name": "大奶子资源",
+      "speed": 353.1
+    },
+    {
+      "key": "se9e7c34a",
+      "name": "155资源",
+      "speed": 336.1
+    },
+    {
+      "key": "s681a4ef4",
+      "name": "360资源",
+      "speed": 279.2
+    },
+    {
+      "key": "s161440fd",
+      "name": "番号资源",
+      "speed": 257.1
+    },
+    {
+      "key": "sa56a2474",
+      "name": "黑料",
+      "speed": 245.3
+    },
+    {
+      "key": "sdf75d79d",
+      "name": "乐播资源",
+      "speed": 241.8
+    },
+    {
+      "key": "sba0d81e7",
+      "name": "第一 资源",
+      "speed": 232.1
+    },
+    {
+      "key": "s2a9adbb4",
+      "name": "鸡坤 采集",
+      "speed": 225.4
+    },
+    {
+      "key": "s6c1593c5",
+      "name": "深林",
+      "speed": 207.7
+    },
+    {
+      "key": "sa8fedf19",
+      "name": "魔都资源",
+      "speed": 155.8
+    },
+    {
+      "key": "sa1bcf0df",
+      "name": "天涯API",
+      "speed": 117.2
+    },
+    {
+      "key": "sd3f31183",
+      "name": "百度 采集",
+      "speed": 98.2
+    },
+    {
+      "key": "s89b4bdb9",
+      "name": "影视 天涯",
+      "speed": 96.8
+    },
+    {
+      "key": "sd0b2eb94",
+      "name": "奥斯卡 采集",
+      "speed": 95.5
+    },
+    {
+      "key": "s681a4ef4",
+      "name": "360资源ZZ",
+      "speed": 78.2
+    },
+    {
+      "key": "se80270d8",
+      "name": "百花资源",
+      "speed": 64.5
+    },
+    {
+      "key": "s14fc6435",
+      "name": "天涯资源",
+      "speed": 51.6
+    },
+    {
+      "key": "s9d8b0f25",
+      "name": "淘片 采集",
+      "speed": 32.9
+    },
+    {
+      "key": "sf9ebea4c",
+      "name": "猫眼资源",
+      "speed": 18.8
+    },
+    {
+      "key": "s49f59375",
+      "name": "红牛 资源",
+      "speed": 14.3
+    },
+    {
+      "key": "s5411fb39",
+      "name": "猫眼影视",
+      "speed": 13.2
+    },
+    {
+      "key": "sf1458cc1",
+      "name": "黄色仓库",
+      "speed": 5.9
+    },
+    {
+      "key": "s88195273",
+      "name": "影视 极速",
+      "speed": 2.6
+    },
+    {
+      "key": "s14a4d45a",
+      "name": "非凡 资源 1号VIP源",
+      "speed": 1.2
+    },
+    {
+      "key": "s6fe9afd8",
+      "name": "影视 非凡",
+      "speed": 0.7
+    }
+  ]
+}

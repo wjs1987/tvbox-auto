@@ -109,55 +109,6 @@ def parse_spider(sp) -> str:
     return first if first.startswith("http") else ""
 
 
-def norm_api(api: str) -> str:
-    """规范化 API：去 query、去尾斜杠、域名小写。
-
-    用途一：去重。很多仓里同一个后台会写成
-    "https://x.com/api.php/provide/vod" 和 "https://x.com/api.php/provide/vod/?ac=list"
-    两种形式，原来按原始字符串去重会当成两个源，白占名额。
-    """
-    raw = (api or "").strip()
-    if raw.startswith("csp_"):
-        return raw.lower()
-    try:
-        p = urllib.parse.urlsplit(raw)
-        host = (p.hostname or "").lower()
-        if not host:
-            return raw.rstrip("/").lower()
-        port = f":{p.port}" if p.port else ""
-        return f"{p.scheme.lower()}://{host}{port}{(p.path or '').rstrip('/')}"
-    except Exception:
-        return raw.rstrip("/").lower()
-
-
-def site_key(site: dict) -> str:
-    """稳定 key：同一个 API 永远得到同一个 key。
-
-    原来 key 用 src1、src2……按提取顺序递增，池子一变全部重排，
-    客户端里收藏的影片/播放进度会全部失效。改成 API 的短哈希后就固定了。
-    """
-    import hashlib
-    base = norm_api(str(site.get("api") or "")) or str(site.get("api") or "")
-    return "s" + hashlib.md5(base.encode("utf-8")).hexdigest()[:8]
-
-
-def clean_ads(ads) -> list:
-    """广告域名黑名单去重，并剔除明显是正常前端公共库的域名（避免误伤播放页）。"""
-    if not isinstance(ads, list):
-        return []
-    whitelist = {"cdn.bootcss.com", "cdnjs.cloudflare.com", "unpkg.com", "cdn.jsdelivr.net"}
-    out, seen = [], set()
-    for a in ads:
-        if not isinstance(a, str):
-            continue
-        a = a.strip().lower()
-        if not a or a in seen or a in whitelist:
-            continue
-        seen.add(a)
-        out.append(a)
-    return out
-
-
 def crawl_pool(pool_urls: list, timeout: float):
     """BFS 爬取多仓配置（深度 2），返回 (configs列表, 失败列表, 直播源引用列表)。"""
     configs, failed, live_refs = [], [], []
@@ -220,13 +171,13 @@ def extract_sites(configs: list) -> list:
             api = (s.get("api") or "").strip()
             if not api.startswith("http") and not api.startswith("csp_"):
                 continue
-            key = (s.get("type", 0), norm_api(api))
+            key = (s.get("type", 0), api.strip().rstrip("/").lower())
             if key in seen:
                 continue
             seen.add(key)
             n += 1
             site = dict(s)
-            site["key"] = site_key(site)
+            site["key"] = f"src{n}"
             site["_src"] = tag
             sp = parse_spider(cfg.get("spider"))
             if sp:
@@ -260,8 +211,6 @@ def clean_name(name: str) -> str:
     """清理源名称：去 emoji、装饰符号、来源后缀，便于去重和展示。"""
     import re
     n = name or ""
-    n = re.sub(r"\[[^\]]*\]", " ", n)  # 去掉聚合站塞进名字里的 [延时/来源URL] 前缀
-    n = re.sub(r"https?:\S+", " ", n)
     n = re.sub(r"[┃│|｜/\\◆★☆⚡→←➕·•●○]+", " ", n)
     n = re.sub(r"[\U0001F000-\U0001FAFF\u2600-\u27BF\uFE00-\uFE0F\u2B00-\u2BFF]", "", n)
     n = re.sub(r"\s+", " ", n).strip()
@@ -484,129 +433,45 @@ def test_channel(ch: dict, timeout: float) -> dict:
 
 
 # ---------- 生成 ----------
-def build_latest(seed_cfg: dict, selected_sites: list, alive_channels: list, live_refs: list, spider_url: str, top_n: int = 0) -> dict:
+def build_latest(seed_cfg: dict, selected_sites: list, alive_channels: list, live_refs: list, spider_url: str) -> dict:
     sites = []
     used_names = set()
-    pool_keys = set()
     for s in selected_sites:
         cn = clean_name(s.get("name", ""))
         if cn in used_names:  # 清理后同名 → 只留排名靠前的
             continue
         used_names.add(cn)
         s = dict(s)
-        # ---- 字段清洗：只保留 OK影视(FongMi)/TVBox 认识的字段 ----
-        # 之前直接把聚合站的原始 JSON 原样搬过来，带了 categories: "" 这种"空字符串"，
-        # 而 FongMi 的 categories 定义是 List<String>，Gson 解析会直接抛异常，
-        # 整条站点被吞掉 → 盒子上只剩数据库里旧的十几个站点。
-        ALLOW = {"key", "name", "type", "api", "ext", "jar", "playUrl",
-                 "searchable", "quickSearch", "timeout", "style", "header", "categories"}
-        s = {k: v for k, v in s.items() if k in ALLOW or k.startswith("_")}
-        if isinstance(s.get("api"), str):
-            s["api"] = s["api"].strip()  # 聚合站常带前导空格，客户端会当成非法地址
-        if "categories" in s and not isinstance(s["categories"], list):
-            s["categories"] = []
-        if isinstance(s.get("ext"), (dict, list)):
-            s["ext"] = json.dumps(s["ext"], ensure_ascii=False)
-        # ext 必须是合法 JSON 字符串（FongMi 会按 JSON 解析）；聚合站里常见的
-        # "proxy" 这类纯文本会让整条站点解析失败，直接清空而不是留着炸配置
-        if isinstance(s.get("ext"), str) and s["ext"].strip():
-            try:
-                json.loads(s["ext"])
-            except Exception:
-                s["ext"] = ""
-        # type3 规则源必须有 csp_/http 的 api，否则整条丢弃
-        if s.get("type") == 3 and not (str(s.get("api", "")).startswith("http") or str(s.get("api", "")).startswith("csp_")):
-            continue
-        if in_home_blocklist(s):
-            continue  # 家宽实测打不开（海外机房能连），点开只会空白
         s["name"] = cn
-        t = s.get("type", 0)
-        # type3 规则源必须有 jar 或 ext 才能工作；爬来的"4K网盘/秒播"多数两者都没有，
-        # 留着只会让首页多出一堆点进去空白的站，直接剔除（固定磁力站稍后单独补）
-        if t == 3 and not s.get("jar") and not s.get("ext"):
-            continue
-        s.pop("_play", None)
         s.pop("_src", None)
         s.pop("_spider", None)
-        # 稳定 key：同一 API 永远同名，重新生成配置不会让收藏/播放进度失效
-        s["key"] = site_key(s)
-        pool_keys.add(s["key"])
         s.setdefault("timeout", 15)  # 显式超时，避免 FongMi 默认值过短误杀慢源
-        s.setdefault("searchable", 1)
-        # 采集站(is cms)天然支持分类筛选；type3 规则源没写 filterable 就置 0，避免点进去空白
-        if "filterable" not in s:
-            s["filterable"] = 1 if t in (0, 1) else 0
-        # 先全部关掉，最后按实测延迟只给最快的十几个开 quickSearch（见下方收尾）
-        s["quickSearch"] = 0
         sites.append(s)
-    # ---------- 固定精选：磁力爬虫源 ----------
-    # 2026-11-28 定稿：只做"采集站"这一条线，网盘/汇总已彻底下线，不再挂任何网盘爬虫包。
-    # 剩余两个磁力站用同一份自托管内核（libs/pan_spider.png，jsDelivr 供货），
-    # 好处是无需登录、不需要 Cloud-drive.txt，点开就能出磁力结果。
-    RAW = "https://gh-proxy.com/https://raw.githubusercontent.com/WJS1987/tvbox-auto/main/"
-    CDN = "https://cdn.jsdelivr.net/gh/WJS1987/tvbox-auto@main/libs/"
-    PAN_JAR = CDN + "pan_spider.png"
-    # 爬来的网盘/登录类站点（Arc/玩偶/夸父系列）没挂对应 jar，属摆设，先剔除避免重复
-    FTY_APIS = {"csp_MyDriveGuard", "csp_WoGGGuard", "csp_YpanSoGuard",
-                "csp_BpanSoGuard", "csp_KkSsGuard", "csp_UuSsGuard"}
-    sites = [s for s in sites if s.get("api") not in FTY_APIS]
+    # ---------- 固定精选：网盘/磁力爬虫源 ----------
+    # OK影视(FongMi)原生迅雷引擎可直接播磁力/ed2k；云盘搜索聚合夸克/UC/阿里等公开分享
+    # jar 来自 regtostudy/TVBox_warehouse（PizazzGY 原仓库已失效，此 fork 保持同步）
+    # 用 raw 直连：实测 gh-proxy 转 jar 2.7MB 要 51 秒，raw 直连仅 2 秒；
+    # 魔屏加载配置时下载 jar 是同步等待，这 50 秒会直接变成黑屏等待。
+    PAN_JAR = ("https://raw.githubusercontent.com/"
+               "regtostudy/TVBox_warehouse/main/spider.jar")
     sites.extend([
+        {"key": "pan_search", "name": "云盘搜索", "type": 3, "api": "csp_PanSearch",
+         "jar": PAN_JAR, "searchable": 1, "quickSearch": 1, "filterable": 0, "timeout": 15},
         {"key": "seedhub", "name": "SeedHub磁力", "type": 3, "api": "csp_SeedHub",
          "jar": PAN_JAR, "searchable": 1, "quickSearch": 1, "filterable": 1, "timeout": 15},
         {"key": "new6v", "name": "New6V磁力", "type": 3, "api": "csp_New6v", "jar": PAN_JAR,
-         "searchable": 1, "quickSearch": 1, "filterable": 1, "timeout": 15},
+         "ext": "https://www.xb6v.com", "searchable": 1, "quickSearch": 1, "filterable": 1, "timeout": 15},
     ])
-    # 收尾统一：补默认值 + 按 key 去重
-    # （同一后台被写成不同 URL 时，前面按名字去重拦不住，这里按稳定 key 再兜一层，
-    #   否则配置里会出现两个 key 相同的站点，客户端会当成同一个源重复加载）
-    fixed, seen_keys = [], set()
-    for s in sites:
-        k = s.get("key") or site_key(s)
-        if k in seen_keys:
-            continue
-        seen_keys.add(k)
-        s["key"] = k
-        s.setdefault("searchable", 1)
-        s.setdefault("quickSearch", 0)
-        s.setdefault("filterable", 0)
-        s.setdefault("timeout", 15)
-        fixed.append(s)
-    sites = fixed
-    # 按 top_n 截断：普通采集站取前 top_n 个，磁力等固定站不占名额
-    if top_n:
-        heads, jars = [], []
-        for x in sites:
-            (jars if x.get("jar") else heads).append(x)
-        sites = heads[:top_n] + jars
-    # quickSearch 名额有限：一次全库搜索时，客户端会并发请求所有开着 quickSearch 的站点。
-    # 实测魔屏（1GB 内存盒子）并发 20 个搜索请求会长时间空白，
-    # 因此只让"纯 CMS 采集站"里最快的 6 个参与全库搜索：
-    # 网盘/磁力/直播/需要 jar 的站点一律不抢名额（它们仍可单独点进去搜）。
-    QS_LIMIT = 6
-    for s in sites:
-        if s.get("jar") or s.get("ext") or s.get("type") != 1:
-            s["quickSearch"] = 0
-    ranked = sorted((s for s in sites
-                     if s.get("type") == 1 and not s.get("jar") and not s.get("ext")),
-                    key=lambda x: (x.get("_ms") is None, x.get("_ms") or 99999))
-    for s in ranked[:QS_LIMIT]:
-        s["quickSearch"] = 1
-    for s in sites:
-        s.pop("_ms", None)
-    # 直播固定 4 条：自建 live.txt（GitHub m3u 合并产物）+ 三条轮播外挂。
-    # 不再采用爬取到的直播引用——它们常指向非 GitHub 站点，且格式各异。
-    lives = [{"name": "自建直播", "url": LIVE_TXT_URL,
-              "ua": "okHttp/Mod-1.5.0.0", "timeout": 10}] + LIVE_EXTRAS
-    # 全局 spider 也换成本仓库镜像：libs/spider.png 与原第三方图床包字节完全一致（md5 相同），
-    # 但图床一旦清理或开防盗链，所有 type3 站点会一起报废。
-    own_spider = CDN + "spider.png"
+    lives = list(live_refs)
+    if alive_channels:
+        lives.append({"group": "精选直播", "channels": alive_channels})
     out = {
-        "spider": own_spider,
+        "spider": spider_url or "",
         "sites": sites,
         "lives": lives,
         "parses": [{"name": "Json轮询", "type": 2, "url": "Sequence"}],
         "flags": ["youku", "qq", "iqiyi", "qiyi", "letv", "sohu", "tudou", "pptv", "mgtv", "wasu", "bilibili"],
-        "ads": clean_ads(seed_cfg.get("ads", [])),
+        "ads": seed_cfg.get("ads", []),
     }
     return out
 
@@ -623,16 +488,80 @@ def grade(ms):
     return "慢"
 
 
+# ---------- 超级源（全网汇总）置顶 ----------
+SUPER_SOURCE_DOMAIN = os.environ.get("SUPER_SOURCE_DOMAIN", "tvbox-juxu-spegz3xv.edgeone.cool")
+SUPER_SOURCE_PROJECT = os.environ.get("SUPER_SOURCE_PROJECT", "makers-lxb2wlvf61qz")
+SUPER_SOURCE_NAME = "全网汇总"
+
+
+def mint_super_token(api_token: str):
+    """调用 EdgeOne API 为超级源域名签发新的预览访问 token（有效期约 3 小时）。"""
+    body = json.dumps({
+        "Action": "DescribePagesEncipherToken",
+        "Region": "ap-guangzhou",
+        "ProjectId": SUPER_SOURCE_PROJECT,
+        "Text": SUPER_SOURCE_DOMAIN,
+    }).encode()
+    req = urllib.request.Request(
+        "https://pages-api.cloud.tencent.com/v1", data=body,
+        headers={"Content-Type": "application/json", "Authorization": "Bearer " + api_token})
+    with urllib.request.urlopen(req, timeout=20) as r:
+        d = json.loads(r.read().decode())
+    resp = d.get("Data", {}).get("Response", d)
+    tok = resp.get("Token")
+    ts = resp.get("Timestamp")
+    if not tok or not ts:
+        raise RuntimeError(f"token 签发失败: {str(d)[:200]}")
+    return tok, ts
+
+
+def upsert_super_source(latest: dict, api_token: str) -> bool:
+    """在 latest.json 的 sites 列表置顶插入"全网汇总"超级源（带新鲜 token）。"""
+    try:
+        tok, ts = mint_super_token(api_token)
+    except Exception as e:
+        print(f"[超级源] token 签发失败，本轮跳过: {e}")
+        return False
+    # 实测：URL 带 eo_token 会触发 EdgeOne 的 302 换 cookie 流程（FongMi 无 CookieJar 会卡死）；
+    # 只有 Cookie 请求头 + 干净 URL 才直连 200。token 只放 header，不放 URL。
+    url = f"https://{SUPER_SOURCE_DOMAIN}/api"
+    site = {"key": "super", "name": SUPER_SOURCE_NAME, "type": 1, "api": url,
+            # FongMi/TV 无 CookieJar，无法跟随 EdgeOne 的 302 换 cookie 流程，
+            # 必须把 token 直接放进请求头，才能通过 EdgeOne 域名验证
+            "header": {"Cookie": f"eo_token={tok}; eo_time={ts}"},
+            # 官方规范字段：style 控制海报卡片样式（竖版海报3:4），timeout 延长汇总源响应时间
+            "searchable": 1, "quickSearch": 1, "filterable": 1,
+            "style": {"type": "rect", "ratio": 0.75}, "timeout": 20}
+    latest["sites"] = [s for s in latest.get("sites", []) if s.get("key") != "super"]
+    latest["sites"].insert(0, site)
+    print(f"[超级源] 已置顶 {SUPER_SOURCE_NAME}（token 有效期约 3 小时）")
+    return True
+
+
+# ==================== 超级源目录生成（super_catalog.json） ====================
+# 将"聚合片单"这一重活从边缘函数挪到流水线：Actions 深挖生成静态目录，
+# 边缘函数只做秒级加载+内存检索，根治 KV 未批期间冷启动 9 秒重建的卡顿。
+
+FIXED_CLASSES_PY = [
+    {"type_id": "c_all", "type_name": "全部"},
+    {"type_id": "c_movie", "type_name": "电影"},
+    {"type_id": "c_tv", "type_name": "剧集"},
+    {"type_id": "c_variety", "type_name": "综艺"},
+    {"type_id": "c_anime", "type_name": "动漫"},
+    {"type_id": "c_doc", "type_name": "纪录"},
+]
+CAT_RULES_PY = [
+    (re.compile(r"电影|院线|动作|喜剧|爱情|科幻|恐怖|剧情|战争|犯罪|奇幻|冒险|灾难"), "c_movie"),
+    (re.compile(r"剧|连续|国产|港台|韩|美|海外"), "c_tv"),
+    (re.compile(r"综艺|娱乐|真人秀|脱口"), "c_variety"),
+    (re.compile(r"动漫|动画|番剧|漫画"), "c_anime"),
+    (re.compile(r"纪录|纪实|解说"), "c_doc"),
+]
+MAIN_CAT_PY = re.compile(r"电影|剧集|电视剧|综艺|动漫|动画|片|连续")
+
 # 家庭网络实测稳定失效的源（GitHub 海外机房测出来是活的，但国内连不上，点进去一直转圈）。
 # 2026-11-27 家里网络两轮探测均为 0 成功。按完整 API 地址匹配，避免误杀同域名的正常源。
 # 源若日后恢复，从本列表删除对应行即可重新入选。
-LIVE_TXT_URL = ("https://gh-proxy.com/https://raw.githubusercontent.com/"
-                "WJS1987/tvbox-auto/main/live.txt")
-# 固定直播外挂：虎牙/斗鱼/YY 轮播（stably hosted m3u，与点播源同一套解析）
-# 2026-11-28 家宽实测：只有 vbskycn 那条列表的央视/卫视在国内能看，其余公开 m3u 大面积失效，
-# 因此直播只保留「自建直播」一条（内容由 build_live.py 从该列表生成），不再挂轮播外挂。
-LIVE_EXTRAS = []
-
 HOME_DEAD_APIS = [
     "https://ikunzyapi.com/api.php/provide/vod",
     "https://apilj.com/api.php/provide/vod/at/json/",
@@ -645,48 +574,6 @@ HOME_DEAD_APIS = [
     "http://caiji.dyttzyapi.com/api.php/provide/vod/from/dyttm3u8/at/m3u8/",
     "http://caiji.dyttzyapi.com/api.php/provide/vod",
 ]
-
-
-def load_home_whitelist(path="home_whitelist.json"):
-    """家宽实测可连通的域名清单（本地跑 home_probe 生成），每日任务只在这些域名里选站。"""
-    p = Path(path)
-    if not p.exists():
-        return set()
-    try:
-        return {d.lower() for d in json.loads(p.read_text(encoding="utf-8")).get("domains", [])}
-    except Exception:
-        return set()
-
-
-HOME_OK_DOMAINS = load_home_whitelist()
-
-
-def load_home_blocklist(path="home_blocklist.json"):
-    """家庭宽带实测打不开的域名（黑名单），这些站一律不进配置。"""
-    p = Path(path)
-    if not p.exists():
-        return set()
-    try:
-        return {str(d).lower() for d in json.loads(p.read_text(encoding="utf-8")).get("hosts", [])}
-    except Exception:
-        return set()
-
-
-HOME_DEAD_HOSTS = load_home_blocklist()
-
-
-def in_home_blocklist(site: dict) -> bool:
-    api = str(site.get("api") or "")
-    if not api.startswith("http"):
-        return False
-    return urllib.parse.urlsplit(api).netloc.lower() in HOME_DEAD_HOSTS
-
-
-def not_home_ok(site: dict) -> bool:
-    api = site.get("api", "")
-    if not api.startswith("http"):
-        return False
-    return urllib.parse.urlsplit(api).netloc.lower() not in HOME_OK_DOMAINS
 
 
 def is_home_dead(site: dict) -> bool:
@@ -726,18 +613,133 @@ def js_hash_id(s: str) -> str:
     return "m" + b36
 
 
+def classify_py(name: str, cat: str, remarks: str) -> str:
+    """对齐 JS 分类规则：第N期优先判综艺，再按关键词顺序匹配。"""
+    if re.search(r"第\d+期", remarks or ""):
+        return "c_variety"
+    for rx, cid in CAT_RULES_PY:
+        if rx.search(cat or "") or rx.search(name or ""):
+            return cid
+    return "c_all"
+
+
+def build_super_catalog(selected_sites: list, timeout: float = 8,
+                        latest_pages: int = 20, cat_pages: int = 12,
+                        max_cats: int = 20, max_items: int = 30000,
+                        max_lines: int = 4) -> dict:
+    """深挖各上游源生成汇总目录（去重+多源线路+分类），输出超级源静态目录。"""
+    upstreams = [s for s in selected_sites
+                 if s.get("type", 0) in (0, 1) and s.get("api") and not is_home_dead(s)]
+    if not upstreams:
+        return {"updated": "", "upstreams": [], "classes": FIXED_CLASSES_PY, "items": []}
+    print(f"[目录] 深挖 {len(upstreams)} 个上游（最新{latest_pages}页 + 主流分类{cat_pages}页）...")
+
+    def sep(u):
+        return "&" if "?" in u else "?"
+
+    def pjson(u):
+        # 部分采集站对并发突发限流：失败退避重试2次（0.5s/1.5s）
+        for delay in (0, 0.5, 1.5):
+            if delay:
+                time.sleep(delay)
+            try:
+                return json.loads(fetch(u, timeout=timeout, ua=UA_OKHTTP))
+            except Exception:
+                continue
+        return None
+
+    jobs = []  # (src_name, api, v)
+    for site in upstreams:
+        api = site["api"]
+        base = f"{api}{sep(api)}"
+        # 1) 分类表
+        cls = pjson(api) or {}
+        cat_list = [(str(c.get("type_id")), str(c.get("type_name") or ""))
+                    for c in (cls.get("class") or []) if c.get("type_id") is not None]
+        # 2) 探测 t 参数是否有效：无效的源（如淘片）改为往深翻页
+        first = pjson(f"{base}ac=list&pg=1")
+        t_ok = False
+        if cat_list and first and first.get("list"):
+            probe = pjson(f"{base}ac=list&t={cat_list[0][0]}&pg=1")
+            fids = [v.get("vod_id") for v in first.get("list", [])[:10]]
+            pids = [v.get("vod_id") for v in (probe or {}).get("list", [])[:10]]
+            t_ok = bool(pids) and pids != fids  # 同页码下列表不同=分类过滤生效
+        # 3) 生成抓取 URL
+        urls = []
+        if t_ok:
+            main = [c for c in cat_list if MAIN_CAT_PY.search(c[1])]
+            rest = [c for c in cat_list if c not in main]
+            for _tid, _cname in (main + rest)[:max_cats]:
+                urls += [f"{base}ac=list&t={_tid}&pg={p}" for p in range(1, cat_pages + 1)]
+        else:
+            # t 无效：深翻最新列表（片库按更新排序，翻得越深片越多）
+            urls = [f"{base}ac=list&pg={p}" for p in range(1, latest_pages + 1)]
+        for u in urls:
+            jobs.append((site.get("name") or "", api, u))
+        print(f"[目录] {site.get('name','')[:12]}: t参数{'有效' if t_ok else '无效(深翻页)'}，任务 {len(urls)} 个")
+
+    print(f"[目录] 共 {len(jobs)} 个抓取任务，并发拉取 ...")
+    fetched = {}  # api -> list of (src_name, data)
+    def work(job):
+        name, api, u = job
+        d = pjson(u)
+        return (name, api, d)
+    # 注意：采集站对高并发限流（16并发全被拒），用低并发+重试保证成功率
+    with ThreadPoolExecutor(max_workers=6) as ex:
+        for name, api, d in ex.map(work, jobs):
+            if d and isinstance(d.get("list"), list):
+                fetched.setdefault(api, []).append((name, d))
+
+    # 3) 去重合并（按源优先级，同片名保留多源作备用线路）
+    seen = {}
+    for site in upstreams:  # 按排名顺序处理，保证优先级
+        api = site["api"]
+        src_name = site.get("name") or ""
+        for _name, d in fetched.get(api, []):
+            for v in d["list"]:
+                vn = v.get("vod_name")
+                if not vn or v.get("vod_id") is None:
+                    continue
+                vn = str(vn)
+                key = norm_name_py(vn)
+                if not key:
+                    continue
+                entry = seen.get(key)
+                if entry:
+                    if len(entry["srcs"]) < max_lines:
+                        entry["srcs"].append({"oid": str(v["vod_id"]), "api": api, "name": src_name})
+                    continue
+                seen[key] = {
+                    "id": js_hash_id(key),
+                    "name": vn,
+                    "pic": str(v.get("vod_pic") or ""),
+                    "remarks": str(v.get("vod_remarks") or ""),
+                    "cat": classify_py(str(vn), str(v.get("type_name") or ""), str(v.get("vod_remarks") or "")),
+                    "srcs": [{"oid": str(v["vod_id"]), "api": api, "name": src_name}],
+                }
+
+    items = list(seen.values())[:max_items]
+    catalog = {
+        "updated": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+        "upstreams": [s.get("name") or "" for s in upstreams],
+        "classes": FIXED_CLASSES_PY,
+        "items": items,
+    }
+    print(f"[目录] 完成：{len(items)} 部去重片单（深挖前合并 {sum(len(e['srcs']) for e in seen.values())} 条记录）")
+    return catalog
+
+
 def write_report(path, alive_sites, dead_sites, alive_ch, dead_ch, crawl_failed, crawl_stats, selected_sites):
     alive_sites.sort(key=lambda r: (r["play"] is not True, -min(r["count"], 50), -(r.get("cdn_speed") or 0), r["ms"] or 99999))
     selected_keys = {id(s) for s in selected_sites}
     L = ["# 源自动采集检测报告", "",
          "> 注意：本报告延迟由 GitHub 海外机房测得，**不代表国内家庭网络的真实速度**。",
-         "> 真实体验以魔屏上 OK影视 的实际打开速度为准。", "",
+         "> 国内实测请在家里电脑运行 `python device_test.py`，生成 `device_report.md`。", "",
          f"- 时间：{time.strftime('%Y-%m-%d %H:%M:%S')}",
          f"- 爬取聚合配置：{crawl_stats}",
          f"- 点播源：采集去重 {len(alive_sites) + len(dead_sites)} → 存活 {len(alive_sites)} / 失效 {len(dead_sites)}"
-         f" → **写入配置 {len(selected_sites)} 个**（可播性+片单量+速度综合排名，含固定磁力站）",
-         f"- 直播频道：去重 {len(alive_ch) + len(dead_ch)} → 存活 {len(alive_ch)}"
-         "（海外机房探测，国内 IPTV 连不上属正常，不代表失效；直播以设备实测为准）",
+         f" → **精选保留 {len(selected_sites)} 个**（可播性+片单量+速度综合排名）",
+         f"- 直播频道：去重 {len(alive_ch) + len(dead_ch)} → 存活 {len(alive_ch)}",
          f"- 配置站失效：{len(crawl_failed)} 个", "",
          "## 点播源（综合排名，✔=已确认可播）", "",
          "| 精选 | 可播 | 速度 | 延迟 | 片单数 | 名称 |", "|---|---|---|---|---|---|"]
@@ -760,7 +762,7 @@ def legacy_mode(args):
     sites = cfg.get("sites", [])
     seen, deduped = set(), []
     for s in sites:
-        key = (s.get("type", 0), norm_api(str(s.get("api") or "")))
+        key = (s.get("type", 0), (s.get("api") or "").strip().rstrip("/").lower())
         if key in seen:
             continue
         seen.add(key)
@@ -782,108 +784,6 @@ def legacy_mode(args):
     Path(str(p.with_name(p.stem + "_clean.json"))).write_text(
         json.dumps(out_cfg, ensure_ascii=False, indent=2), encoding="utf-8")
     print(f"[结果] 存活 {len(alive)} / 失效 {len(results) - len(alive)}")
-
-
-# ---------- 儿童版过滤 ----------
-# 主配置按用户要求"不做任何过滤"原样保留；这里另出一份 kids.json 供家里小孩使用：
-# 剔除成人站、剔除需要 jar 的站（磁力搜索可能搜到成人资源）。
-ADULT_MARKERS = ["18+", "18禁", "番号", "杏吧", "大杏", "大奶", "奶子", "搜av", "av资源",
-                 "黄色", "黄仓", "成人", "福利", "情色", "三级", "裸", "约炮",
-                 "naixx", "danaizi", "hsck", "souav", "xingba", "fhapi", "se92", "av99"]
-
-
-def is_adult_site(s: dict) -> bool:
-    blob = " ".join(str(s.get(k, "")) for k in ("name", "api", "key", "ext")).lower()
-    return any(m in blob for m in ADULT_MARKERS)
-
-
-# ---- 儿童版第二道防线：按源站真实分类判定 ----
-# 站名经常起得很正经（"百花资源""滴滴资源""大地资源"），光靠名字必漏。
-# 这里读取 site_meta.json（家宽实测每个接口 ac=list 的分类名），做成两层过滤：
-#   1) 站点本身是成人站（a=true）→ 整站不进儿童版；
-#   2) 综合站里混着成人分类（如"三级伦理""里番动漫"）→ 只屏蔽这些分类，
-#      写入该站点的 categories 白名单，App 里这些分类就不会出现。
-ADULT_CAT_MARKERS = ["无码", "有码", "番号", "禁漫", "里番", "乱伦", "探花", "黑料", "国产精品",
-                     "主播", "自拍", "偷拍", "巨乳", "淫", "色情", "大奶", "萝莉", "嫩模",
-                     "三级", "伦理", "理论片", "传媒", "换脸", "外流", "人妻", "口爆", "颜射", "调教",
-                     "群交", "美尻", "丝袜", "制服诱惑", "素人", "名优", "swag", "cosplay",
-                     "门事件", "强奸", "av", "约炮", "成人", "福利"]
-
-SITE_META = {}
-
-
-def load_site_meta(path="site_meta.json") -> dict:
-    p = Path(__file__).with_name(path)
-    if not p.exists():
-        print(f"[儿童版] 未找到 {path}，仅按站名过滤（可能漏站）")
-        return {}
-    try:
-        data = json.loads(p.read_text(encoding="utf-8"))
-        m = data.get("sites", {}) if isinstance(data.get("sites"), dict) else {}
-        print(f"[儿童版] 分类元数据 {len(m)} 个接口（测试于 {data.get('tested_at', '?')}）")
-        return m
-    except Exception as e:
-        print(f"[儿童版] 读取 {path} 失败: {e}")
-        return {}
-
-
-def is_adult_cat(name: str) -> bool:
-    low = str(name).lower()
-    return any(m in low for m in ADULT_CAT_MARKERS)
-
-
-def build_kids_sites(sites: list) -> list:
-    out = []
-    seen = set()
-    for s in sites:
-        k = s.get("key") or (s.get("name"), s.get("api"))
-        if k in seen:
-            continue
-        seen.add(k)
-        if s.get("jar") or is_adult_site(s) or in_home_blocklist(s):
-            continue
-        api = s.get("api") or ""
-        meta = SITE_META.get(api)
-        if not meta:
-            # 采集接口的 api 常带 ?ac=list / /at/xml 等后缀，实测表是按另一写法存的，
-            # 这里按规范化后的地址再匹配一次，否则新站会被误判为"无实测数据"
-            napi = norm_api(api)
-            for k, v in SITE_META.items():
-                if norm_api(k) == napi:
-                    meta = v
-                    break
-        if not meta:
-            # 没有实测数据的新站，宁可不给小孩用
-            continue
-        cats = meta.get("c") or []
-        if not cats:
-            continue
-        # 分类名全部来自采集站自己的 ac=list 返回，这里只做"去掉不正经的几个"，
-        # 不做自定义改名，也不凭空造分类。
-        safe = []
-        for c in cats:
-            if is_adult_cat(c):
-                continue
-            if c not in safe:
-                safe.append(c)
-        adult_n = len({c for c in cats if is_adult_cat(c)})  # 去重后数"不正经分类"有几个
-        s = dict(s)
-        if adult_n == 0:
-            # 分类里没有任何成人关键词：如果整站仍被判成人（如桃花/黑料那类，
-            # 分类名字正常但内容全是成人片），不能放，直接拦
-            if meta.get("a"):
-                continue
-            s["categories"] = []              # 按采集站原始分类展示
-        else:
-            if adult_n > 3:
-                continue                       # 不正经分类太多，判定整站成人，直接拦
-            if not safe:
-                continue                       # 去掉后一个正常分类都不剩
-            # 只把"伦理片/理论片/里番…"这几个分类从列表里去掉，其余照常显示。
-            # OK影视(FongMi) 的 categories 是"白名单"语义：写了哪些就只显示哪些。
-            s["categories"] = safe
-        out.append(s)
-    return out
 
 
 # ---------- 全自动模式 ----------
@@ -911,7 +811,7 @@ def auto_mode(args):
     # 兜底去重
     seen, deduped = set(), []
     for s in sites:
-        key = (s.get("type", 0), norm_api(str(s.get("api") or "")))
+        key = (s.get("type", 0), (s.get("api") or "").strip().rstrip("/").lower())
         if key in seen:
             continue
         seen.add(key)
@@ -961,46 +861,81 @@ def auto_mode(args):
     alive_ch = [r["ch"] for r in ch_results if r["ok"]]
     dead_ch = [r for r in ch_results if not r["ok"]]
 
-    alive_refs = []  # 直播不再从爬取列表里选，统一走 live.txt + 固定轮播
+    # 测试直播源引用（整个文件可达即算存活），并发检测后按速度排序
+    def test_ref(ref):
+        t0 = time.perf_counter()
+        body = fetch(ref["url"], timeout=args.timeout, ua=UA_BROWSER, max_bytes=20_000)
+        ms = int((time.perf_counter() - t0) * 1000)
+        if body and ("#EXTM3U" in body[:300] or "genre#" in body[:300] or "#EXTINF" in body[:300]):
+            return {"ref": ref, "ms": ms}
+        return None
+    with ThreadPoolExecutor(max_workers=args.workers) as ex:
+        ref_results = [r for r in ex.map(test_ref, ref_deduped) if r]
+    ref_results.sort(key=lambda x: x["ms"])
+    alive_refs = [r["ref"] for r in ref_results[:args.top_lives] if r["ms"] <= 5000]
+    print(f"[检测] 直播源引用存活 {len(ref_results)}/{len(ref_deduped)}，精选最快 {len(alive_refs)} 个")
 
-    # ===== 点播源分拣：可播性 → 片单量 → CDN 速度 → 响应延迟，只留前 top 个 =====
-    # 原先还有一道"国内节点可达性"过滤（EdgeOne 边缘函数回传国内探测），该链路随
-    # 超级源项目被删而失效，2026-11-28 起移除；国内打不开的源由 HOME_DEAD_APIS 黑名单兜底。
+    # ===== 点播源分拣：可播性优先 → 片单量 → 速度，只留前 top 个 =====
     good = [r for r in alive_sites if r["play"] is not False]  # play False 已在检测时标记失效
     good.sort(key=lambda r: (r["play"] is not True, -min(r["count"], 50), -(r.get("cdn_speed") or 0), r["ms"] or 99999))
-
     selected_sites = []
-    kids_pool = []      # 儿童版候选池：不受 top 限制，从家宽可达的全量里挑安全站
     seen_cn = set()
     # 有 jar 候选时给 type 3 高级源预留 3 个名额，避免普通源占满后高级源无位可进
     reserve = min(3, len(jar_candidates)) if jar_candidates else 0
-    cap = max(1, args.top * 2 - reserve)  # 多取候选：同名站去重后会变少，build_latest 再截到 top
+    cap = max(1, args.top - reserve)
     for r in good:
         if r["site"].get("type", 0) != 0 and r["site"].get("type", 0) != 1:
             continue  # type 3 后面按 jar 配对单独处理
-        if is_home_dead(r["site"]) or in_home_blocklist(r["site"]):
+        if is_home_dead(r["site"]):
             continue  # 家庭网络实测打不开的源，剔除（否则点进去一直转圈）
-        if HOME_OK_DOMAINS and not_home_ok(r["site"]):
-            continue  # 家宽白名单之外的域名一律不选（海外机房能连通、家里连不上）
         cn = clean_name(r["site"].get("name", ""))
         if cn in seen_cn:
             continue
         seen_cn.add(cn)
-        # 把实测延迟带下去，build_latest 用它决定 quickSearch（快的才参与全库并发搜索）
-        r["site"]["_ms"] = r["ms"]
-        r["site"]["_play"] = r["play"]
-        selected_sites.append(r["site"]) if len(selected_sites) < cap else None
-        if len(kids_pool) < 120:
-            kids_pool.append(r["site"])
-        if len(selected_sites) >= cap and len(kids_pool) >= 120:
+        selected_sites.append(r["site"])
+        if len(selected_sites) >= cap:
             break
 
-    # ===== 只保留纯 CMS 采集站 =====
-    # type3 规则源（4K网盘/秒播/动漫巴士/AList 之流）要靠各自的第三方 jar 才能工作，
-    # 那些 jar 随时被撤、且会让首页多出大量点进去空白的站。2026-11-28 定稿：
-    # 全站不再使用任何 type3 源，spider 统一用本仓库自托管的 libs/spider.png
-    # （只为保持兼容性，实际没有 type3 站引用它）。
+    # ===== spider jar 测试：让 type 3 高质量源复活 =====
     spider_url = ""
+    if jar_candidates:
+        print(f"[jar] 测试 {len(jar_candidates)} 个爬虫包 ...")
+        jar_results = []
+        with ThreadPoolExecutor(max_workers=8) as ex:
+            futs = {ex.submit(fetch_bytes, j, args.timeout, None, 3_000_000): j
+                    for j in jar_candidates}
+            for f in as_completed(futs):
+                body, _ms = f.result()
+                # jar 是 ZIP 包（PK\x03\x04 头），按字节校验：decode 后字节数会失真，
+                # 用 str 比较 "PK" 也可能把 HTML 错误页误判为可用包
+                if body and len(body) >= 10_000 and body[:4] == b"PK\x03\x04":
+                    jar_results.append(futs[f])
+        if jar_results:
+            # 选出能配对最多 type 3 存活源的 jar（并列时取源响应最快的）
+            from collections import Counter as _C
+            alive_t3 = [r for r in good if r["site"].get("type", 0) == 3]
+            jar2cnt = _C(r["site"].get("_spider", "") for r in alive_t3
+                         if r["site"].get("_spider") in jar_results)
+            spider_url = max(jar_results, key=lambda j: jar2cnt.get(j, 0)) if jar2cnt \
+                else jar_results[0]
+            print(f"[jar] 可用 {len(jar_results)} 个，选用: {spider_url[:60]}"
+                  f"（配对 {jar2cnt.get(spider_url, 0)} 个 type3 存活源）")
+            # 加入与该 jar 配对的 type 3 源（如 玩偶/哔哩/Emby 等高级源）
+            t3 = [r for r in good if r["site"].get("type", 0) == 3
+                  and r["site"].get("_spider") == spider_url]
+            t3.sort(key=lambda r: r["ms"] or 99999)
+            for r in t3:
+                if len(selected_sites) >= args.top:
+                    break
+                cn = clean_name(r["site"].get("name", ""))
+                if cn in seen_cn or not cn:
+                    continue
+                seen_cn.add(cn)
+                selected_sites.append(r["site"])
+            print(f"[jar] 复活 type 3 源 {len(selected_sites)} 个总数中包含的 type3: "
+                  f"{sum(1 for s in selected_sites if s.get('type', 0) == 3)}")
+        else:
+            print("[jar] 无可用爬虫包，type 3 源全部排除")
 
     # 种子配置里的 flags/ads 等参数沿用
     seed_cfg = {}
@@ -1009,49 +944,62 @@ def auto_mode(args):
             seed_cfg = parse_config_text(Path(args.seed).read_text(encoding="utf-8-sig")) or {}
         except Exception:
             pass
-    latest = build_latest(seed_cfg, selected_sites, alive_ch, alive_refs, spider_url, args.top)
-    # 全网汇总（超级源）已于 2026-11-28 彻底下线：EdgeOne 项目被误删且新项目部署始终失败，
-    # 相关代码与目录也已删除，配置里不再注入任何 super 条目。
+    latest = build_latest(seed_cfg, selected_sites, alive_ch, alive_refs, spider_url)
+    super_token = os.environ.get("EDGEONE_TOKEN", "")
+    if super_token:
+        upsert_super_source(latest, super_token)
 
-    # 直播来源：种子配置里内联的频道组（config/tv.json），下面统一瘦身成 live.txt 的外链引用。
-    # 配置瘦身（无论直播来自哪里都要做）：内联几千个频道会让 latest.json 从 ~50KB 涨到 200~400KB，
-    # 魔屏这类盒子光是拉取+解析就要多花十几秒。这里把内联频道组换成对 live.txt 的 url 引用，
-    # 频道只在用户打开"直播"页时才去拉，主配置只剩站点列表。
-    slim = []
-    for lv in latest.get("lives", []):
-        if not isinstance(lv, dict):
+    # 自建直播：本地实测过的 live.json 优先；没有则用流水线抓取的 live_raw.json（未测速）
+    for live_name in ("live.json", "live_raw.json"):
+        live_path = Path(live_name)
+        if not live_path.exists():
             continue
-        if lv.get("url"):
-            slim.append(lv)
-        elif any(k in lv for k in ("groups", "channel", "channels")):
-            slim.append({"name": lv.get("name") or "自建直播",
-                         "url": LIVE_TXT_URL,
-                         "ua": lv.get("ua") or "okHttp/Mod-1.5.0.0",
-                         "timeout": 10})
-        else:
-            slim.append(lv)
-    if slim:
-        latest["lives"] = slim
+        try:
+            gen = json.loads(live_path.read_text(encoding="utf-8"))
+            if gen.get("lives"):
+                latest["lives"] = gen["lives"]
+                print(f"[直播] 采用 {live_name}：{len(gen['lives'])} 个直播源")
+                break
+        except Exception as e:
+            print(f"[直播] {live_name} 读取失败，沿用种子直播源: {e}")
+
+    # 生成超级源静态目录（边缘函数直接秒级加载，不再实时聚合）
+    try:
+        catalog = build_super_catalog(selected_sites, timeout=args.timeout)
+        catalog_path = Path(args.out).with_name("super_catalog.json")
+        catalog_path.write_text(json.dumps(catalog, ensure_ascii=False, separators=(",", ":")),
+                                encoding="utf-8")
+        print(f"[输出] {catalog_path.name}（{catalog_path.stat().st_size // 1024}KB）")
+    except Exception as e:
+        print(f"[目录] 生成失败（边缘函数会回退到实时聚合）: {e}")
+
+    # ---------- 套用家宽真实播放速度排名（手机定时测速上传 home_speed_rank.json）----------
+    try:
+        rank_path = Path(args.out).with_name("home_speed_rank.json")
+        if rank_path.exists():
+            hr = json.loads(rank_path.read_text(encoding="utf-8"))
+            speed = {r["key"]: r["speed"] for r in hr.get("rank", []) if r.get("key")}
+            old_idx = {s.get("key"): i for i, s in enumerate(latest.get("sites", []))}
+            def _home_rank(s):
+                sp = speed.get(s.get("key"))
+                if sp is None:
+                    return (1, old_idx.get(s.get("key"), 0), 0)     # 未测：保持原位
+                if sp >= 10:
+                    return (0, -sp, 0)                              # 快源：置顶
+                return (2, sp, old_idx.get(s.get("key"), 0))        # 慢源：沉底
+            latest["sites"].sort(key=_home_rank)
+            print(f"[家宽排名] 已套用 {len(speed)} 个源的真实播放速度排序")
+    except Exception as e:
+        print(f"[家宽排名] 套用失败（沿用默认排序）: {e}")
 
     Path(args.out).write_text(json.dumps(latest, ensure_ascii=False, indent=2), encoding="utf-8")
-
-    # 儿童版：同一套配置，去掉成人站与需要 jar 的站（磁力），文件独立、主配置不受影响
-    kids = dict(latest)
-    # 儿童版从更大的安全池里挑（top 之外的家宽可达站也参与），再做成人/磁力过滤
-    kids_extra = build_latest(seed_cfg, kids_pool, alive_ch, alive_refs, spider_url, 0).get("sites", []) if kids_pool else []
-    kids["sites"] = build_kids_sites(list(latest.get("sites", [])) + kids_extra)
-    kids_path = Path(args.out).with_name("kids.json")
-    kids_path.write_text(json.dumps(kids, ensure_ascii=False, indent=2), encoding="utf-8")
-    print(f"[儿童版] {len(kids['sites'])} 个站点 → {kids_path}")
-
-    final_sites = latest.get("sites", [])
-    write_report(args.report, alive_sites, dead_sites, alive_ch, dead_ch, failed, crawl_stats, final_sites)
+    write_report(args.report, alive_sites, dead_sites, alive_ch, dead_ch, failed, crawl_stats, selected_sites)
 
     alive_sites.sort(key=lambda r: (r["play"] is not True, -min(r["count"], 50), -(r.get("cdn_speed") or 0), r["ms"] or 99999))
     fastest = alive_sites[0] if alive_sites else None
     print(f"\n[结果] 点播存活 {len(alive_sites)}"
           + (f"（最快: {fastest['ms']}ms {fastest['site'].get('name','')[:20]}）" if fastest else "")
-          + f" / 写入配置 {len(latest.get('sites', []))} 个")
+          + f" / 精选保留 {len(selected_sites)} 个 / 直播源 {len(alive_refs)} 个")
     print(f"[输出] {args.out} + {args.report}")
 
 
@@ -1065,20 +1013,31 @@ def main():
     ap.add_argument("--workers", type=int, default=30)
     ap.add_argument("--timeout", type=float, default=8.0)
     ap.add_argument("--limit", type=int, default=0, help="限制本次测试数量（调试用）")
-    ap.add_argument("--top", type=int, default=40, help="最终精选保留多少个点播源")
+    ap.add_argument("--top", type=int, default=25, help="最终精选保留多少个点播源")
     ap.add_argument("--top-lives", type=int, default=3, help="精选保留多少个直播源引用")
     ap.add_argument("--out", default="latest.json")
     ap.add_argument("--report", default="report.md")
     ap.add_argument("--check", action="store_true", help="旧模式参数：联网检测")
+    ap.add_argument("--refresh-super", action="store_true",
+                    help="只刷新超级源 token 并更新 latest.json（轻量，每小时跑）")
     args = ap.parse_args()
-
-    global SITE_META
-    SITE_META = load_site_meta()
 
     if args.legacy:
         legacy_mode(args)
     elif args.auto:
         auto_mode(args)
+    elif args.refresh_super:
+        token = os.environ.get("EDGEONE_TOKEN", "")
+        if not token:
+            print("[超级源] 缺少 EDGEONE_TOKEN 环境变量")
+            return 1
+        p = Path(args.out)
+        latest = json.loads(p.read_text(encoding="utf-8")) if p.exists() else {"sites": [], "lives": []}
+        if upsert_super_source(latest, token):
+            p.write_text(json.dumps(latest, ensure_ascii=False, indent=2), encoding="utf-8")
+            print(f"[输出] {args.out}")
+            return 0
+        return 1
     else:
         ap.print_help()
 

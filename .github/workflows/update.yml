@@ -38,7 +38,7 @@ jobs:
 
       - name: Crawl + Test + Build latest.json
         run: |
-          python check_sources.py --auto --workers 30 --timeout 8 --top 40
+          python check_sources.py --auto --workers 30 --timeout 8 --top 50
 
       - name: Commit and Push
         run: |

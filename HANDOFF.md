@@ -5,7 +5,7 @@
 ## 现在在跑什么
 
 1. `build_live.py` → 抓直播频道、归一化、分组、合并线路 → 写 `live.txt`
-2. `check_sources.py --auto --top 40` → 爬 12 个聚合站（`sources_pool.json`）→ 提取源 →
+2. `check_sources.py --auto --top 50` → 爬 12 个聚合站（`sources_pool.json`）→ 提取源 →
    并发测活/测速/试播 → 剔除 `HOME_DEAD_APIS` → 排序取 40 → 写 `latest.json` + `report.md`
 3. Actions 自动提交；每次提交会用 `git pull --rebase -X ours` 重试 5 次防并发冲突
 4. 收尾 purge jsDelivr 的 `latest.json` / `live.txt` 缓存
@@ -15,7 +15,7 @@
 
 ## 配置里是什么
 
-- `sites`：40 个由流水线精选 + 8 个固定自建站（云盘搜索、磁力、我的云盘扫码、若干 type3）= 48 站
+- `sites`：50 个由流水线精选 + 5 个固定自建站（云盘搜索、SeedHub磁力、New6V磁力、我的云盘扫码、玩偶哥哥4K）
 - `quickSearch`：只在最快 6 个纯 CMS 源上开（1GB 内存盒子并发搜索扛不住更多）
 - `lives`：`自建直播` 指向 `live.txt`（外链），另加虎牙/斗鱼/YY 三个 m3u
 - `spider`：`libs/spider.png`（jsDelivr），客户端按字节和 md5 校验
@@ -43,4 +43,4 @@
 
 - 加聚合站：编辑 `sources_pool.json`，加一行 url
 - 屏蔽某个具体源：把它的完整 API 加进 `check_sources.py` 的 `HOME_DEAD_APIS`
-- 调数量：改 workflow 里的 `--top 40`（越大首页越重、加载越慢）
+- 调数量：改 workflow 里的 `--top 50`（越大首页越重、加载越慢）

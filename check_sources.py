@@ -543,22 +543,12 @@ def build_latest(seed_cfg: dict, selected_sites: list, alive_channels: list, liv
         {"key": "mydrive", "name": "我的云盘 扫码登录", "type": 3, "api": "csp_MyDriveGuard",
          "jar": FTY_JAR, "changeable": 0, "indexs": 0, "searchable": 1,
          "style": {"type": "oval"}, "ext": CD, "timeout": 20},
-        # ② 扫码后自动能播的免费网盘片源（照搬饭太硬官方配置，共用 Cloud-drive.txt）
+        # ② 扫码后自动能播的免费网盘片源（只留一个能出片的，其余同质站点已砍：
+        #    盘她夸父/盘他嘟嘟/抠抠搜搜/优汐搜搜 都要同一份 Cloud-drive.txt，
+        #    留着只是重复加长首页、还拖慢冷启动）
         {"key": "wogg", "name": "玩偶哥哥4K", "type": 3, "api": "csp_WoGGGuard",
          "jar": FTY_JAR, "changeable": 0, "searchable": 1, "quickSearch": 1,
          "ext": CD, "timeout": 30},
-        {"key": "ypanso", "name": "盘她夸父", "type": 3, "api": "csp_YpanSoGuard",
-         "jar": FTY_JAR, "changeable": 0, "searchable": 1, "quickSearch": 1,
-         "ext": CD, "timeout": 20},
-        {"key": "bpanso", "name": "盘他嘟嘟", "type": 3, "api": "csp_BpanSoGuard",
-         "jar": FTY_JAR, "changeable": 0, "searchable": 1, "quickSearch": 1,
-         "ext": CD, "timeout": 20},
-        {"key": "kkss", "name": "抠抠搜搜", "type": 3, "api": "csp_KkSsGuard",
-         "jar": FTY_JAR, "changeable": 0, "searchable": 1, "quickSearch": 1,
-         "ext": CD, "timeout": 20},
-        {"key": "uuss", "name": "优汐搜搜", "type": 3, "api": "csp_UuSsGuard",
-         "jar": FTY_JAR, "changeable": 0, "searchable": 1, "quickSearch": 1,
-         "ext": CD, "timeout": 20},
     ])
     # 收尾统一：补默认值 + 按 key 去重
     # （同一后台被写成不同 URL 时，前面按名字去重拦不住，这里按稳定 key 再兜一层，

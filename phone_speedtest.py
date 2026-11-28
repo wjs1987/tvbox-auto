@@ -133,7 +133,8 @@ def speed_of_segment(url, headers, timeout, cap_bytes):
 def measure_site(site, timeout, cap_bytes):
     """测一个源的真实单连接播放速度。"""
     r = {"name": site.get("name") or site.get("key", "?"),
-         "key": site.get("key", ""), "speed": None, "note": ""}
+         "key": site.get("key", ""), "api": (site.get("api") or "").strip(),
+         "speed": None, "note": ""}
     t = site.get("type", 0)
     api = (site.get("api") or "").strip()
     headers = site.get("header") if isinstance(site.get("header"), dict) else None
@@ -295,7 +296,8 @@ def main():
             "time": time.strftime("%Y-%m-%d %H:%M:%S"),
             "unit": "KB/s",
             "source": "home broadband, measured by phone (single connection)",
-            "rank": [{"key": r["key"], "name": r["name"], "speed": r["speed"]}
+            "rank": [{"key": r["key"], "name": r["name"], "api": r.get("api", ""),
+                      "speed": r["speed"]}
                      for r in results if r.get("speed")],
         }
         code2 = push_file("home_speed_rank.json",
